@@ -125,4 +125,25 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
   }
+
+  // 5. Community Feedback Form Submission
+  const feedbackForm = document.getElementById('feedback-form');
+  const feedbackSuccess = document.getElementById('feedback-success');
+
+  if (feedbackForm) {
+    feedbackForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const author = document.getElementById('feedback-author').value;
+      const msg = document.getElementById('feedback-msg').value;
+
+      try {
+        const stored = JSON.parse(localStorage.getItem('antimagist_reviews') || '[]');
+        stored.push({ author, msg, time: new Date().toISOString() });
+        localStorage.setItem('antimagist_reviews', JSON.stringify(stored));
+      } catch (err) {}
+
+      feedbackForm.style.display = 'none';
+      feedbackSuccess.classList.remove('hidden');
+    });
+  }
 });

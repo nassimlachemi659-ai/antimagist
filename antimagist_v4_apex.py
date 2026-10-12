@@ -263,15 +263,15 @@ class AntimagistV4ApexApp(AntimagistV3App):
         )
         self.pill_gpu.pack(side="right", padx=(0, 6), pady=12)
 
-        # 7. Commercial License Status Button
+        # 7. Community Free Status Button
         st = self.license_manager.get_status_summary()
-        lic_txt = f"💎 {st['tier']}" if st['is_paid'] else f"⏳ TRIAL ({st['days_left']}d)"
-        lic_color = "#00FF9D" if st['is_paid'] else "#FBBF24"
+        lic_txt = "🛡️ FREE EDITION"
+        lic_color = "#00FF9D"
         self.btn_license = ctk.CTkButton(
             self.topbar, text=lic_txt,
             font=("Segoe UI", 10, "bold"), text_color="#000000",
             fg_color=lic_color, hover_color="#38BDF8",
-            height=32, width=105, corner_radius=8,
+            height=32, width=115, corner_radius=8,
             command=self._open_activation_dialog
         )
         self.btn_license.pack(side="right", padx=(0, 6), pady=12)
@@ -279,16 +279,16 @@ class AntimagistV4ApexApp(AntimagistV3App):
     def _open_activation_dialog(self):
         self.sfx.play_click()
         dlg = ctk.CTkToplevel(self)
-        dlg.title("Antimagist V5 — License Activation")
-        dlg.geometry("480x430")
+        dlg.title("Antimagist V5 — Community Edition")
+        dlg.geometry("480x420")
         dlg.resizable(False, False)
         dlg.transient(self)
         dlg.grab_set()
 
         st = self.license_manager.get_status_summary()
 
-        ctk.CTkLabel(dlg, text="🔑 COMMERCIAL LICENSE ACTIVATION", font=("Segoe UI", 14, "bold"), text_color="#00F0FF").pack(pady=(16, 4))
-        ctk.CTkLabel(dlg, text="HWID-Locked Zero-Trust Software Protection", font=("Segoe UI", 10), text_color="#94A3B8").pack(pady=(0, 10))
+        ctk.CTkLabel(dlg, text="🛡️ ANTIMAGIST COMMUNITY EDITION", font=("Segoe UI", 14, "bold"), text_color="#00F0FF").pack(pady=(16, 4))
+        ctk.CTkLabel(dlg, text="100% Free Forever • All Features Unlocked For Competitive Gamers", font=("Segoe UI", 10), text_color="#94A3B8").pack(pady=(0, 10))
 
         # HWID Display
         f_hw = ctk.CTkFrame(dlg, fg_color="#0F1320")
@@ -299,7 +299,7 @@ class AntimagistV4ApexApp(AntimagistV3App):
         # Current Status
         f_st = ctk.CTkFrame(dlg, fg_color="#0F1320")
         f_st.pack(fill="x", padx=20, pady=6)
-        ctk.CTkLabel(f_st, text=f"Current Status: {st['message']}", font=("Segoe UI", 11, "bold"), text_color="#00FF9D" if st["is_paid"] else "#FBBF24").pack(padx=12, pady=8)
+        ctk.CTkLabel(f_st, text="Status: 100% Free Community Edition (Unlocked)", font=("Segoe UI", 11, "bold"), text_color="#00FF9D").pack(padx=12, pady=8)
 
         # License Entry
         ctk.CTkLabel(dlg, text="Paste License Key (AM5-...):", font=("Segoe UI", 10, "bold"), text_color="#E2E8F0").pack(anchor="w", padx=20, pady=(6, 2))

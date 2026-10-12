@@ -40,14 +40,14 @@ Antimagist is built with **100% technical honesty**. We do not use fake marketin
 
 ---
 
-## 🔐 Commercial Licensing & Anti-Piracy Architecture
+## 🤝 100% Free Community Edition & Open Feedback
 
-Antimagist V5 includes an **enterprise cryptographic licensing engine**:
+Antimagist V5 Singularity is released **100% free for competitive gamers worldwide**. 
 
-- **Hardware ID (HWID) Binding:** Hashes Motherboard UUID, Windows Machine GUID, and CPU identifier into a deterministic SHA-256 fingerprint. Keys are cryptographically bound to the buyer's PC.
-- **Cryptographic Key Signing:** Signed using HMAC-SHA256 (`AM5-LIFE-...` or `AM5-SUB-...`).
-- **3-Day Free Trial:** Every new installation includes an unthrottled 72-hour trial.
-- **Admin Key Generator (`keygen_admin.py`):** Owner GUI and CLI tool to generate Lifetime (€10) or Monthly (€2) keys for buyers.
+We want to hear your real-world benchmarks, system feedback, and feature suggestions to continuously improve:
+- **Zero Paywalls:** All 15 optimization and defense subsystems are completely unlocked.
+- **Hardware Telemetry Feedback:** Test your FPS and ping stability across any GPU (NVIDIA RTX/GTX, AMD Radeon, Intel Arc) and share your results.
+- **Continuous Evolution:** Your comments and bug reports directly guide our upcoming updates.
 
 ---
 
@@ -111,8 +111,7 @@ Ran 17 tests in 8.281s — [SUCCESS] 100% OF TESTS PASSED WITH ZERO CRASHES.
 
 ---
 
-## 📄 License & Commercial Distribution
-
-- **Software Edition:** Antimagist V5 Singularity Commercial
-- **Pricing:** €2 / Month Subscription | €10 Lifetime License
-- **Support:** Discord VIP Support & 1-Click HWID Migration
+## 📄 Community Edition & Open Contribution
+- **Software Edition:** Antimagist V5 Singularity Community Edition (100% Free)
+- **License:** Free Community Access
+- **Feedback & Benchmarks:** Open an Issue on GitHub or join our community!

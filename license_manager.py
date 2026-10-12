@@ -118,20 +118,15 @@ class AntimagistLicenseManager:
             except Exception:
                 pass
 
-        trial_duration = 3 * 86400 # 3 Days (259,200 seconds)
-        expires_at = start_time + trial_duration
-        is_active = (now < expires_at)
-        days_left = max(0, int((expires_at - now) / 86400) + 1) if is_active else 0
-
         return {
-            "tier": "TRIAL",
-            "is_valid": is_active,
+            "tier": "FREE COMMUNITY",
+            "is_valid": True,
             "hwid": self.hwid,
             "activated_at": start_time,
-            "expires_at": expires_at,
-            "days_left": days_left,
-            "license_key": "TRIAL-MODE",
-            "message": f"3-Day Free Trial ({days_left} days remaining)" if is_active else "Trial Expired"
+            "expires_at": 9999999999,
+            "days_left": 9999,
+            "license_key": "COMMUNITY-EDITION-UNLOCKED",
+            "message": "Community Edition — 100% Free Forever"
         }
 
     def verify_license_data(self, data: Dict[str, Any]) -> Tuple[bool, str]:
@@ -223,16 +218,16 @@ class AntimagistLicenseManager:
     def get_status_summary(self) -> Dict[str, Any]:
         """Returns live licensing state for the UI."""
         info = self.license_info
-        is_paid = info.get("tier") in ("MONTHLY", "LIFETIME") and info.get("is_valid", False)
+        tier = info.get("tier", "FREE COMMUNITY")
         return {
-            "tier": info.get("tier", "TRIAL"),
-            "is_paid": is_paid,
-            "is_valid": info.get("is_valid", False),
+            "tier": tier,
+            "is_paid": True,
+            "is_valid": True,
             "hwid": self.hwid,
-            "license_key": info.get("license_key", "TRIAL-MODE"),
-            "expires_at": info.get("expires_at", 0),
-            "days_left": info.get("days_left", 3 if not is_paid else 999),
-            "message": info.get("message", "Trial Mode")
+            "license_key": info.get("license_key", "COMMUNITY-EDITION-UNLOCKED"),
+            "expires_at": info.get("expires_at", 9999999999),
+            "days_left": 9999,
+            "message": info.get("message", "Community Edition — 100% Free Forever")
         }
 
 
