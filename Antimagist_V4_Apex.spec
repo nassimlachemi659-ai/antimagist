@@ -6,7 +6,12 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[('antimagist.ico', '.')],
-    hiddenimports=['customtkinter', 'pystray', 'PIL', 'psutil', 'requests', 'qrcode', 'win32com.client', 'winreg', 'keyboard', 'winsound'],
+    hiddenimports=[
+        'customtkinter', 'pystray', 'PIL', 'psutil', 'requests', 'qrcode',
+        'win32com.client', 'winreg', 'keyboard', 'winsound', 'ctypes',
+        'display_reflex', 'audio_stripper', 'server_radar', 'benchmark_card', 'mod_guard',
+        'esports_profiles', 'frametime_sentinel', 'discord_webhook'
+    ],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

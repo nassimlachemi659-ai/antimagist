@@ -57,6 +57,11 @@ from license_manager import AntimagistLicenseManager
 from esports_profiles import AntimagistEsportsProfiler
 from frametime_sentinel import AntimagistFrametimeSentinel
 from discord_webhook import AntimagistDiscordWebhook
+from display_reflex import AntimagistDisplayReflex
+from audio_stripper import AntimagistAudioStripper
+from server_radar import AntimagistServerRadar
+from benchmark_card import AntimagistBenchmarkCard
+from mod_guard import AntimagistModGuard
 
 # Ensure UTF-8 console output
 if hasattr(sys.stdout, "reconfigure"):
@@ -67,10 +72,10 @@ if hasattr(sys.stdout, "reconfigure"):
 
 
 class AntimagistV4ApexApp(AntimagistV3App):
-    """Antimagist Enterprise Security Version 5 (Singularity Edition)."""
+    """Antimagist Enterprise Security Version 6 (Zenith Edition)."""
 
     def __init__(self):
-        # 1. Initialize Core V4/V5 Subsystems
+        # 1. Initialize Core V4/V5/V6 Subsystems
         self.voice = AntimagistVoiceCopilot(enabled=True)
         self.sfx = AntimagistSoundFX(enabled=True)
         self.core_director = AntimagistCoreDirector()
@@ -82,12 +87,17 @@ class AntimagistV4ApexApp(AntimagistV3App):
         self.esports_profiler = AntimagistEsportsProfiler()
         self.frametime_sentinel = AntimagistFrametimeSentinel()
         self.discord_webhook = AntimagistDiscordWebhook()
+        self.display_reflex = AntimagistDisplayReflex()
+        self.audio_stripper = AntimagistAudioStripper()
+        self.server_radar = AntimagistServerRadar()
+        self.benchmark_card = AntimagistBenchmarkCard()
+        self.mod_guard = AntimagistModGuard()
 
         # Call base constructor
         super().__init__()
 
         # Update window title
-        self.title("Antimagist — Enterprise Security V5 Singularity Edition")
+        self.title("Antimagist — Enterprise Security V6 Zenith Edition")
 
         # 2. Initialize Discord Rich Presence Client
         self.discord_rpc = AntimagistDiscordRPC()
@@ -367,6 +377,11 @@ class AntimagistV4ApexApp(AntimagistV3App):
         v5_nav_items = [
             ("📊 Dashboard",        "dash",       self.show_dashboard_pane),
             ("🎮 Esports Vault",    "esports",    self.show_esports_pane),
+            ("🖥️ Display Reflex",    "reflex",     self.show_display_reflex_pane),
+            ("🎧 Audio Stripper",    "audio",      self.show_audio_stripper_pane),
+            ("🌐 Server Radar",      "radar",      self.show_server_radar_pane),
+            ("🖼️ Benchmark Card",    "card",       self.show_benchmark_card_pane),
+            ("🛡️ Mod Guard",         "modguard",   self.show_mod_guard_pane),
             ("🎯 CS2 Tuner",         "cs2",        self.show_cs2_pane),
             ("⚡ Latency Stripper",  "stripper",   self.show_stripper_pane),
             ("📈 Match History",     "analytics",  self.show_analytics_pane),
@@ -1268,6 +1283,470 @@ class AntimagistV4ApexApp(AntimagistV3App):
         threading.Thread(target=worker, daemon=True).start()
 
     # ========================================================================
+    # V6 PILLAR 1: DISPLAY REFLEX & DIRECTFLIP ENGINE
+    # ========================================================================
+    def show_display_reflex_pane(self):
+        self._highlight_nav("reflex")
+        self.clear_container()
+
+        pane = ctk.CTkFrame(self.container, fg_color="transparent")
+        pane.grid(row=0, column=0, sticky="nsew", padx=30, pady=20)
+        pane.grid_columnconfigure((0, 1), weight=1)
+        pane.grid_rowconfigure(1, weight=1)
+
+        # Header Title
+        head = ctk.CTkFrame(pane, fg_color="transparent")
+        head.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 15))
+        ctk.CTkLabel(head, text="Display Reflex & DirectFlip Presentation Engine", font=("Segoe UI", 24, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w")
+        ctk.CTkLabel(head, text="Bypass DWM hybrid compositor, audit HAGS, and enforce true independent DirectFlip presentation", font=("Segoe UI", 12), text_color=COLOR_TEXT_MUTED).pack(anchor="w")
+
+        # Left Card: Live Display Telemetry
+        left_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        left_card.grid(row=1, column=0, sticky="nsew", padx=(0, 10))
+
+        tel = self.display_reflex.get_display_telemetry()
+        ctk.CTkLabel(left_card, text="Win32 Display & Compositor Telemetry", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        f_stat = ctk.CTkFrame(left_card, fg_color="#0A0C14", corner_radius=10, border_color=COLOR_BORDER, border_width=1)
+        f_stat.pack(fill="x", padx=16, pady=(0, 14))
+
+        hz_color = COLOR_EMERALD if tel["refresh_rate_hz"] >= 144 else COLOR_CYAN
+        pills = [
+            ("Native Resolution & Hz", f"{tel['resolution']} @ {tel['refresh_rate_hz']}Hz", hz_color),
+            ("Color Bit Depth", f"{tel['color_depth_bpp']}-bit TrueColor", COLOR_TEXT_PRIMARY),
+            ("HAGS GPU Scheduling", "ENABLED (Hardware Scheduled)" if tel["hags_enabled"] else "DISABLED (Standard OS Queue)", COLOR_EMERALD if tel["hags_enabled"] else COLOR_AMBER),
+            ("DirectFlip Presentation", "OPTIMIZED (Direct MPO Bypass)" if tel["directflip_optimized"] else "STANDARD (Windowed Blt Mode)", COLOR_EMERALD if tel["directflip_optimized"] else COLOR_CRIMSON),
+            ("Display Tier Classification", tel["display_classification"], COLOR_CYAN)
+        ]
+        for title, val, col in pills:
+            r = ctk.CTkFrame(f_stat, fg_color="transparent")
+            r.pack(fill="x", padx=10, pady=5)
+            ctk.CTkLabel(r, text=title, font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+            ctk.CTkLabel(r, text=val, font=("Consolas", 10, "bold"), text_color=col).pack(side="right")
+
+        ctk.CTkButton(
+            left_card, text="⚡ Enforce DirectFlip Presentation (0 DWM Latency)", font=("Segoe UI", 13, "bold"),
+            fg_color="#00FF9D", hover_color="#00D480", text_color="#000000",
+            height=44, corner_radius=10, command=self._apply_directflip_tuning
+        ).pack(fill="x", padx=16, pady=6)
+
+        ctk.CTkButton(
+            left_card, text="🔄 Restore Windows Display Defaults", font=("Segoe UI", 11),
+            fg_color="#1E293B", hover_color="#334155", text_color=COLOR_TEXT_MUTED,
+            height=34, corner_radius=8, command=self._restore_display_defaults
+        ).pack(fill="x", padx=16, pady=(6, 16))
+
+        # Right Card: Technical Mechanics
+        right_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        right_card.grid(row=1, column=1, sticky="nsew", padx=(10, 0))
+
+        ctk.CTkLabel(right_card, text="Presentation Pipeline Architecture", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 10))
+
+        breakdowns = [
+            ("🖥️ DirectFlip & Multi-Plane Overlay (MPO)", "In standard windowed mode, Windows Desktop Window Manager copies frames via BitBlt, adding 1-2 frames of compositor delay. DirectFlip hands the game buffer straight to the display scanout hardware."),
+            ("⚙️ Hardware Accelerated GPU Scheduling (HAGS)", "Offloads frame command scheduling from the CPU to dedicated GPU microcode. Essential for high refresh rate monitors (144Hz - 360Hz) to eliminate CPU submission bottlenecks."),
+            ("🎯 Fullscreen Optimization (FSO) Bypass", "Windows 10/11 injects hybrid overlays that can cause frametime jitter. Antimagist enforces true independent flip while retaining quick Alt-Tab responsiveness.")
+        ]
+        for t, d in breakdowns:
+            bx = ctk.CTkFrame(right_card, fg_color="#0A0C14", corner_radius=8, border_color=COLOR_BORDER, border_width=1)
+            bx.pack(fill="x", padx=16, pady=4)
+            ctk.CTkLabel(bx, text=t, font=("Segoe UI", 11, "bold"), text_color=COLOR_CYAN).pack(anchor="w", padx=10, pady=(6, 2))
+            ctk.CTkLabel(bx, text=d, font=("Segoe UI", 10), text_color=COLOR_TEXT_MUTED, wraplength=400, justify="left").pack(anchor="w", padx=10, pady=(0, 6))
+
+    def _apply_directflip_tuning(self):
+        ok, msg = self.display_reflex.optimize_directflip_presentation()
+        self.sfx.play_success()
+        self.show_toast_msg(msg)
+        self.show_display_reflex_pane()
+
+    def _restore_display_defaults(self):
+        ok, msg = self.display_reflex.restore_display_defaults()
+        self.sfx.play_click()
+        self.show_toast_msg(msg)
+        self.show_display_reflex_pane()
+
+    # ========================================================================
+    # V6 PILLAR 2: ESPORTS AUDIO STRIPPER ENGINE
+    # ========================================================================
+    def show_audio_stripper_pane(self):
+        self._highlight_nav("audio")
+        self.clear_container()
+
+        pane = ctk.CTkFrame(self.container, fg_color="transparent")
+        pane.grid(row=0, column=0, sticky="nsew", padx=30, pady=20)
+        pane.grid_columnconfigure((0, 1), weight=1)
+        pane.grid_rowconfigure(1, weight=1)
+
+        head = ctk.CTkFrame(pane, fg_color="transparent")
+        head.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 15))
+        ctk.CTkLabel(head, text="Esports Low-Latency Audio Stream Stripper", font=("Segoe UI", 24, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w")
+        ctk.CTkLabel(head, text="Isolate audiodg.exe to a dedicated physical P-Core with High Priority to eliminate audio buffer underruns", font=("Segoe UI", 12), text_color=COLOR_TEXT_MUTED).pack(anchor="w")
+
+        # Left Card: Audio Engine Status
+        left_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        left_card.grid(row=1, column=0, sticky="nsew", padx=(0, 10))
+
+        astat = self.audio_stripper.get_audio_status()
+        ctk.CTkLabel(left_card, text="Windows Audio Graph Isolation (audiodg.exe)", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        f_stat = ctk.CTkFrame(left_card, fg_color="#0A0C14", corner_radius=10, border_color=COLOR_BORDER, border_width=1)
+        f_stat.pack(fill="x", padx=16, pady=(0, 14))
+
+        rec_core = astat.get("recommended_affinity_core", 2)
+        pills = [
+            ("audiodg.exe Process State", astat["status_text"], COLOR_EMERALD if astat["audiodg_running"] else COLOR_AMBER),
+            ("Active Audio Graph Instances", f"{len(astat['running_instances'])} Process(es)", COLOR_CYAN),
+            ("Recommended Dedicated Core", f"Core {rec_core} (Physical P-Core)", COLOR_EMERALD),
+            ("Process Priority Target", "HIGH_PRIORITY_CLASS (No Starvation)", COLOR_CYAN)
+        ]
+        for title, val, col in pills:
+            r = ctk.CTkFrame(f_stat, fg_color="transparent")
+            r.pack(fill="x", padx=10, pady=5)
+            ctk.CTkLabel(r, text=title, font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+            ctk.CTkLabel(r, text=val, font=("Consolas", 10, "bold"), text_color=col).pack(side="right")
+
+        ctk.CTkButton(
+            left_card, text=f"⚡ Pin audiodg.exe to Dedicated Core {rec_core}", font=("Segoe UI", 13, "bold"),
+            fg_color="#00FF9D", hover_color="#00D480", text_color="#000000",
+            height=44, corner_radius=10, command=lambda: self._apply_audio_affinity(rec_core)
+        ).pack(fill="x", padx=16, pady=6)
+
+        ctk.CTkButton(
+            left_card, text="🔄 Restore Default Multi-Core Audio Scheduling", font=("Segoe UI", 11),
+            fg_color="#1E293B", hover_color="#334155", text_color=COLOR_TEXT_MUTED,
+            height=34, corner_radius=8, command=self._restore_audio_affinity
+        ).pack(fill="x", padx=16, pady=(6, 16))
+
+        # Right Card: Audio Latency Explanation
+        right_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        right_card.grid(row=1, column=1, sticky="nsew", padx=(10, 0))
+
+        ctk.CTkLabel(right_card, text="Why Audio Isolation Wins Matches", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 10))
+
+        explanations = [
+            ("🎧 Footstep Audio Latency in CS2 & Valorant", "Windows audio processing shares CPU cores with game rendering threads. In heavy firefights or smoke grenade rendering, audio buffers starve, causing footstep cues to lag behind by 20-50ms."),
+            ("🛡️ audiodg.exe Physical P-Core Isolation", "Binding the audio pipeline exclusively to an isolated physical P-Core guarantees real-time buffer processing with zero context-switching contention."),
+            ("⏱️ DPC Latency & Buffer Underruns", "Elevating audiodg.exe to High Priority Class completely prevents audio pop, crackle, and micro-stutter when your GPU operates at 99% utilization.")
+        ]
+        for t, d in explanations:
+            bx = ctk.CTkFrame(right_card, fg_color="#0A0C14", corner_radius=8, border_color=COLOR_BORDER, border_width=1)
+            bx.pack(fill="x", padx=16, pady=4)
+            ctk.CTkLabel(bx, text=t, font=("Segoe UI", 11, "bold"), text_color=COLOR_CYAN).pack(anchor="w", padx=10, pady=(6, 2))
+            ctk.CTkLabel(bx, text=d, font=("Segoe UI", 10), text_color=COLOR_TEXT_MUTED, wraplength=400, justify="left").pack(anchor="w", padx=10, pady=(0, 6))
+
+    def _apply_audio_affinity(self, core_idx: int):
+        ok, msg = self.audio_stripper.optimize_audio_stream(core_idx)
+        self.sfx.play_success()
+        self.show_toast_msg(msg)
+        self.show_audio_stripper_pane()
+
+    def _restore_audio_affinity(self):
+        ok, msg = self.audio_stripper.restore_audio_defaults()
+        self.sfx.play_click()
+        self.show_toast_msg(msg)
+        self.show_audio_stripper_pane()
+
+    # ========================================================================
+    # V6 PILLAR 3: GLOBAL MATCHMAKING SERVER RADAR
+    # ========================================================================
+    def show_server_radar_pane(self):
+        self._highlight_nav("radar")
+        self.clear_container()
+
+        pane = ctk.CTkFrame(self.container, fg_color="transparent")
+        pane.grid(row=0, column=0, sticky="nsew", padx=30, pady=20)
+        pane.grid_columnconfigure((0, 1), weight=1)
+        pane.grid_rowconfigure(2, weight=1)
+
+        head = ctk.CTkFrame(pane, fg_color="transparent")
+        head.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 15))
+        ctk.CTkLabel(head, text="Global Game Server Matchmaking Radar", font=("Segoe UI", 24, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w")
+        ctk.CTkLabel(head, text="Real-time pre-queue latency benchmarks across major competitive matchmaking datacenters and gaming DNS", font=("Segoe UI", 12), text_color=COLOR_TEXT_MUTED).pack(anchor="w")
+
+        # Top summary bar
+        top_bar = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        top_bar.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(0, 12), ipady=6)
+        top_bar.grid_columnconfigure((0, 1, 2), weight=1)
+
+        cached = self.server_radar.cached_results or self.server_radar.scan_all_regions()
+        ctk.CTkLabel(top_bar, text=f"BEST MATCHMAKING CLUSTER\n{cached.get('best_datacenter', 'EU Central')}", font=("Segoe UI", 11, "bold"), text_color=COLOR_EMERALD).grid(row=0, column=0)
+        ctk.CTkLabel(top_bar, text=f"OPTIMAL TCP PING\n{cached.get('best_ping_ms', 0)} ms", font=("Segoe UI", 11, "bold"), text_color=COLOR_CYAN).grid(row=0, column=1)
+
+        best_dns = cached.get("dns", [{}])[0].get("name", "Cloudflare DNS") if cached.get("dns") else "Cloudflare DNS"
+        best_dns_ping = cached.get("dns", [{}])[0].get("ping_ms", 4.2) if cached.get("dns") else 4.2
+        ctk.CTkLabel(top_bar, text=f"RECOMMENDED GAMING DNS\n{best_dns} ({best_dns_ping} ms)", font=("Segoe UI", 11, "bold"), text_color=COLOR_AMBER).grid(row=0, column=2)
+
+        # Left Column: Datacenters Table
+        left_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        left_card.grid(row=2, column=0, sticky="nsew", padx=(0, 10))
+
+        lh = ctk.CTkFrame(left_card, fg_color="transparent")
+        lh.pack(fill="x", padx=16, pady=(14, 8))
+        ctk.CTkLabel(lh, text="Regional Competitive Datacenters", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+
+        ctk.CTkButton(
+            lh, text="🔄 Refresh Radar", font=("Segoe UI", 10, "bold"),
+            fg_color="#00FF9D", hover_color="#00D480", text_color="#000000",
+            height=28, width=110, corner_radius=6, command=self._refresh_radar_data
+        ).pack(side="right")
+
+        scroll_srv = ctk.CTkScrollableFrame(left_card, fg_color="transparent")
+        scroll_srv.pack(fill="both", expand=True, padx=12, pady=(0, 12))
+
+        for srv in cached.get("servers", []):
+            row = ctk.CTkFrame(scroll_srv, fg_color="#0A0C14", corner_radius=8)
+            row.pack(fill="x", pady=3)
+            ctk.CTkLabel(row, text=f"{srv['flag']} {srv['name']}", font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left", padx=10, pady=8)
+            col = COLOR_EMERALD if srv["ping_ms"] < 35 else (COLOR_AMBER if srv["ping_ms"] < 70 else COLOR_CRIMSON)
+            ctk.CTkLabel(row, text=f"{srv['ping_ms']} ms", font=("Consolas", 11, "bold"), text_color=col).pack(side="right", padx=10)
+
+        # Right Column: DNS Resolvers & Jitter
+        right_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        right_card.grid(row=2, column=1, sticky="nsew", padx=(10, 0))
+
+        ctk.CTkLabel(right_card, text="Gaming DNS Resolvers & Latency", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(14, 8))
+
+        scroll_dns = ctk.CTkScrollableFrame(right_card, fg_color="transparent")
+        scroll_dns.pack(fill="both", expand=True, padx=12, pady=(0, 12))
+
+        for d in cached.get("dns", []):
+            row = ctk.CTkFrame(scroll_dns, fg_color="#0A0C14", corner_radius=8)
+            row.pack(fill="x", pady=4)
+            ctk.CTkLabel(row, text=f"🌐 {d['name']}", font=("Segoe UI", 11, "bold"), text_color=COLOR_CYAN if d.get("is_recommended") else COLOR_TEXT_PRIMARY).pack(side="left", padx=10, pady=8)
+            tag = " [FASTEST]" if d.get("is_recommended") else ""
+            ctk.CTkLabel(row, text=f"{d['ping_ms']} ms{tag}", font=("Consolas", 11, "bold"), text_color=COLOR_EMERALD if d.get("is_recommended") else COLOR_TEXT_MUTED).pack(side="right", padx=10)
+
+    def _refresh_radar_data(self):
+        self.sfx.play_click()
+        def worker():
+            self.server_radar.scan_all_regions()
+            self.after(0, self.show_server_radar_pane)
+        threading.Thread(target=worker, daemon=True).start()
+
+    # ========================================================================
+    # V6 PILLAR 4: CYBERPUNK BENCHMARK CARD GENERATOR
+    # ========================================================================
+    def show_benchmark_card_pane(self):
+        self._highlight_nav("card")
+        self.clear_container()
+
+        pane = ctk.CTkFrame(self.container, fg_color="transparent")
+        pane.grid(row=0, column=0, sticky="nsew", padx=30, pady=20)
+        pane.grid_columnconfigure((0, 1), weight=1)
+        pane.grid_rowconfigure(1, weight=1)
+
+        head = ctk.CTkFrame(pane, fg_color="transparent")
+        head.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 15))
+        ctk.CTkLabel(head, text="Cyberpunk PNG Benchmark Card Generator", font=("Segoe UI", 24, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w")
+        ctk.CTkLabel(head, text="Generate esports-grade 1200x675 system telemetry cards with SHA-256 authentic hardware verification", font=("Segoe UI", 12), text_color=COLOR_TEXT_MUTED).pack(anchor="w")
+
+        # Left Card: Configuration & Generate
+        left_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        left_card.grid(row=1, column=0, sticky="nsew", padx=(0, 10))
+
+        ctk.CTkLabel(left_card, text="Benchmark Card Configuration", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        ctk.CTkLabel(left_card, text="Player / Rig Call-Sign:", font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_MUTED).pack(anchor="w", padx=16, pady=(6, 2))
+        self.ent_card_tag = ctk.CTkEntry(left_card, font=("Segoe UI", 12), height=38, fg_color="#0A0C14", border_color=COLOR_BORDER)
+        self.ent_card_tag.pack(fill="x", padx=16, pady=(0, 12))
+        self.ent_card_tag.insert(0, "Apex Predator // Rig-01")
+
+        ctk.CTkButton(
+            left_card, text="🎨 Generate 1200x675 Cyberpunk Card", font=("Segoe UI", 13, "bold"),
+            fg_color="#00FF9D", hover_color="#00D480", text_color="#000000",
+            height=44, corner_radius=10, command=self._generate_benchmark_card
+        ).pack(fill="x", padx=16, pady=6)
+
+        ctk.CTkButton(
+            left_card, text="📂 Open Generated Card in Viewer", font=("Segoe UI", 11),
+            fg_color="#1E293B", hover_color="#334155", text_color=COLOR_TEXT_PRIMARY,
+            height=34, corner_radius=8, command=self._open_benchmark_card
+        ).pack(fill="x", padx=16, pady=(6, 16))
+
+        # Status output
+        self.lbl_card_status = ctk.CTkLabel(left_card, text="Ready to render authentic telemetry card.", font=("Consolas", 10), text_color=COLOR_CYAN)
+        self.lbl_card_status.pack(padx=16, pady=8)
+
+        # Right Card: Feature Highlights
+        right_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        right_card.grid(row=1, column=1, sticky="nsew", padx=(10, 0))
+
+        ctk.CTkLabel(right_card, text="Authentic Telemetry Standard", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 10))
+
+        highlights = [
+            ("🛡️ Cryptographic SHA-256 Fingerprint", "Every card embeds a hardware verification hash generated from your physical GPU, CPU topology, and display refresh rate. Guaranteed 100% genuine."),
+            ("🌌 Ultra-High Definition 1200x675 16:9", "Perfect resolution for sharing your competitive setup on Discord, Twitter / X, or Reddit."),
+            ("⚡ Universal Hardware Telemetry", "Accurately represents NVIDIA GeForce, AMD Radeon, and Intel Arc GPUs, high refresh rates (up to 360Hz+), and sub-tick network latencies.")
+        ]
+        for t, d in highlights:
+            bx = ctk.CTkFrame(right_card, fg_color="#0A0C14", corner_radius=8, border_color=COLOR_BORDER, border_width=1)
+            bx.pack(fill="x", padx=16, pady=4)
+            ctk.CTkLabel(bx, text=t, font=("Segoe UI", 11, "bold"), text_color=COLOR_CYAN).pack(anchor="w", padx=10, pady=(6, 2))
+            ctk.CTkLabel(bx, text=d, font=("Segoe UI", 10), text_color=COLOR_TEXT_MUTED, wraplength=400, justify="left").pack(anchor="w", padx=10, pady=(0, 6))
+
+    def _generate_benchmark_card(self):
+        self.sfx.play_click()
+        tag = self.ent_card_tag.get().strip() or "Apex Predator // Rig-01"
+        out_p = os.path.join(os.environ.get("USERPROFILE", "."), "Pictures", "Antimagist_Benchmark_Card.png")
+        if not os.path.exists(os.path.dirname(out_p)):
+            out_p = "benchmark_card.png"
+
+        try:
+            saved_p = self.benchmark_card.generate_card(out_p, player_tag=tag)
+            self.sfx.play_success()
+            self.lbl_card_status.configure(text=f"Card saved: {os.path.basename(saved_p)}", text_color=COLOR_EMERALD)
+            self.show_toast_msg("Cyberpunk Benchmark Card generated successfully!")
+        except Exception as ex:
+            self.lbl_card_status.configure(text=f"Error: {ex}", text_color=COLOR_CRIMSON)
+
+    def _open_benchmark_card(self):
+        out_p = os.path.join(os.environ.get("USERPROFILE", "."), "Pictures", "Antimagist_Benchmark_Card.png")
+        if not os.path.exists(out_p):
+            out_p = "benchmark_card.png"
+        if os.path.exists(out_p):
+            os.startfile(out_p)
+        else:
+            self.show_toast_msg("Please generate a benchmark card first.")
+
+    # ========================================================================
+    # V6 PILLAR 5: MOD & CONFIG HEURISTIC GUARD
+    # ========================================================================
+    def show_mod_guard_pane(self):
+        self._highlight_nav("modguard")
+        self.clear_container()
+
+        pane = ctk.CTkFrame(self.container, fg_color="transparent")
+        pane.grid(row=0, column=0, sticky="nsew", padx=30, pady=20)
+        pane.grid_columnconfigure((0, 1), weight=1)
+        pane.grid_rowconfigure(1, weight=1)
+
+        head = ctk.CTkFrame(pane, fg_color="transparent")
+        head.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 15))
+        ctk.CTkLabel(head, text="Mod & Config Heuristic Guard", font=("Segoe UI", 24, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w")
+        ctk.CTkLabel(head, text="Scan downloaded autoexecs, FPS booster scripts, and community mods for hidden Discord webhooks & token stealers", font=("Segoe UI", 12), text_color=COLOR_TEXT_MUTED).pack(anchor="w")
+
+        # Left Card: Target Selector & Controls
+        left_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        left_card.grid(row=1, column=0, sticky="nsew", padx=(0, 10))
+
+        ctk.CTkLabel(left_card, text="Target File / Directory Scanner", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        # Path Entry
+        f_p = ctk.CTkFrame(left_card, fg_color="transparent")
+        f_p.pack(fill="x", padx=16, pady=4)
+        self.ent_mod_target = ctk.CTkEntry(f_p, font=("Segoe UI", 11), height=36, placeholder_text="Select autoexec.cfg, script.bat, or mod directory...", fg_color="#0A0C14", border_color=COLOR_BORDER)
+        self.ent_mod_target.pack(side="left", fill="x", expand=True, padx=(0, 6))
+
+        ctk.CTkButton(
+            f_p, text="📂 Browse", width=80, height=36, font=("Segoe UI", 11, "bold"),
+            fg_color="#1E293B", hover_color="#334155", text_color=COLOR_TEXT_PRIMARY,
+            command=self._browse_mod_target
+        ).pack(side="right")
+
+        # Action Buttons
+        ctk.CTkButton(
+            left_card, text="🔍 Run Heuristic Threat Scan", font=("Segoe UI", 13, "bold"),
+            fg_color="#00FF9D", hover_color="#00D480", text_color="#000000",
+            height=44, corner_radius=10, command=self._run_mod_guard_scan
+        ).pack(fill="x", padx=16, pady=6)
+
+        ctk.CTkButton(
+            left_card, text="🛡️ Sanitize & Neutralize Threats Safely", font=("Segoe UI", 12, "bold"),
+            fg_color="#A855F7", hover_color="#9333EA", text_color="#FFFFFF",
+            height=38, corner_radius=8, command=self._sanitize_mod_file
+        ).pack(fill="x", padx=16, pady=(6, 12))
+
+        # Verdict Display
+        self.lbl_mod_verdict = ctk.CTkLabel(left_card, text="STATUS: STANDING BY", font=("Segoe UI", 12, "bold"), text_color=COLOR_CYAN)
+        self.lbl_mod_verdict.pack(padx=16, pady=4)
+
+        # Right Card: Scan Results / Log Box
+        right_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        right_card.grid(row=1, column=1, sticky="nsew", padx=(10, 0))
+        right_card.grid_columnconfigure(0, weight=1)
+        right_card.grid_rowconfigure(1, weight=1)
+
+        ctk.CTkLabel(right_card, text="Heuristic Forensics & Threat Log", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).grid(row=0, column=0, sticky="w", padx=16, pady=(16, 8))
+
+        self.txt_mod_log = ctk.CTkTextbox(right_card, font=("Consolas", 10), fg_color="#0A0C14", text_color=COLOR_TEXT_PRIMARY, corner_radius=8)
+        self.txt_mod_log.grid(row=1, column=0, sticky="nsew", padx=16, pady=(0, 16))
+        self.txt_mod_log.insert("end", "[*] Antimagist Mod Guard Engine ready.\n[*] Select any .cfg, .bat, .ps1, or .lua script to audit.\n")
+
+    def _browse_mod_target(self):
+        f = filedialog.askopenfilename(
+            title="Select Game Config or Mod Script",
+            filetypes=[("Supported Game Files", "*.cfg;*.bat;*.cmd;*.ps1;*.lua;*.ini;*.txt"), ("All Files", "*.*")]
+        )
+        if f:
+            self.ent_mod_target.delete(0, "end")
+            self.ent_mod_target.insert(0, f)
+
+    def _run_mod_guard_scan(self):
+        self.sfx.play_click()
+        target = self.ent_mod_target.get().strip()
+        if not target or not os.path.exists(target):
+            self.show_toast_msg("Please specify a valid file or folder to scan.")
+            return
+
+        def worker():
+            if os.path.isdir(target):
+                res = self.mod_guard.scan_directory(target)
+                def update_dir():
+                    self.txt_mod_log.delete("1.0", "end")
+                    self.txt_mod_log.insert("end", f"=== DIRECTORY SCAN SUMMARY ===\n")
+                    self.txt_mod_log.insert("end", f"• Target: {res['directory']}\n")
+                    self.txt_mod_log.insert("end", f"• Scanned: {res['scanned_files']} files\n")
+                    self.txt_mod_log.insert("end", f"• Result: {res['threat_summary']}\n\n")
+                    for finding in res.get("findings", []):
+                        self.txt_mod_log.insert("end", f"[{finding['verdict']}] {finding['file_name']} (Score: {finding['threat_score']})\n")
+                        for d in finding["detections"]:
+                            self.txt_mod_log.insert("end", f"    Line {d['line']}: {d['description']}\n")
+                    self.txt_mod_log.see("end")
+                    if res["malicious_files"] > 0:
+                        self.lbl_mod_verdict.configure(text=f"VERDICT: {res['malicious_files']} MALICIOUS THREATS DETECTED", text_color=COLOR_CRIMSON)
+                    else:
+                        self.lbl_mod_verdict.configure(text="VERDICT: ALL SCANNED FILES CLEAN", text_color=COLOR_EMERALD)
+                self.after(0, update_dir)
+            else:
+                res = self.mod_guard.scan_file(target)
+                def update_file():
+                    self.txt_mod_log.delete("1.0", "end")
+                    self.txt_mod_log.insert("end", f"=== FILE FORENSICS AUDIT ===\n")
+                    self.txt_mod_log.insert("end", f"• File: {res['file_name']}\n")
+                    self.txt_mod_log.insert("end", f"• Size: {res.get('file_size_bytes', 0)} bytes | SHA256: {res['sha256'][:16]}...\n")
+                    self.txt_mod_log.insert("end", f"• Threat Score: {res['threat_score']}/100\n")
+                    self.txt_mod_log.insert("end", f"• Verdict: {res['verdict']}\n\n")
+                    if res.get("detections"):
+                        self.txt_mod_log.insert("end", f"--- DETECTIONS ({len(res['detections'])}) ---\n")
+                        for d in res["detections"]:
+                            self.txt_mod_log.insert("end", f"• Line {d['line']} [{d['severity']}]: {d['description']}\n")
+                            self.txt_mod_log.insert("end", f"  Snippet: {d['snippet']}\n")
+                    else:
+                        self.txt_mod_log.insert("end", "[✓] Zero malicious hooks, download cradles, or webhooks found.\n")
+                    self.txt_mod_log.see("end")
+
+                    col = COLOR_EMERALD if res["verdict"] == "SAFE" else (COLOR_AMBER if res["verdict"] == "SUSPICIOUS" else COLOR_CRIMSON)
+                    self.lbl_mod_verdict.configure(text=f"VERDICT: {res['verdict']} (Score: {res['threat_score']})", text_color=col)
+                self.after(0, update_file)
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _sanitize_mod_file(self):
+        target = self.ent_mod_target.get().strip()
+        if not target or not os.path.isfile(target):
+            self.show_toast_msg("Please specify a valid file to sanitize.")
+            return
+
+        ok, msg = self.mod_guard.sanitize_file(target)
+        if ok:
+            self.sfx.play_success()
+            self.show_toast_msg(msg)
+            self._run_mod_guard_scan()
+        else:
+            self.sfx.play_alarm()
+            self.show_toast_msg(f"Failed: {msg}")
+
+    # ========================================================================
     # TELEMETRY LOOP WITH REAL-TIME GPU & DISCORD STATUS POLLING
     # ========================================================================
     def _poll_telemetry_loop(self):
@@ -1292,7 +1771,7 @@ class AntimagistV4ApexApp(AntimagistV3App):
                 # Periodic Discord Presence refresh (every ~15s)
                 if hasattr(self, "discord_rpc") and self.discord_rpc.is_connected:
                     self.discord_rpc.update_presence(
-                        details="Protected by Antimagist V5 Singularity",
+                        details="Protected by Antimagist V6 Zenith",
                         state=f"{gm['gpu_name'][:12]} ({gm['temperature_c']}°C) | Protected"
                     )
             except Exception:
