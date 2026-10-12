@@ -28,4 +28,4 @@ jobs:
 
       - name: Execute Antimagist Master Verification Suite
         run: |
-          python test_master_v5_suite.py
+          python test_master_v6_suite.py
