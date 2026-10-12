@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Antimagist V5 Singularity — Transparent Esports Latency Stripper & Kernel Defense</title>
+  <meta name="description" content="Honest, professional Windows gaming latency stripper and system optimizer. Disables network packet buffering, flushes standby RAM, sets CPU P-Core thread affinity, and provides 100% anti-cheat safe HUD telemetry.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="dark-theme">
+  <!-- Ambient Glows -->
+  <div class="ambient-glow cyan-glow"></div>
+  <div class="ambient-glow purple-glow"></div>
+
+  <!-- Header / Navigation -->
+  <header class="site-header">
+    <div class="container nav-container">
+      <a href="#" class="brand-logo">
+        <span class="logo-shield">🛡️</span>
+        <div class="logo-text">
+          <span class="brand-name">ANTIMAGIST</span>
+          <span class="brand-badge">V5 SINGULARITY</span>
+        </div>
+      </a>
+
+      <nav class="main-nav" aria-label="Main Navigation">
+        <a href="#how-it-works" class="nav-link">How It Works</a>
+        <a href="#features" class="nav-link">Features</a>
+        <a href="#transparency" class="nav-link">100% Transparency</a>
+        <a href="#pricing" class="nav-link">Pricing</a>
+        <a href="#faq" class="nav-link">FAQ</a>
+      </nav>
+
+      <div class="nav-actions">
+        <div class="live-status-pill">
+          <span class="pulse-dot"></span>
+          <span class="status-text">ALL GPUS & CPUS SUPPORTED</span>
+        </div>
+        <a href="#pricing" class="btn btn-primary btn-sm">Get License</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="container hero-grid">
+        <div class="hero-content">
+          <div class="pill-tag">
+            <span class="tag-icon">⚖️</span>
+            <span>HONEST • TRANSPARENT • ZERO-BLOATWARE</span>
+          </div>
+          <h1 class="hero-title">
+            The Truthful<br>
+            <span class="gradient-text">Latency Stripper</span><br>
+            For Competitive Gamers.
+          </h1>
+          <p class="hero-subtitle">
+            No exaggerated marketing. No fake FPS miracles. Antimagist V5 applies verified, 
+            documented Windows kernel and network adjustments: disabling packet queue buffering, 
+            flushing inactive standby RAM, and locking game threads to high-performance CPU cores.
+          </p>
+
+          <div class="hero-cta-group">
+            <a href="#pricing" class="btn btn-primary btn-lg">
+              <span>Unlock Singularity — Just €2/mo or €10 Lifetime</span>
+              <span class="btn-arrow">→</span>
+            </a>
+            <button id="btn-demo-telemetry" class="btn btn-secondary btn-lg">
+              <span>⚡ Simulate Windows Optimization</span>
+            </button>
+          </div>
+
+          <div class="trust-metrics">
+            <div class="metric-item">
+              <span class="metric-val">100%</span>
+              <span class="metric-label">Honest Engineering</span>
+            </div>
+            <div class="metric-divider"></div>
+            <div class="metric-item">
+              <span class="metric-val">0 DLL</span>
+              <span class="metric-label">Anti-Cheat Safe (Zero Hooks)</span>
+            </div>
+            <div class="metric-divider"></div>
+            <div class="metric-item">
+              <span class="metric-val">1-Click</span>
+              <span class="metric-label">Full Registry Rollback</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hero Telemetry Terminal Card -->
+        <div class="hero-visual">
+          <div class="terminal-card glass-panel">
+            <div class="terminal-header">
+              <div class="terminal-dots">
+                <span class="dot red"></span>
+                <span class="dot yellow"></span>
+                <span class="dot green"></span>
+              </div>
+              <span class="terminal-title">ANTIMAGIST DIAGNOSTIC KERNEL</span>
+              <span class="terminal-status-tag">ACTIVE MONITOR</span>
+            </div>
+
+            <div class="terminal-body" id="telemetry-terminal">
+              <div class="log-line text-muted">[SYSTEM] Scanning hardware environment...</div>
+              <div class="log-line text-cyan">[✓] Hardware Layer: Universal GPU Support (NVIDIA RTX/GTX • AMD Radeon • Intel Arc)</div>
+              <div class="log-line text-emerald">[✓] Network Layer: Disabling Nagle Packet Buffering (TcpNoDelay & TcpAckFrequency=1)</div>
+              <div class="log-line text-purple">[✓] Memory Layer: Calling EmptyWorkingSet to release cached standby pages</div>
+              <div class="log-line text-amber">[✓] CPU Layer: Mapping core topology & pinning execution to physical Performance Cores</div>
+              <div class="log-line text-cyan">[✓] Windows Layer: Disabling background Xbox GameDVR recording & forcing 1:1 raw mouse tracking</div>
+              <div class="log-line text-emerald bold highlight">[✓] SENTINEL READY: Auto-Pilot standing by for game launches</div>
+            </div>
+
+            <div class="terminal-footer">
+              <div class="gauge-pill">
+                <span class="gauge-name">PACKET QUEUE</span>
+                <span class="gauge-val text-emerald" id="live-ping-val">Zero Delay</span>
+              </div>
+              <div class="gauge-pill">
+                <span class="gauge-name">STANDBY RAM</span>
+                <span class="gauge-val text-cyan" id="live-ram-val">Flushed</span>
+              </div>
+              <div class="gauge-pill">
+                <span class="gauge-name">GPU SENTINEL</span>
+                <span class="gauge-val text-purple" id="live-gpu-val">Active</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- How It Works / True Technical Breakdown (Honesty First) -->
+    <section class="benchmarks-section" id="how-it-works">
+      <div class="container">
+        <div class="section-header text-center">
+          <div class="pill-tag">WHAT OUR APP ACTUALLY DOES</div>
+          <h2 class="section-title">The Exact Technical Mechanics</h2>
+          <p class="section-subtitle">We believe in complete honesty. Here is exactly what Antimagist adjusts on your PC and why it reduces latency.</p>
+        </div>
+
+        <div class="benchmark-grid">
+          <!-- 1. Network Queue -->
+          <div class="bench-card glass-panel">
+            <div class="bench-icon">📶</div>
+            <div class="bench-title">1. Disabling Packet Grouping (TcpNoDelay)</div>
+            <p class="bench-desc text-muted">
+              By default, Windows uses Nagle’s algorithm, which delays small network packets to group them together. While fine for web browsing, this causes micro-jitter in online games. Antimagist sets <code>TcpNoDelay=1</code> and <code>TcpAckFrequency=1</code> so every game packet is sent immediately.
+            </p>
+            <div class="bench-delta text-emerald">✓ Verified Windows TCP Optimization</div>
+          </div>
+
+          <!-- 2. Memory Flush -->
+          <div class="bench-card glass-panel">
+            <div class="bench-icon">⚡</div>
+            <div class="bench-title">2. Freeing Inactive Standby Memory</div>
+            <p class="bench-desc text-muted">
+              Windows keeps gigabytes of previously closed apps cached in standby memory. When games launch and demand RAM, Windows must abruptly page out data, causing micro-stutters. Antimagist calls the official Windows <code>EmptyWorkingSet</code> API to cleanly free this memory beforehand.
+            </p>
+            <div class="bench-delta text-cyan">✓ Uses Official Windows Memory Management</div>
+          </div>
+
+          <!-- 3. CPU Core Pinning -->
+          <div class="bench-card glass-panel">
+            <div class="bench-icon">🎯</div>
+            <div class="bench-title">3. P-Core CPU Affinity Pinning</div>
+            <p class="bench-desc text-muted">
+              Modern multi-core processors have high-speed physical performance cores and slower efficiency cores. Windows scheduler can move game threads across cores, causing cache thrashing. Antimagist maps your CPU topology and pins game processes to high-priority physical cores.
+            </p>
+            <div class="bench-delta text-purple">✓ Eliminates Thread Migration Jitter</div>
+          </div>
+
+          <!-- 4. Raw Mouse & GameDVR -->
+          <div class="bench-card glass-panel">
+            <div class="bench-icon">🖱️</div>
+            <div class="bench-title">4. True 1:1 Raw Mouse Tracking</div>
+            <p class="bench-desc text-muted">
+              Windows default mouse acceleration dynamically alters crosshair movement speed depending on how fast you swipe. Antimagist resets mouse registry thresholds to 0 for true linear 1:1 raw input. It also disables Xbox GameDVR background screen recording to free CPU cycles.
+            </p>
+            <div class="bench-delta text-emerald">✓ Muscle Memory Precision & Zero DVR Overhead</div>
+          </div>
+
+          <!-- 5. 100% Anti-Cheat Safe Overlay -->
+          <div class="bench-card glass-panel">
+            <div class="bench-icon">🖥️</div>
+            <div class="bench-title">5. Non-Invasive Transparent In-Game HUD</div>
+            <p class="bench-desc text-muted">
+              Most gaming overlays inject DLLs directly into game graphics memory, which can trigger anti-cheat bans. Antimagist's HUD overlay (<kbd>Ctrl+Shift+O</kbd>) uses native Windows layered transparency (<code>WS_EX_TOPMOST</code>). It renders strictly as an external desktop window with zero memory hooking.
+            </p>
+            <div class="bench-delta text-cyan">✓ 100% Safe with VAC, Vanguard & BattlEye</div>
+          </div>
+
+          <!-- 6. Safe 1-Click Rollback -->
+          <div class="bench-card glass-panel">
+            <div class="bench-icon">🛡️</div>
+            <div class="bench-title">6. Complete 1-Click Backup & Restore</div>
+            <p class="bench-desc text-muted">
+              Before applying any Windows tweaks, Antimagist automatically saves a timestamped JSON backup of your original settings. If you ever want to revert back to default Windows settings, you simply click <strong>"Restore Defaults"</strong> for an instant clean rollback.
+            </p>
+            <div class="bench-delta text-amber">✓ Total Peace of Mind & Reversibility</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Flagship Features Section -->
+    <section class="features-section" id="features">
+      <div class="container">
+        <div class="section-header text-center">
+          <div class="pill-tag">ALL-IN-ONE ESPORTS TOOLKIT</div>
+          <h2 class="section-title">Built For Competitive Players</h2>
+          <p class="section-subtitle">A lightweight, professional suite designed to optimize your system without bloat or telemetry.</p>
+        </div>
+
+        <div class="feature-grid">
+          <div class="feature-card glass-panel">
+            <div class="feature-badge">01</div>
+            <h3>🤖 Auto-Pilot Game Sentinel</h3>
+            <p>Automatically detects when supported games launch (CS2, Valorant, Apex, Sea of Thieves, GMod, etc.), applies RAM flushes and CPU pinning, and logs session stats upon exit.</p>
+          </div>
+
+          <div class="feature-card glass-panel">
+            <div class="feature-badge">02</div>
+            <h3>🎯 CS2 Tournament Auto-Tuner</h3>
+            <p>Automatically configures verified Valve engine netcode parameters (optimal interp ratios, network rates, and low latency sleep mode) directly into your CS2 configuration.</p>
+          </div>
+
+          <div class="feature-card glass-panel">
+            <div class="feature-badge">03</div>
+            <h3>📱 Mobile Remote Companion</h3>
+            <p>Pair your smartphone via instant local Wi-Fi QR code. Monitor your hardware temperatures and trigger memory flushes without needing to alt-tab out of your match.</p>
+          </div>
+
+          <div class="feature-card glass-panel">
+            <div class="feature-badge">04</div>
+            <h3>🎮 Pure-Python Discord Presence</h3>
+            <p>Direct native Named Pipe integration (<code>\\.\pipe\discord-ipc-0</code>) displaying your live gaming status on Discord without heavy background processes.</p>
+          </div>
+
+          <div class="feature-card glass-panel">
+            <div class="feature-badge">05</div>
+            <h3>🧪 Forensic Detonation Chamber</h3>
+            <p>Analyze unknown community game mods or downloaded files with Shannon entropy and PE header parsing before running them on your system.</p>
+          </div>
+
+          <div class="feature-card glass-panel">
+            <div class="feature-badge">06</div>
+            <h3>🎙️ Hands-Free Voice Copilot</h3>
+            <p>Built-in push-to-talk voice dispatch (<kbd>Ctrl+Space</kbd>) allowing you to trigger RAM flushes and network boosts with your voice during intense matches.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="pricing-section" id="pricing">
+      <div class="container">
+        <div class="section-header text-center">
+          <div class="pill-tag">FAIR & ACCESSIBLE PRICING</div>
+          <h2 class="section-title">Honest, Accessible Pricing</h2>
+          <p class="section-subtitle">Affordable access for every competitive player. No hidden fees. Instant key delivery.</p>
+        </div>
+
+        <div class="pricing-grid">
+          <!-- Monthly Tier -->
+          <div class="pricing-card glass-panel">
+            <div class="pricing-tier-name">Pro Gamer Monthly</div>
+            <div class="pricing-price">
+              <span class="currency">€</span>
+              <span class="amount">2</span>
+              <span class="period">/ month</span>
+            </div>
+            <p class="pricing-desc">Perfect for active competitive seasons and tournaments. Cancel anytime with no commitment.</p>
+            
+            <ul class="pricing-features">
+              <li>✓ Full Access to All V5 Singularity Features</li>
+              <li>✓ Autonomous Auto-Pilot Game Sentinel</li>
+              <li>✓ In-Game Transparent HUD Overlay</li>
+              <li>✓ Mobile Companion Smartphone Pairing</li>
+              <li>✓ Discord Rich Presence Streaming</li>
+              <li>✓ Continuous Updates & Latency Patches</li>
+            </ul>
+
+            <button class="btn btn-secondary btn-block btn-buy" data-tier="MONTHLY" data-price="€2">
+              Subscribe — €2 / Month
+            </button>
+          </div>
+
+          <!-- Lifetime Tier (Featured) -->
+          <div class="pricing-card glass-panel featured">
+            <div class="popular-ribbon">🔥 BEST VALUE</div>
+            <div class="pricing-tier-name">Singularity Lifetime</div>
+            <div class="pricing-price">
+              <span class="currency">€</span>
+              <span class="amount">10</span>
+              <span class="period">one-time</span>
+            </div>
+            <p class="pricing-desc">Pay once, own forever. Bound cryptographically to your PC's Hardware ID (HWID).</p>
+            
+            <ul class="pricing-features">
+              <li>✓ <strong>Permanent Lifetime Software License</strong></li>
+              <li>✓ Zero Monthly Subscriptions Ever</li>
+              <li>✓ Complete Anti-Cheat Safe Esports Stack</li>
+              <li>✓ Priority Discord VIP Support</li>
+              <li>✓ Free HWID Machine Migration if you Upgrade PC</li>
+              <li>✓ All Future Major Version Upgrades Included</li>
+            </ul>
+
+            <button class="btn btn-primary btn-block btn-buy" data-tier="LIFETIME" data-price="€10">
+              Get Lifetime Access — €10
+            </button>
+          </div>
+
+          <!-- Free Trial Tier -->
+          <div class="pricing-card glass-panel">
+            <div class="pricing-tier-name">3-Day Free Trial</div>
+            <div class="pricing-price">
+              <span class="currency">€</span>
+              <span class="amount">0</span>
+              <span class="period">risk-free</span>
+            </div>
+            <p class="pricing-desc">Try Antimagist on your own PC risk-free before spending a single cent. No payment details required.</p>
+            
+            <ul class="pricing-features">
+              <li>✓ 72 Hours of Unthrottled Performance</li>
+              <li>✓ Test CS2 & Online Game Responsiveness</li>
+              <li>✓ 1-Click Installer (Zero Setup)</li>
+              <li>✓ Complete Rollback Protection Included</li>
+              <li>✓ Safe Registry Optimization</li>
+            </ul>
+
+            <a href="Install_Antimagist_V5.bat" download class="btn btn-outline btn-block">
+              Download Free 3-Day Trial
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="faq-section" id="faq">
+      <div class="container max-w-md">
+        <div class="section-header text-center">
+          <div class="pill-tag">FREQUENTLY ASKED QUESTIONS</div>
+          <h2 class="section-title">Clear, Truthful Answers</h2>
+        </div>
+
+        <div class="faq-accordion">
+          <details class="faq-item glass-panel">
+            <summary class="faq-question">Will this get me banned by VAC, Vanguard, or Easy Anti-Cheat?</summary>
+            <div class="faq-answer">
+              <strong>Absolutely not.</strong> Antimagist strictly operates outside game memory. It never touches game executables, never injects DLLs, and never hooks DirectX or Vulkan render pipelines. All optimizations are standard Windows registry and process management APIs.
+            </div>
+          </details>
+
+          <details class="faq-item glass-panel">
+            <summary class="faq-question">Which graphics cards and processors are supported?</summary>
+            <div class="faq-answer">
+              <strong>Any graphics card and CPU.</strong> Antimagist supports all NVIDIA GeForce (RTX, GTX), AMD Radeon, and Intel Arc GPUs, as well as Intel Core and AMD Ryzen CPUs. The app dynamically detects your exact hardware via Windows WMI and NVML.
+            </div>
+          </details>
+
+          <details class="faq-item glass-panel">
+            <summary class="faq-question">Can I easily undo the changes if I want to?</summary>
+            <div class="faq-answer">
+              <strong>Yes.</strong> Antimagist automatically saves a backup of your original Windows settings prior to applying any optimizations. A single click on "Restore Defaults" completely rolls back all changes.
+            </div>
+          </details>
+
+          <details class="faq-item glass-panel">
+            <summary class="faq-question">How is my license key delivered?</summary>
+            <div class="faq-answer">
+              Instantly upon payment. You receive a cryptographic key (format: <code>AM5-LIFE-...</code> or <code>AM5-SUB-...</code>) that you simply paste into Antimagist's top-right license activation box.
+            </div>
+          </details>
+
+          <details class="faq-item glass-panel">
+            <summary class="faq-question">Do I need Administrator rights to run Antimagist?</summary>
+            <div class="faq-answer">
+              No. Our turnkey installer installs into user-space (<code>%LocalAppData%\Antimagist</code>) with zero UAC prompts required for ordinary operation.
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container footer-content">
+      <div class="footer-brand">
+        <div class="brand-logo">
+          <span class="logo-shield">🛡️</span>
+          <span class="brand-name">ANTIMAGIST V5</span>
+        </div>
+        <p class="footer-tagline">Transparent, honest latency stripping engineered for competitive PC gamers.</p>
+      </div>
+
+      <div class="footer-links">
+        <div class="link-col">
+          <h4>Product</h4>
+          <a href="#how-it-works">How It Works</a>
+          <a href="#features">Features</a>
+          <a href="#pricing">Pricing</a>
+        </div>
+        <div class="link-col">
+          <h4>Support & Ethics</h4>
+          <a href="#faq">FAQ</a>
+          <a href="#">Discord Community</a>
+          <a href="#">100% Transparency Commitment</a>
+        </div>
+      </div>
+    </div>
+    <div class="container footer-bottom">
+      <p>© 2026 Antimagist Enterprise Security. All rights reserved.</p>
+      <p>Compatible with Windows 10 & 11 (64-bit).</p>
+    </div>
+  </footer>
+
+  <!-- Checkout & Instant Delivery Modal -->
+  <dialog id="checkout-modal" class="glass-dialog">
+    <div class="dialog-content">
+      <button class="dialog-close" id="btn-close-modal">✕</button>
+      <div class="dialog-header">
+        <span class="dialog-shield">🔑</span>
+        <h3 id="modal-tier-title">Singularity Lifetime License</h3>
+        <p class="modal-price-tag" id="modal-price-tag">€10 One-Time Payment</p>
+      </div>
+
+      <form id="checkout-form" class="checkout-form">
+        <label for="buyer-contact">Your Discord Handle or Email:</label>
+        <input type="text" id="buyer-contact" required placeholder="e.g. GamerPro#1337 or user@gmail.com" class="form-input">
+
+        <div class="payment-methods">
+          <span class="pm-badge">💳 Credit Card / Apple Pay</span>
+          <span class="pm-badge">🅿️ PayPal</span>
+          <span class="pm-badge">⚡ Instant Key Delivery</span>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">
+          Complete Purchase & Generate Key
+        </button>
+      </form>
+
+      <!-- Key Result Display (Revealed after submit) -->
+      <div id="key-delivery-result" class="key-delivery-box hidden">
+        <div class="delivery-status text-emerald">✅ PAYMENT VERIFIED & KEY DELIVERED</div>
+        <p>Your Machine License Key:</p>
+        <div class="key-code-pill" id="delivered-key-text">AM5-LIFE-9999999999-XXXX-YYYY-ZZZZ</div>
+        <button id="btn-copy-web-key" class="btn btn-secondary btn-sm">📋 Copy Key to Clipboard</button>
+        <p class="key-instructions">Open <strong>Antimagist V5</strong>, click the top-right license badge, paste this key, and you're locked in!</p>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>

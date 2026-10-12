@@ -1,0 +1,34 @@
+# Python bytecode & caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# PyInstaller build artifacts
+build/
+*.manifest
+*.spec.bak
+
+# Local customer databases & private records
+issued_licenses.json
+license.dat
+.trial_stamp
+antimagist_match_history.json
+windows_latency_stripper_backup.json
+
+# Environment & IDE
+.vscode/
+.idea/
+*.swp
+*.tmp
+.venv/
+venv/
+ENV/
+env/
+dist/
+GameTranslatorOverlay/
+node_modules/
+echochat/
+echochat-v2/
+DesktopAIBrain/
