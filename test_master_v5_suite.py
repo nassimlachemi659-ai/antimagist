@@ -24,7 +24,7 @@ if hasattr(sys.stdout, "reconfigure"):
 class TestAntimagistV5Singularity(unittest.TestCase):
 
     def test_01_gpu_sentinel_telemetry(self):
-        """Verifies GPU Sentinel queries NVIDIA RTX 5050 hardware metrics safely."""
+        """Verifies GPU Sentinel queries live GPU hardware metrics (NVIDIA / AMD / Intel) safely."""
         from gpu_sentinel import AntimagistGPUSentinel
         sentinel = AntimagistGPUSentinel()
         m = sentinel.get_live_gpu_metrics()
@@ -151,13 +151,25 @@ class TestAntimagistV5Singularity(unittest.TestCase):
         print(f"  [+] Windows Latency Stripper: Posture audited (GameDVR Disabled: {posture['gamedvr_disabled']}).")
 
     def test_13_discord_rich_presence(self):
-        """Verifies native named-pipe Discord IPC connection."""
+        """Verifies native named-pipe Discord IPC connection and offline resilience."""
         from discord_rpc import AntimagistDiscordRPC
         rpc = AntimagistDiscordRPC()
+        self.assertIsNotNone(rpc)
+        self.assertTrue(rpc.enabled)
         connected = rpc.connect()
-        self.assertTrue(connected, "Discord IPC pipe was not connected (Is Discord running?)")
-        rpc.close()
-        print("  [+] Discord Rich Presence: Native Windows Named Pipe IPC verified.")
+        if connected:
+            self.assertTrue(rpc.is_connected)
+            rpc.update_presence(details="Testing Discord IPC")
+            rpc.close()
+            self.assertFalse(rpc.is_connected)
+            print("  [+] Discord Rich Presence: Live Discord IPC pipe verified.")
+        else:
+            self.assertFalse(rpc.is_connected)
+            # Verify graceful offline fallback
+            res = rpc.update_presence(details="Testing Offline Fallback")
+            self.assertFalse(res)
+            rpc.close()
+            print("  [+] Discord Rich Presence: Discord client offline (graceful fallback verified).")
 
     def test_14_autonomous_game_watchdog(self):
         """Verifies Auto-Pilot Game Sentinel daemon lifecycle and match history."""

@@ -6,7 +6,7 @@ Architectural Additions in Version 5 (Singularity):
      - Automatically detects game launch in background, engages full Apex boost,
        pins P-Cores, summons HUD overlay, and recaps session metrics on exit.
   2. Pure-Python Discord Rich Presence (RPC) Client (discord_rpc.py)
-     - Streams real-time RTX 5050 telemetry & gaming status to Discord profile.
+     - Streams real-time GPU hardware telemetry & gaming status to Discord profile.
   3. Cyber Sci-Fi Sound FX & Voice Pack Engine (sound_fx.py)
      - Asynchronous tactile clicks, warp frequency sweeps, and breach sirens.
   4. Esports Latency Stripper & Windows Debloater (windows_stripper.py)
@@ -19,7 +19,7 @@ Architectural Additions in Version 5 (Singularity):
      - Push-to-Talk HUD (Ctrl + Space) or Topbar 🎙️ MIC button.
   8. Windows Context Menu Shell Integrator (context_menu_v4.py)
      - Adds Explorer right-click "🧪 Detonate with Chamber" and "🚀 Launch with Apex Boost".
-  9. Dedicated GPU Sentinel (RTX 5050) & Steam Library Auto-Launcher.
+  9. Dedicated GPU Sentinel (Universal GPU Engine) & Steam Library Auto-Launcher.
   10. Mobile Remote Companion HUD & QR Pairing Server.
 """
 
@@ -487,7 +487,7 @@ class AntimagistV4ApexApp(AntimagistV3App):
         head = ctk.CTkFrame(pane, fg_color="transparent")
         head.grid(row=0, column=0, sticky="ew", pady=(0, 15))
         ctk.CTkLabel(head, text="Autonomous Match Analytics & Telemetry Vault", font=("Segoe UI", 24, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w")
-        ctk.CTkLabel(head, text="Historical log of autonomous gaming sessions with peak RTX 5050 temperatures and average ping", font=("Segoe UI", 12), text_color=COLOR_TEXT_MUTED).pack(anchor="w")
+        ctk.CTkLabel(head, text="Historical log of autonomous gaming sessions with peak GPU temperatures and average ping", font=("Segoe UI", 12), text_color=COLOR_TEXT_MUTED).pack(anchor="w")
 
         # Top Stats Summary
         history = self.game_watchdog.match_history
@@ -960,7 +960,7 @@ class AntimagistV4ApexApp(AntimagistV3App):
 
         features = [
             ("⚡ 1-Tap Turbo Boost", "Instantly clears standby memory while gaming fullscreen without Alt-Tabbing."),
-            ("🎮 Live RTX 5050 Telemetry", "Real-time GPU core temperature, VRAM allocation, and thermal guard."),
+            ("🎮 Live GPU Telemetry", "Real-time GPU core temperature, VRAM allocation, and thermal guard across all GPUs."),
             ("📶 Real-Time Ping HUD", "Continuously streams sub-millisecond Cloudflare ping and packet loss to your phone."),
             ("🤖 Phone-to-PC AI Agent", "Directly type instructions on your smartphone and trigger system actions on PC."),
             ("🎮 1-Tap Gamer Mode", "Elevate process scheduling to High Priority directly from your mobile screen."),

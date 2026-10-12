@@ -4,7 +4,7 @@ mobile_companion.py — Antimagist V4 Mobile Remote Companion HUD & QR Server
 Antimagist Enterprise Security V4 Component
 - Serves an ultra-modern Cyberpunk Mobile Web App for smartphones & tablets
 - Generates a local QR Code for instant phone pairing on the same Wi-Fi network
-- Streams real-time gaming ping, GPU metrics (NVIDIA RTX 5050), RAM, CPU, and network
+- Streams real-time gaming ping, GPU metrics (NVIDIA / AMD / Intel), RAM, CPU, and network
 - Enables 1-Tap remote actions: Instant Boost, Cache Sweep, Ping Optimization, Gamer Mode
 - Features two-way Phone-to-PC AI Agent chat & spoken voice confirmation
 - Protected by an ephemeral security token to prevent unauthorized LAN access
@@ -152,7 +152,7 @@ MOBILE_HTML_TEMPLATE = """<!DOCTYPE html>
     <div class="section-title">Live Terminal Telemetry</div>
     <div class="log-box" id="logBox">
         [SYS] Antimagist V4 Mobile HUD paired via Secure LAN.<br>
-        [SYS] Streaming live RTX 5050 & gaming telemetry...
+        [SYS] Streaming live GPU & system telemetry...
     </div>
 
     <div class="toast" id="toast">Action dispatched!</div>

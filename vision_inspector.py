@@ -13,6 +13,8 @@ from typing import Optional, Dict, Any
 from PIL import Image
 
 try:
+    import warnings
+    warnings.filterwarnings("ignore", category=FutureWarning)
     import google.generativeai as genai
     GENAI_AVAILABLE = True
 except ImportError:

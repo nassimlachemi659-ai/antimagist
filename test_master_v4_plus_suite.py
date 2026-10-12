@@ -24,7 +24,7 @@ if hasattr(sys.stdout, "reconfigure"):
 class TestAntimagistV4Plus(unittest.TestCase):
 
     def test_01_gpu_sentinel_telemetry(self):
-        """Verifies GPU Sentinel queries NVIDIA RTX 5050 hardware metrics safely."""
+        """Verifies GPU Sentinel queries live GPU hardware metrics (NVIDIA / AMD / Intel) safely."""
         from gpu_sentinel import AntimagistGPUSentinel
         sentinel = AntimagistGPUSentinel()
         m = sentinel.get_live_gpu_metrics()
@@ -206,6 +206,7 @@ class TestAntimagistV4Plus(unittest.TestCase):
         app.show_detonation_pane()
 
         # Clean destruction
+        app.update_idletasks()
         app.destroy()
         print("  [+] Antimagist V4 Apex Application: Clean UI binding, all 13 navigation panes operational.")
 

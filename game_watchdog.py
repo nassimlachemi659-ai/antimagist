@@ -13,7 +13,7 @@ Antimagist Enterprise Security V5 Component
     7. Spoken voice confirmation from Neural Copilot
 - Automatically detects game exit:
     • Disengages Gamer Mode and hides HUD
-    • Recaps match analytics: Duration, Peak RTX 5050 Temp, Average Ping
+    • Recaps match analytics: Duration, Peak GPU Temp, Average Ping
     • Records session to Match History Vault
 """
 

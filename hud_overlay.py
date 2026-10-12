@@ -5,7 +5,7 @@ Antimagist Enterprise Security V4 Plus Component
 - Ultra-modern, frameless, transparent glassmorphic overlay for competitive gaming
 - Renders directly on top of fullscreen-borderless games without hooking graphics memory
 - 100% safe against anti-cheat engines (VAC, Vanguard, BattlEye, Easy Anti-Cheat)
-- Streams real-time Gaming Ping, NVIDIA RTX 5050 Temp & VRAM, RAM, and CPU load
+- Streams real-time Gaming Ping, GPU Temp & VRAM (NVIDIA / AMD / Intel), RAM, and CPU load
 - Features 1-tap quick actions: [⚡ Flush RAM], [🎮 Gamer Mode], [❌ Hide]
 - Toggleable via Global Hotkey (Ctrl + Shift + O) or UI button
 """

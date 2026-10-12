@@ -23,7 +23,7 @@ if hasattr(sys.stdout, "reconfigure"):
 
 TOURNAMENT_AUTOEXEC_CONTENT = """// ============================================================================
 // ANTIMAGIST APEX V4 — COUNTER-STRIKE 2 TOURNAMENT AUTOEXEC
-// Optimized for NVIDIA GeForce RTX 5050 & Low-Latency Sub-Tick Performance
+// Universal GPU Architecture & Low-Latency Sub-Tick Performance
 // ============================================================================
 
 // 1. SUB-TICK & LOW-LATENCY NETWORKING
