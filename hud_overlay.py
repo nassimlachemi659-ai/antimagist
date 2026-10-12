@@ -25,6 +25,12 @@ if hasattr(sys.stdout, "reconfigure"):
         pass
 
 
+try:
+    from frametime_sentinel import AntimagistFrametimeSentinel
+except ImportError:
+    AntimagistFrametimeSentinel = None
+
+
 class AntimagistHUDOverlay:
     """Manages the transparent, always-on-top desktop gaming HUD overlay."""
 
@@ -43,6 +49,7 @@ class AntimagistHUDOverlay:
         self.ping_optimizer = ping_optimizer
         self.gpu_sentinel = gpu_sentinel
         self.voice = voice_engine
+        self.frametime_sentinel = AntimagistFrametimeSentinel() if AntimagistFrametimeSentinel else None
 
         self.window: Optional[tk.Toplevel] = None
         self.is_visible = False
@@ -83,7 +90,7 @@ class AntimagistHUDOverlay:
 
             # Position at top-right of screen
             screen_w = self.window.winfo_screenwidth()
-            hud_w = 460
+            hud_w = 540
             hud_h = 76
             pos_x = screen_w - hud_w - 24
             pos_y = 20
@@ -97,6 +104,8 @@ class AntimagistHUDOverlay:
             self._build_hud_ui()
 
             self.is_visible = True
+            if self.frametime_sentinel:
+                self.frametime_sentinel.start_active_sampling()
             self._start_hud_ticker()
 
             if self.voice:
@@ -105,6 +114,8 @@ class AntimagistHUDOverlay:
     def hide(self):
         """Hides the HUD overlay window."""
         with self._lock:
+            if self.frametime_sentinel:
+                self.frametime_sentinel.stop_active_sampling()
             if self.window:
                 try:
                     self.window.withdraw()
@@ -177,6 +188,10 @@ class AntimagistHUDOverlay:
         self.lbl_ram = tk.Label(metrics_bar, text="RAM: --%", font=("Consolas", 9, "bold"), fg="#FBBF24", bg="#08090E")
         self.lbl_ram.pack(side="left", padx=6)
 
+        # 5. 1% Lows FPS Pill
+        self.lbl_fps = tk.Label(metrics_bar, text="⚡ 1% LOW: -- FPS", font=("Consolas", 9, "bold"), fg="#38BDF8", bg="#08090E")
+        self.lbl_fps.pack(side="left", padx=6)
+
     def _quick_ram_boost(self):
         if self.optimizer:
             self.optimizer.run_memory_boost(lambda m: None)
@@ -215,6 +230,11 @@ class AntimagistHUDOverlay:
                         om = self.optimizer.get_live_metrics()
                         ram_pct = om.get("ram_percentage", 35.0)
 
+                    fps_val = "--"
+                    if self.frametime_sentinel:
+                        ftm = self.frametime_sentinel.get_metrics()
+                        fps_val = str(int(ftm.get("one_percent_low_fps", 144)))
+
                     def update_labels():
                         try:
                             if self.window and self.is_visible and hasattr(self, "lbl_ping") and self.lbl_ping.winfo_exists():
@@ -223,6 +243,8 @@ class AntimagistHUDOverlay:
                                 self.lbl_gpu.config(text=f"🎮 GPU: {gpu_temp}°C", fg=gpu_color)
                                 self.lbl_vram.config(text=f"VRAM: {vram_str.split('/')[0].strip()} GB")
                                 self.lbl_ram.config(text=f"RAM: {ram_pct}%")
+                                if hasattr(self, "lbl_fps") and self.lbl_fps.winfo_exists():
+                                    self.lbl_fps.config(text=f"⚡ 1% LOW: {fps_val} FPS")
                         except Exception:
                             pass
 

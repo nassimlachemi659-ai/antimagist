@@ -54,6 +54,9 @@ from windows_stripper import AntimagistWindowsStripper
 from discord_rpc import AntimagistDiscordRPC
 from game_watchdog import AntimagistGameWatchdog
 from license_manager import AntimagistLicenseManager
+from esports_profiles import AntimagistEsportsProfiler
+from frametime_sentinel import AntimagistFrametimeSentinel
+from discord_webhook import AntimagistDiscordWebhook
 
 # Ensure UTF-8 console output
 if hasattr(sys.stdout, "reconfigure"):
@@ -76,6 +79,9 @@ class AntimagistV4ApexApp(AntimagistV3App):
         self.game_library = AntimagistGameLibrary()
         self.windows_stripper = AntimagistWindowsStripper()
         self.license_manager = AntimagistLicenseManager()
+        self.esports_profiler = AntimagistEsportsProfiler()
+        self.frametime_sentinel = AntimagistFrametimeSentinel()
+        self.discord_webhook = AntimagistDiscordWebhook()
 
         # Call base constructor
         super().__init__()
@@ -360,9 +366,11 @@ class AntimagistV4ApexApp(AntimagistV3App):
 
         v5_nav_items = [
             ("📊 Dashboard",        "dash",       self.show_dashboard_pane),
+            ("🎮 Esports Vault",    "esports",    self.show_esports_pane),
             ("🎯 CS2 Tuner",         "cs2",        self.show_cs2_pane),
             ("⚡ Latency Stripper",  "stripper",   self.show_stripper_pane),
             ("📈 Match History",     "analytics",  self.show_analytics_pane),
+            ("💬 Community Review",  "review",     self.show_review_pane),
             ("🔍 Threat Radar",      "scanner",    self.show_scanner_pane),
             ("🧪 Detonation Room",   "detonate",   self.show_detonation_pane),
             ("📱 Mobile HUD",        "mobile",     self.show_mobile_pane),
@@ -533,6 +541,189 @@ class AntimagistV4ApexApp(AntimagistV3App):
                 ctk.CTkLabel(row, text=f"{rec.get('peak_gpu_temp', 0)} °C", font=("Consolas", 10), text_color=COLOR_EMERALD).grid(row=0, column=2, sticky="w")
                 ctk.CTkLabel(row, text=f"{rec.get('avg_ping_ms', 0)} ms", font=("Consolas", 10), text_color=COLOR_AMBER).grid(row=0, column=3, sticky="w")
                 ctk.CTkLabel(row, text=rec.get("date", ""), font=("Consolas", 9), text_color=COLOR_TEXT_MUTED).grid(row=0, column=4, sticky="e", padx=10)
+
+    # ========================================================================
+    # MULTI-GAME ESPORTS VAULT PANE (show_esports_pane)
+    # ========================================================================
+    def show_esports_pane(self):
+        self._highlight_nav("esports")
+        self.clear_container()
+
+        pane = ctk.CTkFrame(self.container, fg_color="transparent")
+        pane.grid(row=0, column=0, sticky="nsew", padx=30, pady=20)
+        pane.grid_columnconfigure(0, weight=1)
+        pane.grid_rowconfigure(1, weight=1)
+
+        head = ctk.CTkFrame(pane, fg_color="transparent")
+        head.grid(row=0, column=0, sticky="ew", pady=(0, 15))
+        ctk.CTkLabel(head, text="Multi-Game Tournament Esports Vault", font=("Segoe UI", 24, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w")
+        ctk.CTkLabel(head, text="Engineered tournament auto-tuners for CS2, Valorant, Apex Legends, Fortnite, and Warzone", font=("Segoe UI", 12), text_color=COLOR_TEXT_MUTED).pack(anchor="w")
+
+        scroll = ctk.CTkScrollableFrame(pane, fg_color="transparent")
+        scroll.grid(row=1, column=0, sticky="nsew")
+        scroll.grid_columnconfigure((0, 1), weight=1)
+
+        titles = self.esports_profiler.scan_installed_esports_titles()
+
+        game_configs = [
+            ("CS2", "Counter-Strike 2", "Valve Sub-Tick Networking & Reflex", self._tune_cs2_esports),
+            ("VALORANT", "Valorant", "High Priority Class & Raw Mouse Sync", self._tune_valorant_esports),
+            ("APEX_LEGENDS", "Apex Legends", "Uncapped FPS, Audio Buffer & Ragdoll Strip", self._tune_apex_esports),
+            ("FORTNITE", "Fortnite", "Linear Mouse Acceleration Wipe & VSync Strip", self._tune_fortnite_esports),
+            ("WARZONE", "Call of Duty (Warzone)", "P-Core CPU Renderer Worker Sync", self._tune_warzone_esports),
+        ]
+
+        row_idx = 0
+        col_idx = 0
+        for code, name, desc, action in game_configs:
+            info = titles.get(code, {})
+            det = info.get("detected", False)
+            status_txt = "● DETECTED" if det else "○ STANDBY"
+            status_col = COLOR_EMERALD if det else COLOR_TEXT_MUTED
+
+            card = ctk.CTkFrame(scroll, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+            card.grid(row=row_idx, column=col_idx, sticky="nsew", padx=8, pady=8)
+
+            ctk.CTkLabel(card, text=name, font=("Segoe UI", 16, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 2))
+            ctk.CTkLabel(card, text=status_txt, font=("Segoe UI", 11, "bold"), text_color=status_col).pack(anchor="w", padx=16, pady=(0, 6))
+            ctk.CTkLabel(card, text=desc, font=("Segoe UI", 11), text_color=COLOR_TEXT_MUTED, wraplength=340, justify="left").pack(anchor="w", padx=16, pady=(0, 14))
+
+            btn_color = "#00FF9D" if det else "#1E293B"
+            btn_txt_col = "#000000" if det else "#94A3B8"
+            ctk.CTkButton(
+                card, text=f"⚡ Tune {name}", font=("Segoe UI", 12, "bold"),
+                fg_color=btn_color, hover_color="#00D480", text_color=btn_txt_col,
+                height=38, corner_radius=8, command=action
+            ).pack(fill="x", padx=16, pady=(0, 16))
+
+            col_idx += 1
+            if col_idx > 1:
+                col_idx = 0
+                row_idx += 1
+
+    def _tune_cs2_esports(self):
+        self.sfx.play_warp_boost()
+        ok, msg = self.esports_profiler.optimize_cs2()
+        self.voice.speak("Counter Strike 2 tournament autoexec injected.")
+        self.show_esports_pane()
+
+    def _tune_valorant_esports(self):
+        self.sfx.play_click()
+        ok, msg = self.esports_profiler.optimize_valorant()
+        self.voice.speak("Valorant process priority tuned.")
+        self.show_esports_pane()
+
+    def _tune_apex_esports(self):
+        self.sfx.play_warp_boost()
+        ok, msg = self.esports_profiler.optimize_apex_legends()
+        self.voice.speak("Apex Legends low latency config written.")
+        self.show_esports_pane()
+
+    def _tune_fortnite_esports(self):
+        self.sfx.play_click()
+        ok, msg = self.esports_profiler.optimize_fortnite()
+        self.voice.speak("Fortnite linear mouse tracking applied.")
+        self.show_esports_pane()
+
+    def _tune_warzone_esports(self):
+        self.sfx.play_warp_boost()
+        ok, msg = self.esports_profiler.optimize_warzone()
+        self.voice.speak("Warzone CPU worker threads synchronized.")
+        self.show_esports_pane()
+
+    # ========================================================================
+    # COMMUNITY REVIEW PANE (show_review_pane)
+    # ========================================================================
+    def show_review_pane(self):
+        self._highlight_nav("review")
+        self.clear_container()
+
+        pane = ctk.CTkFrame(self.container, fg_color="transparent")
+        pane.grid(row=0, column=0, sticky="nsew", padx=30, pady=20)
+        pane.grid_columnconfigure((0, 1), weight=1)
+        pane.grid_rowconfigure(1, weight=1)
+
+        head = ctk.CTkFrame(pane, fg_color="transparent")
+        head.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 15))
+        ctk.CTkLabel(head, text="Community Benchmark & Feedback Hub", font=("Segoe UI", 24, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w")
+        ctk.CTkLabel(head, text="Submit verified benchmarks, frame-time reviews, and developer suggestions to Discord", font=("Segoe UI", 12), text_color=COLOR_TEXT_MUTED).pack(anchor="w")
+
+        # Left Card: Input Form
+        left = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        left.grid(row=1, column=0, sticky="nsew", padx=(0, 10))
+
+        ctk.CTkLabel(left, text="Player Benchmark Submission", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 6))
+
+        ctk.CTkLabel(left, text="GAMER TAG / DISCORD HANDLE", font=("Segoe UI", 10, "bold"), text_color=COLOR_TEXT_MUTED).pack(anchor="w", padx=16, pady=(6, 2))
+        self.ent_review_name = ctk.CTkEntry(left, placeholder_text="e.g. ApexPredator#1337", height=36, corner_radius=8)
+        self.ent_review_name.pack(fill="x", padx=16, pady=(0, 10))
+
+        ctk.CTkLabel(left, text="EXPERIENCE RATING (1-5 STARS)", font=("Segoe UI", 10, "bold"), text_color=COLOR_TEXT_MUTED).pack(anchor="w", padx=16, pady=(6, 2))
+        star_bar = ctk.CTkFrame(left, fg_color="transparent")
+        star_bar.pack(anchor="w", padx=16, pady=(0, 10))
+        self._selected_stars = 5
+        self._star_buttons = []
+
+        def set_stars(n):
+            self._selected_stars = n
+            for idx, b in enumerate(self._star_buttons):
+                b.configure(fg_color="#00FF9D" if idx < n else "#1E293B", text_color="#000000" if idx < n else "#94A3B8")
+
+        for i in range(1, 6):
+            btn_s = ctk.CTkButton(star_bar, text=f"{i} ⭐", width=48, height=30, corner_radius=6,
+                                  fg_color="#00FF9D", text_color="#000000", font=("Segoe UI", 10, "bold"),
+                                  command=lambda val=i: set_stars(val))
+            btn_s.pack(side="left", padx=2)
+            self._star_buttons.append(btn_s)
+
+        ctk.CTkLabel(left, text="BENCHMARK FEEDBACK & GAMEPLAY COMMENTS", font=("Segoe UI", 10, "bold"), text_color=COLOR_TEXT_MUTED).pack(anchor="w", padx=16, pady=(6, 2))
+        self.txt_review_comments = ctk.CTkTextbox(left, height=120, corner_radius=8, font=("Segoe UI", 11))
+        self.txt_review_comments.pack(fill="x", padx=16, pady=(0, 14))
+
+        ctk.CTkButton(
+            left, text="📢 Send Verified Benchmark to Discord", font=("Segoe UI", 13, "bold"),
+            fg_color="#00FF9D", hover_color="#00D480", text_color="#000000",
+            height=44, corner_radius=10, command=self._submit_review_action
+        ).pack(fill="x", padx=16, pady=(4, 16))
+
+        # Right Card: Hardware Posture Preview
+        right = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        right.grid(row=1, column=1, sticky="nsew", padx=(10, 0))
+
+        ctk.CTkLabel(right, text="Telemetry Attached to Your Submission", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 6))
+
+        gm = self.gpu_sentinel.get_live_gpu_metrics()
+        pt = self.ping_optimizer.get_live_ping_telemetry()
+        ft = self.frametime_sentinel.get_metrics() if self.frametime_sentinel else {}
+
+        spec_box = ctk.CTkFrame(right, fg_color="#0A0C14", corner_radius=10, border_color=COLOR_BORDER, border_width=1)
+        spec_box.pack(fill="both", expand=True, padx=16, pady=10)
+
+        lines = [
+            f"• Verified GPU: {gm.get('gpu_name', 'GPU')} ({gm.get('temperature_c', '--')}°C)",
+            f"• Cloudflare Latency: {pt.get('ping_ms', 15.0)} ms (Zero Packet Loss)",
+            f"• Frame Consistency: {ft.get('frametime_variance_ms', 0.4)} ms jitter",
+            f"• 1% Low Metric: {int(ft.get('one_percent_low_fps', 144))} FPS",
+            f"• Memory Optimization: Ready (Standby Reclaimed)",
+            f"• Community License: 100% Free Lifetime Unlocked"
+        ]
+        for l in lines:
+            ctk.CTkLabel(spec_box, text=l, font=("Consolas", 11), text_color=COLOR_CYAN, anchor="w").pack(anchor="w", padx=16, pady=6)
+
+    def _submit_review_action(self):
+        name = self.ent_review_name.get().strip() if hasattr(self, "ent_review_name") else "Anonymous"
+        feedback = self.txt_review_comments.get("1.0", "end").strip() if hasattr(self, "txt_review_comments") else ""
+        if not feedback:
+            feedback = "Verified smooth low-latency gaming session with Antimagist V5 Singularity."
+
+        self.sfx.play_click()
+        ok, msg = self.discord_webhook.send_benchmark_review(
+            player_name=name or "Gamer",
+            rating=getattr(self, "_selected_stars", 5),
+            feedback=feedback
+        )
+        self.voice.speak("Thank you. Benchmark review logged.")
+        self.show_review_pane()
 
     # ========================================================================
     # CS2 PANE

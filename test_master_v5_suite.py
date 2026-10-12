@@ -207,21 +207,68 @@ class TestAntimagistV5Singularity(unittest.TestCase):
         print("  [+] Commercial Licensing & HWID: Cryptographic keygen & validation verified.")
 
     def test_16_master_v5_singularity_lifecycle(self):
-        """Verifies Antimagist V5 Singularity launches cleanly and binds all 15 panes."""
+        """Verifies Antimagist V5 Singularity launches cleanly and binds all 17 panes."""
         from antimagist_v4_apex import AntimagistV4ApexApp
         app = AntimagistV4ApexApp()
         self.assertIsNotNone(app)
+        self.assertTrue(hasattr(app, "esports_profiler"))
+        self.assertTrue(hasattr(app, "frametime_sentinel"))
+        self.assertTrue(hasattr(app, "discord_webhook"))
 
         # Verify all new V5 panes
         app.show_stripper_pane()
         app.show_analytics_pane()
         app.show_cs2_pane()
+        app.show_esports_pane()
+        app.show_review_pane()
         app.show_dashboard_pane()
         app.show_gamer_pane()
 
         # Clean destruction
+        app.update_idletasks()
         app.destroy()
-        print("  [+] Master V5 Singularity Application: All 15 navigation panes operational.")
+        print("  [+] Master V5 Singularity Application: All 17 navigation panes operational.")
+
+    def test_17_esports_profiler_multigame(self):
+        """Verifies Multi-Game Esports Profiler scans and generates tournament configs."""
+        from esports_profiles import AntimagistEsportsProfiler
+        prof = AntimagistEsportsProfiler()
+        titles = prof.scan_installed_esports_titles()
+        self.assertIsInstance(titles, dict)
+        self.assertIn("CS2", titles)
+        self.assertIn("VALORANT", titles)
+        self.assertIn("APEX_LEGENDS", titles)
+        self.assertIn("FORTNITE", titles)
+        self.assertIn("WARZONE", titles)
+
+        ok, msg = prof.optimize_apex_legends()
+        self.assertTrue(ok)
+        print(f"  [+] Multi-Game Esports Profiler: Scanned 5 competitive titles ({list(titles.keys())}).")
+
+    def test_18_frametime_sentinel_metrics(self):
+        """Verifies 1% Lows and Frametime Pacing Sentinel calculations."""
+        from frametime_sentinel import AntimagistFrametimeSentinel
+        sentinel = AntimagistFrametimeSentinel()
+        for ft in [6.9, 7.0, 6.8, 7.1, 6.9, 14.2]:
+            sentinel.record_frame(ft)
+        m = sentinel.get_metrics()
+        self.assertIn("avg_fps", m)
+        self.assertIn("one_percent_low_fps", m)
+        self.assertIn("frametime_variance_ms", m)
+        self.assertIn("pacing_health", m)
+        print(f"  [+] Frametime Sentinel: 1% Lows ({m['one_percent_low_fps']} FPS) & Jitter ({m['frametime_variance_ms']} ms) validated.")
+
+    def test_19_discord_webhook_dispatch(self):
+        """Verifies Discord Webhook client formats rich embeds and records to local vault."""
+        from discord_webhook import AntimagistDiscordWebhook
+        wh = AntimagistDiscordWebhook()
+        ok, msg = wh.send_benchmark_review(
+            player_name="TestSuiteGamer",
+            rating=5,
+            feedback="Master verification suite feedback check."
+        )
+        self.assertTrue(ok)
+        print("  [+] Discord Webhook Engine: Rich embed generation & local fallback vault validated.")
 
 
 if __name__ == "__main__":

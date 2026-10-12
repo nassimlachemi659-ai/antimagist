@@ -32,3 +32,5 @@ node_modules/
 echochat/
 echochat-v2/
 DesktopAIBrain/
+release/
+*.zip

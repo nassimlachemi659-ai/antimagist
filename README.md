@@ -1,10 +1,12 @@
 # 🛡️ Antimagist Enterprise Security V5 (Singularity Edition)
 
+[![CI](https://github.com/nassimlachemi659-ai/antimagist/actions/workflows/ci.yml/badge.svg)](https://github.com/nassimlachemi659-ai/antimagist/actions)
+[![Latest Release](https://img.shields.io/badge/Release-v5.0.0--Community-orange?style=for-the-badge&logo=github)](https://github.com/nassimlachemi659-ai/antimagist/releases)
 [![Platform: Windows 10 & 11](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-blue?style=for-the-badge&logo=windows)](https://microsoft.com/windows)
 [![Python: 3.12](https://img.shields.io/badge/Python-3.12-yellow?style=for-the-badge&logo=python)](https://python.org)
 [![Anti-Cheat: 100% Safe](https://img.shields.io/badge/Anti--Cheat-100%25%20Safe%20(Zero%20Hooks)-success?style=for-the-badge)](https://github.com)
-[![Architecture: Universal GPU & CPU](https://img.shields.io/badge/Hardware-Universal%20(NVIDIA%2FAMD%2FIntel)-purple?style=for-the-badge)](https://github.com)
-[![Status: Production Ready](https://img.shields.io/badge/Status-Commercial%20V5-brightgreen?style=for-the-badge)](https://github.com)
+[![Hardware: Universal](https://img.shields.io/badge/Hardware-Universal%20(NVIDIA%2FAMD%2FIntel)-purple?style=for-the-badge)](https://github.com)
+[![License: Free Community](https://img.shields.io/badge/License-100%25%20Free%20Community-00FF9D?style=for-the-badge)](https://github.com/nassimlachemi659-ai/antimagist)
 
 > **Transparent, honest, and high-performance esports latency stripper and zero-trust cybersecurity suite for competitive PC gamers.**
 
