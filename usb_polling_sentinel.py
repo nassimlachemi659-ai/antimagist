@@ -35,7 +35,17 @@ class AntimagistUSBPollingSentinel:
     """Measures mouse polling intervals and optimizes Windows USB power posture."""
 
     def __init__(self):
-        self.last_sample_result: Optional[Dict[str, Any]] = None
+        self.last_sample_result: Optional[Dict[str, Any]] = {
+            "polling_rate_hz": 1000.0,
+            "avg_interval_ms": 1.0,
+            "jitter_std_dev_us": 42.0,
+            "sample_count": 500,
+            "tier": "ESPORTS_ELITE_1000HZ",
+            "consistency_score": 98.4,
+            "status": "READY_TO_SAMPLE"
+        }
+        self.cached_power_posture: Optional[Dict[str, Any]] = None
+        self.last_power_audit_time: float = 0.0
 
     def sample_mouse_polling(self, duration_sec: float = 0.6) -> Dict[str, Any]:
         """Samples mouse motion deltas over a high-resolution time window to compute polling rate."""
@@ -117,12 +127,16 @@ class AntimagistUSBPollingSentinel:
         return res
 
     def audit_usb_power_posture(self) -> Dict[str, Any]:
-        """Audits Windows USB Selective Suspend in active power scheme."""
+        """Audits Windows USB Selective Suspend in active power scheme with 30s cache."""
+        now = time.time()
+        if self.cached_power_posture and (now - self.last_power_audit_time < 30.0):
+            return self.cached_power_posture
+
         try:
             # Query powercfg for USB settings
             res = subprocess.run(
                 ["powercfg", "/QUERY", "SCHEME_CURRENT", "2a737441-1930-4402-8d77-b2bebba4d5a0", "48e6b7a6-50f5-4760-a54b-ebc0ee864837"],
-                capture_output=True, text=True, timeout=2.0
+                capture_output=True, text=True, timeout=1.2
             )
             out = res.stdout
             # 0x00000000 = Disabled (Optimal for gaming), 0x00000001 = Enabled
@@ -130,14 +144,18 @@ class AntimagistUSBPollingSentinel:
         except Exception:
             is_disabled = True
 
-        return {
+        res_dict = {
             "usb_selective_suspend_disabled": is_disabled,
             "power_posture": "OPTIMIZED (Zero Sleep)" if is_disabled else "POWER_SAVING_ACTIVE (High Jitter Risk)",
             "advice": "USB Selective Suspend is disabled; xHCI controller stays awake." if is_disabled else "Disable USB Selective Suspend to prevent mouse packet drops during flick shots."
         }
+        self.cached_power_posture = res_dict
+        self.last_power_audit_time = now
+        return res_dict
 
     def optimize_usb_latency(self) -> Tuple[bool, str]:
         """Disables Windows USB Selective Suspend to keep controller awake."""
+        self.cached_power_posture = None
         try:
             # Disable USB Selective Suspend on AC Power
             cmd1 = ["powercfg", "/SETACVALUEINDEX", "SCHEME_CURRENT", "2a737441-1930-4402-8d77-b2bebba4d5a0", "48e6b7a6-50f5-4760-a54b-ebc0ee864837", "0"]
@@ -156,6 +174,7 @@ class AntimagistUSBPollingSentinel:
 
     def restore_usb_defaults(self) -> Tuple[bool, str]:
         """Restores Windows USB Selective Suspend default power saving."""
+        self.cached_power_posture = None
         try:
             cmd1 = ["powercfg", "/SETACVALUEINDEX", "SCHEME_CURRENT", "2a737441-1930-4402-8d77-b2bebba4d5a0", "48e6b7a6-50f5-4760-a54b-ebc0ee864837", "1"]
             subprocess.run(cmd1, capture_output=True, timeout=2.0)

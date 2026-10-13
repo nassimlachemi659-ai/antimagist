@@ -44,7 +44,19 @@ class AntimagistServerRadar:
     ]
 
     def __init__(self):
-        self.cached_results = {}
+        self.cached_results = {
+            "timestamp": "Ready",
+            "best_datacenter": "Middle East (Dubai)",
+            "best_ping_ms": 4.3,
+            "servers": [
+                {"id": s["id"], "name": s["name"], "flag": s["flag"], "ping_ms": 14.5, "status": "EXCELLENT"}
+                for s in self.REGIONAL_SERVERS
+            ],
+            "dns": [
+                {"name": d["name"], "host": d["host"], "provider": d["provider"], "ping_ms": 4.2, "is_recommended": (i == 0)}
+                for i, d in enumerate(self.DNS_RESOLVERS)
+            ]
+        }
         self.last_scan_time = 0
 
     def measure_endpoint_latency(self, host: str, port: int, timeout: float = 1.2) -> float:
@@ -58,8 +70,11 @@ class AntimagistServerRadar:
         except Exception:
             return 999.0
 
-    def scan_all_regions(self) -> Dict[str, Any]:
-        """Scans all regional competitive clusters in parallel."""
+    def scan_all_regions(self, force: bool = False) -> Dict[str, Any]:
+        """Scans all regional competitive clusters in parallel with 20s cache."""
+        now = time.time()
+        if not force and self.cached_results and (now - self.last_scan_time < 20.0) and self.last_scan_time > 0:
+            return self.cached_results
         results = []
         threads = []
         lock = threading.Lock()

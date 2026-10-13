@@ -34,6 +34,8 @@ class AntimagistPingOptimizer:
         self.last_jitter_ms: float = 0.0
         self.packet_loss_pct: float = 0.0
         self.ping_history: List[float] = []
+        self.cached_telemetry: Optional[Dict[str, Any]] = None
+        self.last_poll_time: float = 0.0
 
     def measure_quick_ping(self, target_host: str = "1.1.1.1", port: int = 53, timeout: float = 1.0) -> Optional[float]:
         """
@@ -53,8 +55,11 @@ class AntimagistPingOptimizer:
 
     def get_live_ping_telemetry(self) -> Dict[str, Any]:
         """
-        Samples multiple fast pings to calculate real-time Ping, Jitter, and Packet Loss.
+        Samples fast pings to calculate real-time Ping, Jitter, and Packet Loss with 4.0s cache.
         """
+        now = time.time()
+        if self.cached_telemetry and (now - self.last_poll_time < 4.0):
+            return self.cached_telemetry
         samples = []
         lost = 0
         trials = 3
@@ -111,7 +116,7 @@ class AntimagistPingOptimizer:
             rating = "HIGH LATENCY (Lag Detected)"
             status_color = "#FF0055" # Crimson
 
-        return {
+        res = {
             "ping_ms": avg_ping,
             "jitter_ms": jitter,
             "packet_loss_pct": loss_pct,
@@ -119,6 +124,9 @@ class AntimagistPingOptimizer:
             "status_color": status_color,
             "target": "Cloudflare Global Anycast (1.1.1.1)"
         }
+        self.cached_telemetry = res
+        self.last_poll_time = now
+        return res
 
     # =========================================================================
     # LOW-LATENCY NETWORK OPTIMIZATIONS (REGISTRY & ADAPTER LEVEL)

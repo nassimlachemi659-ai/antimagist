@@ -33,6 +33,8 @@ class AntimagistMSITuner:
 
     def __init__(self):
         self.cached_devices: List[Dict[str, Any]] = []
+        self.cached_audit: Optional[Dict[str, Any]] = None
+        self.last_audit_time: float = 0.0
 
     def scan_pci_devices(self) -> List[Dict[str, Any]]:
         """Scans PCI registry tree for gaming-critical hardware (GPU, NIC, NVMe)."""
@@ -156,6 +158,7 @@ class AntimagistMSITuner:
 
     def set_device_msi_mode(self, pci_path: str, enable: bool) -> Tuple[bool, str]:
         """Enables or disables MSI mode for a target PCI device."""
+        self.cached_audit = None
         full_sub = rf"{PCI_ENUM_PATH}\{pci_path}\Device Parameters\Interrupt Management\MessageSignaledInterruptProperties"
         try:
             h_key = winreg.CreateKeyEx(winreg.HKEY_LOCAL_MACHINE, full_sub, 0, winreg.KEY_SET_VALUE | winreg.KEY_WOW64_64KEY)
@@ -170,7 +173,11 @@ class AntimagistMSITuner:
             return False, f"Failed to modify device interrupt mode: {ex}"
 
     def audit_interrupt_health(self) -> Dict[str, Any]:
-        """Generates full audit report of PCI interrupts, flagging legacy line-based bottlenecks."""
+        """Generates full audit report of PCI interrupts with 60s cache, flagging legacy line-based bottlenecks."""
+        now = time.time()
+        if self.cached_audit and (now - self.last_audit_time < 60.0):
+            return self.cached_audit
+
         devs = self.scan_pci_devices()
         legacy_count = sum(1 for d in devs if not d["msi_supported"])
         msi_count = sum(1 for d in devs if d["msi_supported"])
@@ -185,7 +192,7 @@ class AntimagistMSITuner:
             status = "OPTIMAL_MSI_PIPELINE"
             advice = "All critical gaming controllers (GPU, NVMe, NIC) are utilizing Message Signaled Interrupts (MSI-X). Zero IRQ sharing detected."
 
-        return {
+        res = {
             "total_audited": len(devs),
             "msi_active_count": msi_count,
             "legacy_intx_count": legacy_count,
@@ -193,6 +200,9 @@ class AntimagistMSITuner:
             "advice": advice,
             "devices": devs
         }
+        self.cached_audit = res
+        self.last_audit_time = now
+        return res
 
 
 if __name__ == "__main__":

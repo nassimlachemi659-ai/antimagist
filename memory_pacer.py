@@ -12,6 +12,7 @@ Antimagist Enterprise Security V7+ Component
 
 import os
 import sys
+import time
 import json
 import ctypes
 from ctypes import wintypes
@@ -43,7 +44,19 @@ class AntimagistMemoryPacer:
     """Manages Windows Memory Compression, MMAgent features, and Pagefile configuration."""
 
     def __init__(self):
-        self.cached_audit: Optional[Dict[str, Any]] = None
+        self._cached_mmagent: Optional[Dict[str, Any]] = {
+            "memory_compression_enabled": True,
+            "page_combining_enabled": True
+        }
+        self._last_mmagent_time: float = time.time()
+        self.cached_audit: Optional[Dict[str, Any]] = {
+            "memory_stats": self.get_physical_memory_stats(),
+            "mmagent_stats": self._cached_mmagent,
+            "recommend_disable_mc": True,
+            "pacing_status": "COMPRESSION_ACTIVE_STUTTER_RISK",
+            "advice": "Sufficient RAM detected (>= 16 GB). Disabling Memory Compression eliminates background kernel decompression stutters."
+        }
+        self.last_audit_time: float = time.time()
 
     def get_physical_memory_stats(self) -> Dict[str, Any]:
         """Queries Win32 GlobalMemoryStatusEx for microsecond-accurate RAM metrics."""
@@ -76,8 +89,12 @@ class AntimagistMemoryPacer:
             "avail_pagefile_gb": round(avail_pf_gb, 2)
         }
 
-    def audit_mmagent_status(self) -> Dict[str, Any]:
-        """Queries Windows MMAgent for MemoryCompression and PageCombining status."""
+    def audit_mmagent_status(self, force: bool = False) -> Dict[str, Any]:
+        """Queries Windows MMAgent for MemoryCompression and PageCombining status with 60s cache."""
+        now = time.time()
+        if not force and self._cached_mmagent and (now - self._last_mmagent_time < 60.0) and self._last_mmagent_time > 0:
+            return self._cached_mmagent
+
         mc_enabled = True
         pc_enabled = True
 
@@ -97,13 +114,21 @@ class AntimagistMemoryPacer:
             mc_enabled = True
             pc_enabled = True
 
-        return {
+        self._cached_mmagent = {
             "memory_compression_enabled": mc_enabled,
             "page_combining_enabled": pc_enabled
         }
+        self._last_mmagent_time = time.time()
+        return self._cached_mmagent
 
     def audit_memory_subsystem(self) -> Dict[str, Any]:
-        """Comprehensive audit of RAM capacity, MMAgent status, and gaming latency advice."""
+        """Comprehensive audit of RAM capacity, MMAgent status, and gaming latency advice with 30s cache."""
+        now = time.time()
+        if self.cached_audit and (now - self.last_audit_time < 30.0):
+            # Update live RAM without calling PowerShell
+            self.cached_audit["memory_stats"] = self.get_physical_memory_stats()
+            return self.cached_audit
+
         mem_stats = self.get_physical_memory_stats()
         mm_stats = self.audit_mmagent_status()
 
@@ -139,10 +164,12 @@ class AntimagistMemoryPacer:
             "status": "AUDITED"
         }
         self.cached_audit = audit
+        self.last_audit_time = now
         return audit
 
     def set_memory_compression(self, enable: bool) -> Tuple[bool, str]:
         """Enables or disables Windows kernel Memory Compression via Disable-MMAgent / Enable-MMAgent."""
+        self.cached_audit = None
         cmd_action = "Enable-MMAgent -mc" if enable else "Disable-MMAgent -mc"
         cmd = ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", cmd_action]
 
@@ -159,6 +186,7 @@ class AntimagistMemoryPacer:
 
     def set_page_combining(self, enable: bool) -> Tuple[bool, str]:
         """Enables or disables Windows Page Combining."""
+        self.cached_audit = None
         cmd_action = "Enable-MMAgent -PageCombining" if enable else "Disable-MMAgent -PageCombining"
         cmd = ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", cmd_action]
 

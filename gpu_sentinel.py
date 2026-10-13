@@ -95,8 +95,8 @@ class AntimagistGPUSentinel:
 
     def _poll_gpu(self):
         now = time.time()
-        # Cache for at least 1.2s to prevent excessive polling
-        if now - self.last_poll_time < 1.2 and self.last_metrics["is_available"]:
+        # Cache for at least 3.0s to prevent excessive polling
+        if now - self.last_poll_time < 3.0 and self.last_metrics.get("gpu_name") != "Detecting GPU...":
             return
 
         nv = self._query_nvidia_smi()
@@ -108,6 +108,7 @@ class AntimagistGPUSentinel:
             with self._lock:
                 self.last_metrics["gpu_name"] = "Standard Graphics Adapter"
                 self.last_metrics["is_available"] = False
+                self.last_poll_time = now
 
     def get_live_gpu_metrics(self) -> Dict[str, Any]:
         """Returns live cached GPU metrics."""

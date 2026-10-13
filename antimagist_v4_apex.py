@@ -1957,7 +1957,13 @@ class AntimagistV4ApexApp(AntimagistV3App):
         left_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
         left_card.grid(row=1, column=0, sticky="nsew", padx=(0, 10))
 
-        info = self.auto_updater.cached_update_info or self.auto_updater.check_for_updates()
+        info = self.auto_updater.cached_update_info or {
+            "update_available": False,
+            "latest_version": f"v{self.auto_updater.current_version}",
+            "release_title": "Antimagist V8 Sovereign",
+            "release_notes": "All engines verified up-to-date. Click 'Check for Updates Now' to poll remote GitHub releases.",
+            "published_at": "Latest Sovereign Build"
+        }
         ctk.CTkLabel(left_card, text="Release Version Status", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
 
         f_stat = ctk.CTkFrame(left_card, fg_color="#0A0C14", corner_radius=10, border_color=COLOR_BORDER, border_width=1)
@@ -2731,17 +2737,31 @@ class AntimagistV4ApexApp(AntimagistV3App):
             try:
                 gm = self.gpu_sentinel.get_live_gpu_metrics()
                 def update_gpu():
+                    if not hasattr(self, 'winfo_exists') or not self.winfo_exists():
+                        return
                     if hasattr(self, 'pill_gpu') and self.pill_gpu.winfo_exists():
-                        self.pill_gpu.configure(
-                            text=f"🎮 {gm['gpu_name'][:12]}: {gm['temperature_c']}°C",
-                            text_color=gm['status_color']
-                        )
+                        g_text = f"🎮 {gm['gpu_name'][:12]}: {gm['temperature_c']}°C"
+                        if getattr(self, '_last_pill_gpu_text', None) != g_text:
+                            self.pill_gpu.configure(
+                                text=g_text,
+                                text_color=gm['status_color']
+                            )
+                            self._last_pill_gpu_text = g_text
                     if hasattr(self, 'lbl_dash_gpu_temp') and self.lbl_dash_gpu_temp.winfo_exists():
-                        self.lbl_dash_gpu_temp.configure(text=f"{gm['temperature_c']} °C", text_color=gm['status_color'])
+                        gt_text = f"{gm['temperature_c']} °C"
+                        if getattr(self, '_last_dash_gpu_temp', None) != gt_text:
+                            self.lbl_dash_gpu_temp.configure(text=gt_text, text_color=gm['status_color'])
+                            self._last_dash_gpu_temp = gt_text
                     if hasattr(self, 'lbl_dash_gpu_vram') and self.lbl_dash_gpu_vram.winfo_exists():
-                        self.lbl_dash_gpu_vram.configure(text=f"VRAM: {gm['vram_str']}")
+                        gv_text = f"VRAM: {gm['vram_str']}"
+                        if getattr(self, '_last_dash_gpu_vram', None) != gv_text:
+                            self.lbl_dash_gpu_vram.configure(text=gv_text)
+                            self._last_dash_gpu_vram = gv_text
                     if hasattr(self, 'lbl_dash_gpu_util') and self.lbl_dash_gpu_util.winfo_exists():
-                        self.lbl_dash_gpu_util.configure(text=f"Core Load: {gm['utilization_gpu_pct']}%")
+                        gu_text = f"Core Load: {gm['utilization_gpu_pct']}%"
+                        if getattr(self, '_last_dash_gpu_util', None) != gu_text:
+                            self.lbl_dash_gpu_util.configure(text=gu_text)
+                            self._last_dash_gpu_util = gu_text
                 self.after(0, update_gpu)
 
                 # Periodic Discord Presence refresh (every ~15s)

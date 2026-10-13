@@ -29,6 +29,7 @@ if hasattr(sys.stdout, "reconfigure"):
 class AntimagistGameLibrary:
     def __init__(self):
         self.cached_games: List[Dict[str, Any]] = []
+        self._last_scan_time: float = 0.0
         self.scan_library()
 
     def _get_steam_paths(self) -> List[str]:
@@ -76,7 +77,10 @@ class AntimagistGameLibrary:
         return folders
 
     def scan_library(self) -> List[Dict[str, Any]]:
-        """Scans for installed Steam and PC games."""
+        """Scans for installed Steam and PC games with 300s cache."""
+        now = time.time()
+        if self.cached_games and (now - self._last_scan_time < 300.0):
+            return self.cached_games
         games = []
         seen_names = set()
 
@@ -123,6 +127,7 @@ class AntimagistGameLibrary:
         # Sort games alphabetically
         games.sort(key=lambda x: x["name"])
         self.cached_games = games
+        self._last_scan_time = now
         return games
 
     def launch_game_with_apex_boost(

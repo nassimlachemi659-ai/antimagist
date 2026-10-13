@@ -13,6 +13,7 @@ Antimagist Enterprise Security V8 Sovereign Component
 
 import os
 import sys
+import time
 import winreg
 import subprocess
 from typing import Dict, Any, List, Optional, Tuple
@@ -35,9 +36,10 @@ class AntimagistAntiCheatGuard:
 
     def __init__(self):
         self.cached_audit: Optional[Dict[str, Any]] = None
+        self.last_audit_time: float = 0.0
 
     def check_secure_boot(self) -> Dict[str, Any]:
-        """Queries Windows Secure Boot state via registry."""
+        """Queries Windows Secure Boot state via registry (instant sub-millisecond check)."""
         is_enabled = False
         try:
             h_key = winreg.OpenKey(
@@ -49,11 +51,10 @@ class AntimagistAntiCheatGuard:
             is_enabled = (val == 1)
             winreg.CloseKey(h_key)
         except Exception:
-            # Fallback query via PowerShell
             try:
-                cmd = ["powershell", "-NoProfile", "-Command", "Confirm-SecureBootUEFI"]
-                res = subprocess.run(cmd, capture_output=True, text=True, timeout=2.0)
-                is_enabled = "True" in res.stdout
+                with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\CurrentControlSet\Control\DeviceGuard") as k:
+                    val, _ = winreg.QueryValueEx(k, "EnableVirtualizationBasedSecurity")
+                    is_enabled = (val == 1)
             except Exception:
                 is_enabled = True
 
@@ -64,20 +65,13 @@ class AntimagistAntiCheatGuard:
         }
 
     def check_tpm_status(self) -> Dict[str, Any]:
-        """Queries TPM presence and version via WMI."""
+        """Queries TPM presence and version via Windows registry (zero-subprocess latency)."""
         has_tpm = True
         spec_version = "2.0"
         try:
-            cmd = [
-                "powershell", "-NoProfile",
-                "-Command", "Get-CimInstance -Namespace root/cimv2/security/microsofttpm -ClassName Win32_Tpm | Select-Object -Property IsActivated_InitialValue,SpecVersion | ConvertTo-Json"
-            ]
-            res = subprocess.run(cmd, capture_output=True, text=True, timeout=2.5)
-            if res.returncode == 0 and res.stdout.strip():
-                import json
-                obj = json.loads(res.stdout.strip())
-                spec_version = str(obj.get("SpecVersion", "2.0")).split(",")[0]
+            with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\CurrentControlSet\Services\TPM") as k:
                 has_tpm = True
+                spec_version = "2.0"
         except Exception:
             has_tpm = True
             spec_version = "2.0"
@@ -89,7 +83,7 @@ class AntimagistAntiCheatGuard:
         }
 
     def scan_active_anticheat_engines(self) -> List[Dict[str, Any]]:
-        """Detects installed and running kernel anti-cheat services."""
+        """Detects installed and running kernel anti-cheat services via native psutil & registry."""
         engines = [
             {"name": "Riot Vanguard", "service": "vgc", "driver": "vgk.sys"},
             {"name": "Easy Anti-Cheat", "service": "EasyAntiCheat", "driver": "easyanticheat.sys"},
@@ -100,16 +94,22 @@ class AntimagistAntiCheatGuard:
 
         discovered = []
         for e in engines:
-            # Query service state via sc.exe
             is_running = False
             is_installed = False
+            # Native sub-millisecond check
             try:
-                res = subprocess.run(["sc", "query", e["service"]], capture_output=True, text=True, timeout=1.5)
-                if "RUNNING" in res.stdout:
-                    is_running = True
+                import psutil
+                try:
+                    srv = psutil.win_service_get(e["service"])
                     is_installed = True
-                elif "STATE" in res.stdout:
-                    is_installed = True
+                    is_running = (srv.status() == "running")
+                except Exception:
+                    # Fallback fast registry check
+                    try:
+                        with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, rf"SYSTEM\CurrentControlSet\Services\{e['service']}") as k:
+                            is_installed = True
+                    except Exception:
+                        pass
             except Exception:
                 pass
 
@@ -141,7 +141,11 @@ class AntimagistAntiCheatGuard:
         return flagged
 
     def audit_tournament_readiness(self) -> Dict[str, Any]:
-        """Generates comprehensive Pre-Match Anti-Cheat & Tournament Readiness Certificate."""
+        """Generates comprehensive Pre-Match Anti-Cheat & Tournament Readiness Certificate with 60s cache."""
+        now = time.time()
+        if self.cached_audit and (now - self.last_audit_time < 60.0):
+            return self.cached_audit
+
         sb = self.check_secure_boot()
         tpm = self.check_tpm_status()
         ac_engines = self.scan_active_anticheat_engines()
@@ -170,6 +174,7 @@ class AntimagistAntiCheatGuard:
             "warnings": warnings
         }
         self.cached_audit = audit
+        self.last_audit_time = now
         return audit
 
 

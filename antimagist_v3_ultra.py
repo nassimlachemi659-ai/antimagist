@@ -123,6 +123,8 @@ class AntimagistSecuritySandbox:
 class AntimagistOptimizer:
     def __init__(self, sandbox: AntimagistSecuritySandbox):
         self.sandbox = sandbox
+        self._cached_top_procs: List[Tuple[str, float]] = []
+        self._last_top_proc_time: float = 0.0
 
     def get_live_metrics(self) -> dict:
         virtual_mem = psutil.virtual_memory()
@@ -150,7 +152,11 @@ class AntimagistOptimizer:
         }
 
     def get_top_memory_processes(self, limit: int = 5) -> List[Tuple[str, float]]:
-        """Returns top N memory-consuming processes (name, usage in MB)."""
+        """Returns top N memory-consuming processes (name, usage in MB) with 8.0s cache."""
+        now = time.time()
+        if self._cached_top_procs and (now - self._last_top_proc_time < 8.0):
+            return self._cached_top_procs[:limit]
+
         procs = []
         for p in psutil.process_iter(['name', 'memory_info']):
             try:
@@ -158,7 +164,10 @@ class AntimagistOptimizer:
                 procs.append((p.info['name'], round(mem, 1)))
             except (psutil.NoSuchProcess, psutil.AccessDenied):
                 pass
-        return sorted(procs, key=lambda x: x[1], reverse=True)[:limit]
+        res = sorted(procs, key=lambda x: x[1], reverse=True)[:10]
+        self._cached_top_procs = res
+        self._last_top_proc_time = now
+        return res[:limit]
 
     def _run_async_powershell(self, command: str, on_success: Optional[Callable[[str], None]] = None, on_failure: Optional[Callable[[str], None]] = None):
         if not self.sandbox.is_safe(command):
@@ -570,12 +579,18 @@ class AntimagistV3App(ctk.CTk):
         self.container.grid_rowconfigure(0, weight=1)
 
     def _highlight_nav(self, active_key: str):
+        prev_key = getattr(self, "current_pane", None)
         self.current_pane = active_key
-        for key, btn in self.nav_buttons.items():
-            if key == active_key:
-                btn.configure(fg_color=COLOR_CARD, text_color=COLOR_CYAN)
-            else:
-                btn.configure(fg_color="transparent", text_color=COLOR_TEXT_SUBTLE)
+        if prev_key and prev_key in self.nav_buttons and prev_key != active_key:
+            try:
+                self.nav_buttons[prev_key].configure(fg_color="transparent", text_color=COLOR_TEXT_SUBTLE)
+            except Exception:
+                pass
+        if active_key in self.nav_buttons:
+            try:
+                self.nav_buttons[active_key].configure(fg_color=COLOR_CARD, text_color=COLOR_CYAN)
+            except Exception:
+                pass
 
     def clear_container(self):
         for widget in self.container.winfo_children():
@@ -1867,147 +1882,193 @@ class AntimagistV3App(ctk.CTk):
         threading.Thread(target=run_turbo, daemon=True).start()
 
     # ========================================================================
-    # 60 FPS CANVAS ANIMATION ENGINE
+    # 60 FPS HARDWARE-ACCELERATED CANVAS ANIMATION ENGINE
     # ========================================================================
     def _animation_tick(self):
         # Zero-CPU throttling when minimized or hidden in tray
         try:
+            if not hasattr(self, 'winfo_exists') or not self.winfo_exists():
+                return
             if not self.winfo_viewable() or self.state() == "iconic":
                 self.after(250, self._animation_tick)
                 return
         except Exception:
-            pass
+            return
 
         # 1. Update Radial Donut Gauges (Dashboard)
-        if self.current_pane == "dash" and hasattr(self, 'gauge_canvas') and self.gauge_canvas.winfo_exists():
+        if getattr(self, 'current_pane', None) == "dash" and hasattr(self, 'gauge_canvas') and self.gauge_canvas.winfo_exists():
             self._render_donut_gauges()
 
         # 2. Update Holographic Radar Scanner (Scanner)
-        if self.current_pane == "scanner" and hasattr(self, 'radar_canvas') and self.radar_canvas.winfo_exists():
+        if getattr(self, 'current_pane', None) == "scanner" and hasattr(self, 'radar_canvas') and self.radar_canvas.winfo_exists():
             self._render_radar_scanner()
 
         # 3. Update Sentinel Breathing Orb (Shield)
-        if self.current_pane == "shield" and hasattr(self, 'orb_canvas') and self.orb_canvas.winfo_exists():
+        if getattr(self, 'current_pane', None) == "shield" and hasattr(self, 'orb_canvas') and self.orb_canvas.winfo_exists():
             self._render_sentinel_orb()
 
-        # Schedule next tick (~35ms = ~30 FPS smooth rendering with low CPU impact)
-        self.after(35, self._animation_tick)
+        # True 60 FPS silky smooth tick (~16.6ms) with zero allocations
+        self.after(16, self._animation_tick)
 
     def _render_donut_gauges(self):
-        # Smooth interpolation
-        self.animated_ram_pct += (self.target_ram_pct - self.animated_ram_pct) * 0.15
-        self.animated_cpu_pct += (self.target_cpu_pct - self.animated_cpu_pct) * 0.15
-
+        if not hasattr(self, 'gauge_canvas') or not self.gauge_canvas.winfo_exists():
+            return
         c = self.gauge_canvas
-        c.delete("all")
         w = c.winfo_width()
         if w < 50:
             w = 400
 
-        # Draw RAM Gauge (Left center)
-        cx1, cy1, r1 = w * 0.28, 95, 68
-        # Background arc track
-        c.create_arc(cx1 - r1, cy1 - r1, cx1 + r1, cy1 + r1, start=90, extent=-360, style='arc', width=12, outline="#161B2E")
-        # Active arc
+        # Construct persistent tagged canvas items once
+        if not c.find_withtag("ram_fg"):
+            c.delete("all")
+            cx1, cy1, r1 = w * 0.28, 95, 68
+            cx2, cy2, r2 = w * 0.72, 95, 68
+
+            # RAM Gauge items
+            c.create_arc(cx1 - r1, cy1 - r1, cx1 + r1, cy1 + r1, start=90, extent=-360, style='arc', width=12, outline="#161B2E", tag="ram_bg")
+            c.create_arc(cx1 - r1, cy1 - r1, cx1 + r1, cy1 + r1, start=90, extent=0, style='arc', width=12, outline=COLOR_CYAN, tag="ram_fg")
+            c.create_text(cx1, cy1 - 10, text="0%", fill=COLOR_TEXT_PRIMARY, font=("Segoe UI", 20, "bold"), tag="ram_val")
+            c.create_text(cx1, cy1 + 16, text="MEMORY", fill=COLOR_TEXT_MUTED, font=("Segoe UI", 10, "bold"), tag="ram_lbl")
+
+            # CPU Gauge items
+            c.create_arc(cx2 - r2, cy2 - r2, cx2 + r2, cy2 + r2, start=90, extent=-360, style='arc', width=12, outline="#161B2E", tag="cpu_bg")
+            c.create_arc(cx2 - r2, cy2 - r2, cx2 + r2, cy2 + r2, start=90, extent=0, style='arc', width=12, outline=COLOR_EMERALD, tag="cpu_fg")
+            c.create_text(cx2, cy2 - 10, text="0%", fill=COLOR_TEXT_PRIMARY, font=("Segoe UI", 20, "bold"), tag="cpu_val")
+            c.create_text(cx2, cy2 + 16, text="CPU LOAD", fill=COLOR_TEXT_MUTED, font=("Segoe UI", 10, "bold"), tag="cpu_lbl")
+
+        # Zero-CPU when values are resting
+        diff_ram = abs(self.target_ram_pct - self.animated_ram_pct)
+        diff_cpu = abs(self.target_cpu_pct - self.animated_cpu_pct)
+        if diff_ram < 0.15 and diff_cpu < 0.15:
+            return
+
+        self.animated_ram_pct += (self.target_ram_pct - self.animated_ram_pct) * 0.18
+        self.animated_cpu_pct += (self.target_cpu_pct - self.animated_cpu_pct) * 0.18
+
         extent_ram = -3.6 * max(1, min(100, self.animated_ram_pct))
         ram_color = COLOR_CYAN if self.animated_ram_pct < 75 else (COLOR_AMBER if self.animated_ram_pct < 88 else COLOR_CRIMSON)
-        c.create_arc(cx1 - r1, cy1 - r1, cx1 + r1, cy1 + r1, start=90, extent=extent_ram, style='arc', width=12, outline=ram_color)
-        c.create_text(cx1, cy1 - 10, text=f"{int(self.animated_ram_pct)}%", fill=COLOR_TEXT_PRIMARY, font=("Segoe UI", 20, "bold"))
-        c.create_text(cx1, cy1 + 16, text="MEMORY", fill=COLOR_TEXT_MUTED, font=("Segoe UI", 10, "bold"))
+        c.itemconfigure("ram_fg", extent=extent_ram, outline=ram_color)
+        c.itemconfigure("ram_val", text=f"{int(self.animated_ram_pct)}%")
 
-        # Draw CPU Gauge (Right center)
-        cx2, cy2, r2 = w * 0.72, 95, 68
-        # Background arc track
-        c.create_arc(cx2 - r2, cy2 - r2, cx2 + r2, cy2 + r2, start=90, extent=-360, style='arc', width=12, outline="#161B2E")
-        # Active arc
         extent_cpu = -3.6 * max(1, min(100, self.animated_cpu_pct))
         cpu_color = COLOR_EMERALD if self.animated_cpu_pct < 70 else COLOR_AMBER
-        c.create_arc(cx2 - r2, cy2 - r2, cx2 + r2, cy2 + r2, start=90, extent=extent_cpu, style='arc', width=12, outline=cpu_color)
-        c.create_text(cx2, cy2 - 10, text=f"{int(self.animated_cpu_pct)}%", fill=COLOR_TEXT_PRIMARY, font=("Segoe UI", 20, "bold"))
-        c.create_text(cx2, cy2 + 16, text="CPU LOAD", fill=COLOR_TEXT_MUTED, font=("Segoe UI", 10, "bold"))
+        c.itemconfigure("cpu_fg", extent=extent_cpu, outline=cpu_color)
+        c.itemconfigure("cpu_val", text=f"{int(self.animated_cpu_pct)}%")
 
     def _render_radar_scanner(self):
+        if not hasattr(self, 'radar_canvas') or not self.radar_canvas.winfo_exists():
+            return
         c = self.radar_canvas
-        c.delete("all")
         cx, cy, r = 110, 100, 85
 
-        # Radar range rings
-        for rad in [28, 56, 84]:
-            c.create_oval(cx - rad, cy - rad, cx + rad, cy + rad, outline="#162235", width=1)
-        # Radar crosshairs
-        c.create_line(cx - 85, cy, cx + 85, cy, fill="#162235")
-        c.create_line(cx, cy - 85, cx, cy + 85, fill="#162235")
+        if not c.find_withtag("radar_ring"):
+            c.delete("all")
+            for rad in [28, 56, 84]:
+                c.create_oval(cx - rad, cy - rad, cx + rad, cy + rad, outline="#162235", width=1, tag="radar_ring")
+            c.create_line(cx - 85, cy, cx + 85, cy, fill="#162235", tag="radar_ring")
+            c.create_line(cx, cy - 85, cx, cy + 85, fill="#162235", tag="radar_ring")
+            c.create_arc(cx - r, cy - r, cx + r, cy + r, start=0, extent=40, fill="#091D24", outline="", style='pieslice', tag="radar_slice")
+            c.create_line(cx, cy, cx + r, cy, fill=COLOR_EMERALD, width=2, tag="radar_beam")
+            c.create_oval(cx - 4, cy - 4, cx + 4, cy + 4, fill=COLOR_CYAN, outline="", tag="radar_center")
+            c.create_oval(cx, cy, cx, cy, fill=COLOR_CRIMSON, outline="", tag="radar_blip")
 
-        # Rotating beam
         self.radar_angle = (self.radar_angle + (6 if self.radar_scanning else 2)) % 360
         rad_a = math.radians(self.radar_angle)
         ex = cx + r * math.cos(rad_a)
         ey = cy - r * math.sin(rad_a)
 
-        # Translucent sweeping trail slice
         trail_fill = "#0E3830" if self.radar_scanning else "#091D24"
-        c.create_arc(cx - r, cy - r, cx + r, cy + r, start=self.radar_angle, extent=40, fill=trail_fill, outline="", style='pieslice')
-
-        # Laser beam
         beam_color = COLOR_EMERALD if not self.radar_scanning else COLOR_CYAN
-        c.create_line(cx, cy, ex, ey, fill=beam_color, width=2)
-        c.create_oval(cx - 4, cy - 4, cx + 4, cy + 4, fill=COLOR_CYAN, outline="")
 
-        # If scanning, draw randomized target blips
+        c.itemconfigure("radar_slice", start=self.radar_angle, fill=trail_fill)
+        c.coords("radar_beam", cx, cy, ex, ey)
+        c.itemconfigure("radar_beam", fill=beam_color)
+
         if self.radar_scanning:
             bx = cx + 45 * math.cos(rad_a - 1.2)
             by = cy - 45 * math.sin(rad_a - 1.2)
-            c.create_oval(bx - 3, by - 3, bx + 3, by + 3, fill=COLOR_CRIMSON, outline="")
+            c.coords("radar_blip", bx - 3, by - 3, bx + 3, by + 3)
+            c.itemconfigure("radar_blip", state="normal")
+        else:
+            c.itemconfigure("radar_blip", state="hidden")
 
     def _render_sentinel_orb(self):
+        if not hasattr(self, 'orb_canvas') or not self.orb_canvas.winfo_exists():
+            return
         c = self.orb_canvas
-        c.delete("all")
         w = c.winfo_width()
         if w < 50:
             w = 400
         cx, cy = w / 2, 90
 
+        if not c.find_withtag("orb_outer"):
+            c.delete("all")
+            c.create_oval(cx - 60, cy - 60, cx + 60, cy + 60, outline="#08382A", width=2, tag="orb_outer")
+            c.create_oval(cx - 44, cy - 44, cx + 44, cy + 44, outline="#00A86B", width=2, tag="orb_mid")
+            c.create_oval(cx - 26, cy - 26, cx + 26, cy + 26, fill=COLOR_EMERALD, outline=COLOR_CYAN, width=2, tag="orb_core")
+            c.create_text(cx, cy, text="SHIELD", fill="#000000", font=("Segoe UI", 9, "bold"), tag="orb_txt")
+
         self.orb_pulse_step = (self.orb_pulse_step + 0.08) % (2 * math.pi)
-        pulse = math.sin(self.orb_pulse_step)  # -1.0 to 1.0
+        pulse = math.sin(self.orb_pulse_step)
 
         if self.sentinel.is_running:
-            # Concentric breathing rings
             r_outer = 60 + pulse * 6
             r_mid   = 44 + pulse * 4
             r_core  = 26 + pulse * 2
-
-            c.create_oval(cx - r_outer, cy - r_outer, cx + r_outer, cy + r_outer, outline="#08382A", width=2)
-            c.create_oval(cx - r_mid, cy - r_mid, cx + r_mid, cy + r_mid, outline="#00A86B", width=2)
-            c.create_oval(cx - r_core, cy - r_core, cx + r_core, cy + r_core, fill=COLOR_EMERALD, outline=COLOR_CYAN, width=2)
-            c.create_text(cx, cy, text="SHIELD", fill="#000000", font=("Segoe UI", 9, "bold"))
+            c.coords("orb_outer", cx - r_outer, cy - r_outer, cx + r_outer, cy + r_outer)
+            c.coords("orb_mid", cx - r_mid, cy - r_mid, cx + r_mid, cy + r_mid)
+            c.coords("orb_core", cx - r_core, cy - r_core, cx + r_core, cy + r_core)
+            c.itemconfigure("orb_core", fill=COLOR_EMERALD, outline=COLOR_CYAN)
+            c.itemconfigure("orb_txt", text="SHIELD", fill="#000000")
         else:
-            c.create_oval(cx - 40, cy - 40, cx + 40, cy + 40, outline="#3F121C", width=2)
-            c.create_oval(cx - 24, cy - 24, cx + 24, cy + 24, fill="#4A0E17", outline=COLOR_CRIMSON, width=2)
-            c.create_text(cx, cy, text="OFF", fill=COLOR_CRIMSON, font=("Segoe UI", 9, "bold"))
+            c.coords("orb_outer", cx - 40, cy - 40, cx + 40, cy + 40)
+            c.coords("orb_mid", cx - 32, cy - 32, cx + 32, cy + 32)
+            c.coords("orb_core", cx - 24, cy - 24, cx + 24, cy + 24)
+            c.itemconfigure("orb_core", fill="#4A0E17", outline=COLOR_CRIMSON)
+            c.itemconfigure("orb_txt", text="OFF", fill=COLOR_CRIMSON)
 
     # ========================================================================
-    # TELEMETRY POLLING LOOP
+    # TELEMETRY POLLING LOOP (OPTIMIZED)
     # ========================================================================
     def _poll_telemetry_loop(self):
+        try:
+            if not hasattr(self, 'winfo_exists') or not self.winfo_exists():
+                return
+        except Exception:
+            return
+
         def worker():
             try:
                 m = self.optimizer.get_live_metrics()
-                top_procs = self.optimizer.get_top_memory_processes(5)
+                # Only scan top processes if currently on dashboard to save CPU
+                top_procs = self.optimizer.get_top_memory_processes(5) if getattr(self, 'current_pane', None) == "dash" else []
                 ping_stats = self.ping_optimizer.get_live_ping_telemetry()
                 bw_stats = self.bandwidth_meter.get_live_bandwidth_rates()
 
                 def update_ui():
+                    if not hasattr(self, 'winfo_exists') or not self.winfo_exists():
+                        return
                     self.target_ram_pct = m["ram_percentage"]
                     self.target_cpu_pct = m["cpu_percentage"]
 
-                    # Update topbar pills
-                    self.pill_ram.configure(text=f"RAM: {m['used_ram_gb']} / {m['total_ram_gb']} GB")
-                    self.pill_cpu.configure(text=f"CPU: {m['cpu_percentage']}%")
+                    # Update topbar pills with value-change guards
+                    ram_text = f"RAM: {m['used_ram_gb']} / {m['total_ram_gb']} GB"
+                    if getattr(self, '_last_pill_ram_text', None) != ram_text and hasattr(self, 'pill_ram'):
+                        self.pill_ram.configure(text=ram_text)
+                        self._last_pill_ram_text = ram_text
+
+                    cpu_text = f"CPU: {m['cpu_percentage']}%"
+                    if getattr(self, '_last_pill_cpu_text', None) != cpu_text and hasattr(self, 'pill_cpu'):
+                        self.pill_cpu.configure(text=cpu_text)
+                        self._last_pill_cpu_text = cpu_text
 
                     # Update topbar ping pill
                     p_ms = ping_stats["ping_ms"]
                     p_color = ping_stats["status_color"]
-                    self.pill_ping.configure(text=f"PING: {p_ms} ms", text_color=p_color)
+                    ping_text = f"PING: {p_ms} ms"
+                    if getattr(self, '_last_pill_ping_text', None) != ping_text and hasattr(self, 'pill_ping'):
+                        self.pill_ping.configure(text=ping_text, text_color=p_color)
+                        self._last_pill_ping_text = ping_text
 
                     # Update Network Guard live telemetry if card exists
                     if hasattr(self, 'net_lbl_ping_val') and self.net_lbl_ping_val.winfo_exists():
@@ -2023,11 +2084,12 @@ class AntimagistV3App(ctk.CTk):
 
                     # Update dashboard texts if active
                     if hasattr(self, 'lbl_gauge_ram_text') and self.lbl_gauge_ram_text.winfo_exists():
-                        self.lbl_gauge_ram_text.configure(text=f"RAM: {m['used_ram_gb']} / {m['total_ram_gb']} GB ({m['ram_percentage']}%)")
+                        dash_ram = f"RAM: {m['used_ram_gb']} / {m['total_ram_gb']} GB ({m['ram_percentage']}%)"
+                        self.lbl_gauge_ram_text.configure(text=dash_ram)
                         self.lbl_gauge_cpu_text.configure(text=f"CPU: {m['cpu_percentage']}% (Active: {m['active_processes']})")
 
-                    # Update top 5 processes list
-                    if hasattr(self, 'proc_list_box') and self.proc_list_box.winfo_exists():
+                    # Update top 5 processes list if active on dash
+                    if top_procs and hasattr(self, 'proc_list_box') and self.proc_list_box.winfo_exists():
                         self.proc_list_box.delete("0.0", "end")
                         self.proc_list_box.insert("end", f"{'PROCESS NAME':<24} {'MEMORY USAGE':>14}\n" + "─" * 40 + "\n")
                         for name, mem_mb in top_procs:
@@ -2038,13 +2100,14 @@ class AntimagistV3App(ctk.CTk):
                 pass
 
         threading.Thread(target=worker, daemon=True).start()
-        # If window hidden in tray or minimized, poll slower (5s) to save CPU
+
+        # Relaxed polling interval (4.0s visible, 8.0s minimized)
         is_visible = True
         try:
             is_visible = self.winfo_viewable() and self.state() != "iconic"
         except Exception:
             pass
-        delay = 2500 if is_visible else 5000
+        delay = 4000 if is_visible else 8000
         self.after(delay, self._poll_telemetry_loop)
 
 

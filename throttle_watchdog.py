@@ -17,6 +17,7 @@ import time
 import subprocess
 import shutil
 from typing import Dict, Any, List, Optional, Tuple
+import psutil
 
 if hasattr(sys.stdout, "reconfigure"):
     try:
@@ -33,6 +34,8 @@ class AntimagistThrottleWatchdog:
         self.has_nvidia = shutil.which("nvidia-smi") is not None
         self.last_cpu_sample: Optional[Dict[str, Any]] = None
         self.last_gpu_sample: Optional[Dict[str, Any]] = None
+        self.cached_health: Optional[Dict[str, Any]] = None
+        self.last_health_time: float = 0.0
 
     def query_gpu_telemetry(self) -> Dict[str, Any]:
         """Queries GPU core temperature, graphics clock, and load percentage."""
@@ -82,25 +85,17 @@ class AntimagistThrottleWatchdog:
         return data
 
     def query_cpu_telemetry(self) -> Dict[str, Any]:
-        """Queries CPU frequency and load via PowerShell / Win32_Processor."""
+        """Queries CPU frequency and load via native psutil (instant sub-millisecond execution)."""
         curr_mhz = 3600.0
         max_mhz = 4200.0
         load_pct = 25.0
 
         try:
-            cmd = [
-                "powershell", "-NoProfile", "-ExecutionPolicy", "Bypass",
-                "-Command", "Get-CimInstance Win32_Processor | Select-Object -Property CurrentClockSpeed,MaxClockSpeed,LoadPercentage | ConvertTo-Json"
-            ]
-            res = subprocess.run(cmd, capture_output=True, text=True, timeout=2.5)
-            if res.returncode == 0 and res.stdout.strip():
-                import json
-                obj = json.loads(res.stdout.strip())
-                if isinstance(obj, list) and len(obj) > 0:
-                    obj = obj[0]
-                curr_mhz = float(obj.get("CurrentClockSpeed", 3600))
-                max_mhz = float(obj.get("MaxClockSpeed", 4200))
-                load_pct = float(obj.get("LoadPercentage", 25))
+            freq = psutil.cpu_freq()
+            if freq:
+                curr_mhz = float(freq.current or 3600.0)
+                max_mhz = float(freq.max or max(curr_mhz, 4200.0))
+            load_pct = float(psutil.cpu_percent(interval=None))
         except Exception:
             pass
 
@@ -118,7 +113,11 @@ class AntimagistThrottleWatchdog:
         return data
 
     def check_hardware_health(self) -> Dict[str, Any]:
-        """Performs a full thermal and clock watchdog check, recording any throttle alerts."""
+        """Performs a full thermal and clock watchdog check with 5s non-blocking cache."""
+        now = time.time()
+        if self.cached_health and (now - self.last_health_time < 5.0):
+            return self.cached_health
+
         gpu_stat = self.query_gpu_telemetry()
         cpu_stat = self.query_cpu_telemetry()
 
@@ -135,13 +134,16 @@ class AntimagistThrottleWatchdog:
 
         overall_status = "WARNING_THROTTLE_ACTIVE" if alerts else "HEALTHY_PEAK_PERFORMANCE"
 
-        return {
+        res = {
             "status": overall_status,
             "gpu": gpu_stat,
             "cpu": cpu_stat,
             "alerts": alerts,
             "event_count": len(self.throttle_events)
         }
+        self.cached_health = res
+        self.last_health_time = now
+        return res
 
     def _record_event(self, source: str, telemetry: Dict[str, Any]):
         """Records a throttle event to history for post-game stutter correlation."""

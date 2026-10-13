@@ -40,11 +40,17 @@ class AntimagistGamerMode:
         self.total_memory_freed_mb = 0.0
         self.ping_optimizer = AntimagistPingOptimizer()
         self.last_ping_telemetry = self.ping_optimizer.get_live_ping_telemetry()
+        self._cached_games: List[Dict[str, Any]] = []
+        self._last_detect_time: float = 0.0
 
     def get_detected_games(self) -> List[Dict[str, Any]]:
-        """Scans running processes for recognized gaming titles."""
+        """Scans running processes for recognized gaming titles with 3.0s cache."""
+        now = time.time()
+        if self._cached_games and (now - self._last_detect_time < 3.0):
+            return self._cached_games
+
         games = []
-        for p in psutil.process_iter(['pid', 'name', 'cpu_percent', 'memory_info']):
+        for p in psutil.process_iter(['pid', 'name', 'memory_info']):
             try:
                 pname = p.info['name'].lower() if p.info['name'] else ""
                 if pname in COMMON_GAME_EXES or any(g in pname for g in ["game", "shipping"]):
@@ -53,10 +59,13 @@ class AntimagistGamerMode:
                         "pid": p.info['pid'],
                         "name": p.info['name'],
                         "memory_mb": mem_mb,
-                        "cpu_percent": p.info['cpu_percent'] or 0.0
+                        "cpu_percent": 0.0
                     })
             except Exception:
                 pass
+
+        self._cached_games = games
+        self._last_detect_time = now
         return games
 
     def _native_trim_standby_memory(self) -> float:
