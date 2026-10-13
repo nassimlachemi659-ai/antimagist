@@ -50,10 +50,20 @@ class AntimagistInstallerBuilder:
         zip_path = output_zip_path or os.path.join(self.dist_dir, "Antimagist_V2_Pro_Portable.zip")
 
         with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
-            # Add executable if it exists, otherwise add main scripts
-            exe_path = os.path.join(self.dist_dir, "Antimagist_V2_Core.exe")
-            if os.path.exists(exe_path):
-                zf.write(exe_path, "Antimagist_V2_Core.exe")
+            # Add compiled binaries from dist/Antimagist_V4_Apex if available
+            apex_dir = os.path.join(self.dist_dir, "Antimagist_V4_Apex")
+            if os.path.exists(apex_dir):
+                for root, _, files in os.walk(apex_dir):
+                    for file in files:
+                        full_p = os.path.join(root, file)
+                        rel_p = os.path.relpath(full_p, self.dist_dir)
+                        zf.write(full_p, rel_p)
+
+            # Add fallback single-file executables if present
+            for exe_name in ["Antimagist.exe", "Antimagist_V4_Apex.exe", "Antimagist_V2_Core.exe"]:
+                ep = os.path.join(self.dist_dir, exe_name)
+                if os.path.exists(ep):
+                    zf.write(ep, exe_name)
 
             # Add website folder
             website_dir = os.path.join(self.root, "website")
@@ -65,10 +75,19 @@ class AntimagistInstallerBuilder:
                         zf.write(full_p, rel_p)
 
             # Add icon and setup ISS
-            for fname in ["antimagist.ico", "antimagist_setup.iss"]:
+            for fname in ["antimagist.ico", "antimagist_setup.iss", "README.md"]:
                 p = os.path.join(self.root, fname)
                 if os.path.exists(p):
                     zf.write(p, fname)
+
+        # Also create Gold Master in release directory
+        rel_dir = os.path.join(self.root, "release")
+        os.makedirs(rel_dir, exist_ok=True)
+        gold_master = os.path.join(rel_dir, "Antimagist-v11.0.0-GoldMaster.zip")
+        try:
+            shutil.copy2(zip_path, gold_master)
+        except Exception:
+            pass
 
         return zip_path
 
@@ -80,14 +99,31 @@ def generate_installer_files(output_dir: Optional[str] = None) -> Tuple[str, str
     bat_path = os.path.join(out, "install_antimagist.bat")
 
     ps1_content = """# Antimagist Automated Installer Script
-Write-Host "Installing Antimagist Enterprise V11 Omni-Workstation..." -ForegroundColor Cyan
-Write-Host "[+] Verifying Python environment..." -ForegroundColor Green
-Write-Host "[+] Creating desktop shortcut..." -ForegroundColor Green
-Write-Host "[+] Antimagist successfully installed!" -ForegroundColor Green
+Write-Host "==========================================================" -ForegroundColor Cyan
+Write-Host " Antimagist Enterprise Security V11 Omni-Workstation Setup" -ForegroundColor Cyan
+Write-Host "==========================================================" -ForegroundColor Cyan
+Write-Host "[+] Verifying Windows environment..." -ForegroundColor Green
+$dest = "$env:LOCALAPPDATA\\Antimagist"
+New-Item -ItemType Directory -Force -Path $dest | Out-Null
+Write-Host "[+] Creating Desktop and Start Menu Shortcuts..." -ForegroundColor Green
+$wsh = New-Object -ComObject WScript.Shell
+$desktop = [Environment]::GetFolderPath("Desktop")
+$sc = $wsh.CreateShortcut("$desktop\\Antimagist.lnk")
+$sc.TargetPath = "$PSScriptRoot\\dist\\Antimagist_V4_Apex\\Antimagist.exe"
+$sc.WorkingDirectory = "$PSScriptRoot\\dist\\Antimagist_V4_Apex"
+$sc.IconLocation = "$PSScriptRoot\\antimagist.ico,0"
+$sc.Save()
+Write-Host "[+] Antimagist successfully installed and ready!" -ForegroundColor Green
 """
     bat_content = """@echo off
-echo [*] Launching Antimagist 1-Click Setup...
+title Antimagist 1-Click Installer
+echo ========================================================
+echo  Installing Antimagist Enterprise V11 Omni-Workstation...
+echo ========================================================
 powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0install_antimagist.ps1"
+echo.
+echo Installation complete! Launching Antimagist...
+start "" "%~dp0dist\\Antimagist_V4_Apex\\Antimagist.exe"
 """
     with open(ps1_path, "w", encoding="utf-8") as f:
         f.write(ps1_content)

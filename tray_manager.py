@@ -60,21 +60,33 @@ class AntimagistTrayManager:
             if os.path.exists(self.quarantine_dir):
                 os.startfile(self.quarantine_dir)
 
+        def cs2_action(icon, item):
+            if hasattr(self.app, 'show_cs2_pane'):
+                self.app.after(0, self.app.show_cs2_pane)
+                self.app.after(0, self.restore_window)
+
+        def dpc_action(icon, item):
+            if hasattr(self.app, 'show_dpc_pane'):
+                self.app.after(0, self.app.show_dpc_pane)
+                self.app.after(0, self.restore_window)
+
         def exit_action(icon, item):
             self.stop_tray()
             self.app.after(0, lambda: self.app.destroy())
 
         menu = pystray.Menu(
-            pystray.MenuItem("🛡️ Open Antimagist Console", restore_action, default=True),
+            pystray.MenuItem("🛡️ Open Antimagist Dashboard", restore_action, default=True),
             pystray.Menu.SEPARATOR,
-            pystray.MenuItem("⚡ Instant Turbo Clean", turbo_action),
+            pystray.MenuItem("⚡ 1-Click Flush Standby RAM", turbo_action),
+            pystray.MenuItem("🎯 CS2 Tournament Mode", cs2_action),
+            pystray.MenuItem("📉 Audit DPC Latency", dpc_action),
             pystray.MenuItem("👁️ Toggle Sentinel Auto-Pilot", toggle_sentinel_action),
             pystray.MenuItem("🔒 Quarantine Vault", open_vault_action),
             pystray.Menu.SEPARATOR,
-            pystray.MenuItem("🚪 Exit Antimagist", exit_action)
+            pystray.MenuItem("🚪 Exit Antimagist Completely", exit_action)
         )
 
-        self.icon = pystray.Icon("AntimagistEnterprise", img, "Antimagist Enterprise V3", menu)
+        self.icon = pystray.Icon("AntimagistEnterprise", img, "Antimagist Enterprise V11 Omni-Workstation", menu)
 
     def start_tray(self):
         if not self._is_running and self.icon:

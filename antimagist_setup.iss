@@ -11,11 +11,11 @@
 ; - Built-in prerequisite detection (Windows 10/11 64-Bit)
 ; ==============================================================================
 
-#define MyAppName "Antimagist Enterprise Security"
-#define MyAppVersion "2.0.0-Pro"
+#define MyAppName "Antimagist Enterprise Security V11"
+#define MyAppVersion "11.0.0-OmniWorkstation"
 #define MyAppPublisher "Antimagist AI Security Group"
 #define MyAppURL "https://github.com/nassimlachemi659-ai/antimagist"
-#define MyAppExeName "Antimagist_V2_Core.exe"
+#define MyAppExeName "Antimagist.exe"
 
 [Setup]
 AppId={{8B1948B2-1D47-49D6-B7E2-6C45E8F79B12}
@@ -28,8 +28,8 @@ AppUpdatesURL={#MyAppURL}
 DefaultDirName={autopf}\Antimagist
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
-OutputDir=dist
-OutputBaseFilename=Antimagist_Setup_v2.0_Pro
+OutputDir=release
+OutputBaseFilename=Antimagist_Setup_v11.0_OmniWorkstation
 SetupIconFile=antimagist.ico
 Compression=lzma2/ultra64
 SolidCompression=yes
@@ -45,7 +45,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "startupicon"; Description: "Launch Antimagist Sentinel silently on Windows Startup"; GroupDescription: "Background Protection:"; Flags: unchecked
 
 [Files]
-Source: "dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\Antimagist_V4_Apex\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "website\*"; DestDir: "{app}\website"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "antimagist.ico"; DestDir: "{app}"; Flags: ignoreversion
 
