@@ -410,8 +410,13 @@ class TestAntimagistV7Titan(unittest.TestCase):
         ok_bcast, msg_bcast = sync.broadcast_profile(packet, broadcast_ip="127.0.0.1")
         self.assertTrue(ok_bcast)
 
-        time.sleep(0.25)
-        disc = sync.get_discovered_profiles()
+        # Poll for discovery with timeout to avoid race condition during heavy test runs
+        disc = []
+        for _ in range(15):
+            time.sleep(0.1)
+            disc = sync.get_discovered_profiles()
+            if len(disc) >= 1:
+                break
         self.assertGreaterEqual(len(disc), 1)
         self.assertEqual(disc[0]["team_name"], "Cloud9 Scrims")
         sync.stop_listener()

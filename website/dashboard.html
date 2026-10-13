@@ -6,7 +6,7 @@
   <title>ANTIMAGIST V2.0 — Enterprise Security Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@700;800;900&display=swap" rel="stylesheet">
   <style>
     /* ════════════════════════════════════════════════════════════════
        CSS CUSTOM PROPERTIES — Theme Tokens
@@ -35,7 +35,7 @@
       --theme-glow:    rgba(0,242,254,.22);
       --theme-state:   normal; /* normal | warning | emergency */
 
-      --sidebar-w: 240px;
+      --sidebar-w: 260px;
       --topbar-h:  52px;
       --radius:    10px;
     }
@@ -146,20 +146,30 @@
     }
 
     /* ════════════════════════════════════════════════════════════════
-       SIDEBAR
+       GLASS PANEL — luxury frosted glass utility (user CSS merged)
+    ════════════════════════════════════════════════════════════════ */
+    .glass-panel {
+      background: rgba(10, 17, 26, 0.70) !important;
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       SIDEBAR (user CSS merged — 260px, height 100vh)
     ════════════════════════════════════════════════════════════════ */
     .cyber-sidebar {
-      width: var(--sidebar-w);
+      width: var(--sidebar-w);          /* 260px via token */
+      height: 100vh;
       flex-shrink: 0;
-      background: var(--glass-bg);
-      border-right: 1px solid var(--glass-border-dim);
-      backdrop-filter: blur(20px);
+      padding: 20px;
+      /* Neon 1px border — user spec, overrides glass-panel's generic border */
+      border-right: 1px solid rgba(0, 243, 255, 0.15);
       display: flex;
       flex-direction: column;
-      padding: 14px 0 20px;
       overflow-y: auto;
       overflow-x: hidden;
-      transition: border-color .4s;
+      transition: border-color .4s, box-shadow .4s;
     }
 
     /* Brand row inside sidebar */
@@ -167,89 +177,120 @@
       display: flex;
       align-items: baseline;
       gap: 8px;
-      padding: 0 16px 14px;
-      border-bottom: 1px solid var(--glass-border-dim);
-      margin-bottom: 10px;
+      padding: 0 0 16px;
+      border-bottom: 1px solid rgba(0, 243, 255, 0.12);
+      margin-bottom: 14px;
+    }
+
+    /* Brand title — Orbitron, neon glow (user CSS merged) */
+    .brand-glow {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #00f3ff;
+      text-shadow: 0 0 10px rgba(0, 243, 255, 0.5), 0 0 24px rgba(0, 243, 255, 0.2);
+      letter-spacing: 2px;
     }
 
     /* Nav categories */
-    .sidebar-menu { display: flex; flex-direction: column; gap: 4px; padding: 0 8px; }
+    .sidebar-menu { display: flex; flex-direction: column; gap: 4px; padding: 0; }
 
     .menu-category { display: flex; flex-direction: column; }
 
+    /* Category trigger — user CSS merged (0.95rem, justify-content: space-between) */
     .category-trigger {
-      display: flex;
-      align-items: center;
-      gap: 8px;
       width: 100%;
-      padding: 9px 10px;
-      border-radius: 7px;
-      font-size: .72rem;
-      font-weight: 700;
-      letter-spacing: .07em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      transition: background .2s, color .2s;
+      background: transparent;
+      border: none;
+      color: #8fa0b5;
+      text-align: left;
+      padding: 12px 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.3s ease;
+      border-radius: 6px;
+      letter-spacing: .04em;
       user-select: none;
     }
-    .category-trigger:hover { background: rgba(0,242,254,.07); color: var(--text-primary); }
-    .category-trigger.open  { color: var(--theme-accent); }
-    .category-trigger .cat-icon { font-size: .9rem; flex-shrink: 0; }
+    .category-trigger:hover {
+      background: rgba(0, 243, 255, 0.05);
+      color: #fff;
+    }
+    .category-trigger.open { color: var(--theme-accent); }
+    .category-trigger .cat-icon { font-size: .9rem; flex-shrink: 0; margin-right: 6px; }
     .category-trigger .cat-label { flex: 1; text-align: left; }
     .category-trigger .arrow {
       font-size: .6rem;
-      transition: transform .25s;
-      color: var(--text-dim);
+      transition: transform .3s ease;
+      color: #8fa0b5;
     }
     .category-trigger.open .arrow { transform: rotate(180deg); color: var(--theme-accent); }
 
+    /* Category items — animated expand via max-height + opacity.
+       .hidden preserves user's display:none spec as the OFF state.
+       JS toggles: hidden → open (max-height expand + opacity fade-in) */
     .category-items {
+      padding-left: 15px;
       display: flex;
       flex-direction: column;
-      gap: 2px;
-      padding: 2px 0 6px 14px;
+      gap: 5px;
+      margin-top: 5px;
+      margin-bottom: 10px;
       overflow: hidden;
-      max-height: 0;
-      opacity: 0;
-      transition: max-height .3s ease, opacity .25s ease;
+      max-height: 500px;
+      opacity: 1;
+      transition: max-height 0.3s ease-out, opacity 0.25s ease;
     }
-    .category-items.open { max-height: 400px; opacity: 1; }
+    .category-items.hidden, .hidden {
+      display: none !important;
+      max-height: 0 !important;
+      opacity: 0 !important;
+    }
 
+    /* Menu items — user CSS merged (0.88rem, gap 10px, kinetic push-indent on hover) */
     .menu-item {
+      color: #a4b3c6;
+      text-decoration: none;
+      padding: 8px 12px;
+      font-size: 0.88rem;
+      font-weight: 500;
+      border-radius: 4px;
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 7px 10px;
-      border-radius: 6px;
-      font-size: .75rem;
-      font-weight: 500;
-      color: var(--text-muted);
-      transition: background .18s, color .18s, border-color .18s;
+      gap: 10px;
+      transition: background 0.2s ease, color 0.2s ease, padding-left 0.2s ease;
       border: 1px solid transparent;
       position: relative;
     }
     .menu-item:hover {
-      background: rgba(0,242,254,.06);
-      color: var(--text-primary);
-      border-color: var(--glass-border-dim);
+      background: rgba(0, 243, 255, 0.10);
+      color: #00f3ff;
+      padding-left: 18px; /* kinetic push-indent on hover */
+      border-color: rgba(0, 243, 255, 0.12);
     }
     .menu-item.active {
-      background: rgba(0,242,254,.10);
-      color: var(--theme-accent);
-      border-color: var(--glass-border-dim);
+      background: rgba(0, 243, 255, 0.12);
+      color: #00f3ff;
+      padding-left: 18px;
+      border-color: rgba(0, 243, 255, 0.18);
     }
+    /* Neon left-edge indicator for active item */
     .menu-item.active::before {
       content: '';
       position: absolute;
-      left: -1px;
-      top: 20%;
-      height: 60%;
+      left: 0;
+      top: 15%;
+      height: 70%;
       width: 2px;
-      background: var(--theme-accent);
+      background: #00f3ff;
       border-radius: 2px;
-      box-shadow: 0 0 8px var(--theme-glow);
+      box-shadow: 0 0 8px rgba(0, 243, 255, 0.6);
     }
-    .menu-item .mi-icon { font-size: .85rem; }
+    .menu-item .mi-icon { font-size: .88rem; flex-shrink: 0; }
 
     .sidebar-footer {
       margin-top: auto;
@@ -602,9 +643,9 @@
   <div class="shell">
 
     <!-- ══ SIDEBAR ════════════════════════════════════════════════ -->
-    <aside class="cyber-sidebar">
+    <aside class="cyber-sidebar glass-panel">
       <div class="sidebar-brand">
-        <span class="brand-glow" style="font-size:.82rem;">ANTIMAGIST</span>
+        <span class="brand-glow">ANTIMAGIST</span>
         <span class="version-tag">V2.0</span>
       </div>
 
@@ -617,10 +658,10 @@
 
         <!-- ── Performance Suite ── -->
         <div class="menu-category">
-          <button class="category-trigger" onclick="toggleCategory('perf-suite',this)">
+          <button class="category-trigger open" style="color: #00f3ff;" onclick="toggleCategory('perf-suite',this)">
             <span class="cat-icon">⚡</span>
             <span class="cat-label">Performance Suite</span>
-            <span class="arrow">▼</span>
+            <span class="arrow" style="transform: rotate(180deg);">▼</span>
           </button>
           <div id="perf-suite" class="category-items">
             <a class="menu-item" data-panel="flush-ram"  onclick="navigate(this,'flush-ram')"><span class="mi-icon">🧹</span> Flush RAM</a>
@@ -637,7 +678,7 @@
             <span class="cat-label">Hardware Diagnostics</span>
             <span class="arrow">▼</span>
           </button>
-          <div id="hardware-suite" class="category-items">
+          <div id="hardware-suite" class="category-items hidden">
             <a class="menu-item" data-panel="thermals" onclick="navigate(this,'thermals')"><span class="mi-icon">🌡️</span> Thermals &amp; Voltages</a>
             <a class="menu-item" data-panel="shader"   onclick="navigate(this,'shader')"><span class="mi-icon">🎮</span> Shader Sentinel</a>
             <a class="menu-item" data-panel="msi-irq"  onclick="navigate(this,'msi-irq')"><span class="mi-icon">🔗</span> MSI-X IRQ Director</a>
@@ -651,7 +692,7 @@
             <span class="cat-label">Kernel Security</span>
             <span class="arrow">▼</span>
           </button>
-          <div id="security-suite" class="category-items">
+          <div id="security-suite" class="category-items hidden">
             <a class="menu-item" data-panel="threat-scanner" onclick="navigate(this,'threat-scanner')"><span class="mi-icon">🔍</span> Threat Scanner</a>
             <a class="menu-item" data-panel="quarantine"     onclick="navigate(this,'quarantine')"><span class="mi-icon">🔒</span> Quarantine Vault</a>
             <a class="menu-item" data-panel="tpm"            onclick="navigate(this,'tpm')"><span class="mi-icon">🔑</span> TPM Attestation</a>
@@ -1196,10 +1237,28 @@
   }
 
   function toggleCategory(id, btn) {
-    const el = document.getElementById(id);
-    const isOpen = el.classList.contains('open');
-    el.classList.toggle('open', !isOpen);
-    btn.classList.toggle('open', !isOpen);
+    const container = document.getElementById(id);
+    if (!container) return;
+    const trigger = btn || container.previousElementSibling;
+    const arrow = trigger ? trigger.querySelector('.arrow') : null;
+    
+    // تبديل ظهور العناصر
+    container.classList.toggle('hidden');
+    
+    // تدوير السهم الصغير بشكل أنيق
+    if (container.classList.contains('hidden')) {
+      if (arrow) arrow.style.transform = 'rotate(0deg)';
+      if (trigger) {
+        trigger.style.color = '#8fa0b5';
+        trigger.classList.remove('open');
+      }
+    } else {
+      if (arrow) arrow.style.transform = 'rotate(180deg)';
+      if (trigger) {
+        trigger.style.color = '#00f3ff';
+        trigger.classList.add('open');
+      }
+    }
   }
 
   /* ════════════════════════════════════════════════════════════════

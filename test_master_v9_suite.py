@@ -24,12 +24,13 @@ class TestAntimagistV9ApexPredator(TestAntimagistV7Titan):
     """Extends V7/V8 test suite with complete verification of V9 Apex Predator engines."""
 
     def test_40_master_v8_branding_and_specs(self):
-        """Verifies V9 Apex Predator branding, window title, and zero-false-claim compliance."""
+        """Verifies V9 Apex Predator / V10 / V11 branding, window title, and zero-false-claim compliance."""
         from antimagist_v4_apex import AntimagistV4ApexApp
         app = AntimagistV4ApexApp()
-        self.assertIn("Apex Predator Edition", app.title())
+        title = app.title()
+        self.assertTrue("Apex Predator" in title or "Sovereign Singularity" in title or "Omni-Workstation" in title)
         app.destroy()
-        print("  [+] V9 Apex Predator Branding & Title: 100% Validated.")
+        print("  [+] V9 Apex Predator / V10 / V11 Branding & Title: 100% Validated.")
 
     def test_41_match_recorder_session_and_attribution(self):
         """Verifies V9 Pillar 1: Esports Match Latency Recorder & Stutter Attribution."""

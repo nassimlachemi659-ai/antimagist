@@ -24,12 +24,13 @@ class TestAntimagistV10SovereignSingularity(TestAntimagistV9ApexPredator):
     """Extends V9 test suite with complete verification of V10 Sovereign Singularity breakthroughs."""
 
     def test_40_master_v8_branding_and_specs(self):
-        """Verifies V10 Sovereign Singularity branding, window title, and zero-false-claim compliance."""
+        """Verifies V10 Sovereign Singularity / V11 branding, window title, and zero-false-claim compliance."""
         from antimagist_v4_apex import AntimagistV4ApexApp
         app = AntimagistV4ApexApp()
-        self.assertIn("Sovereign Singularity Edition", app.title())
+        title = app.title()
+        self.assertTrue("Sovereign Singularity" in title or "Omni-Workstation" in title)
         app.destroy()
-        print("  [+] V10 Sovereign Singularity Branding & Title: 100% Validated.")
+        print("  [+] V10 Sovereign Singularity / V11 Branding & Title: 100% Validated.")
 
     def test_46_predictive_interceptor_telemetry(self):
         """Verifies V10 Breakthrough 1: Predictive Micro-Stutter Neural Interceptor."""
@@ -62,8 +63,13 @@ class TestAntimagistV10SovereignSingularity(TestAntimagistV9ApexPredator):
         self.assertTrue(ok)
         self.assertTrue(racer.is_racing)
 
-        time.sleep(0.15)
         tel = racer.get_racing_telemetry()
+        for _ in range(10):
+            if tel.get("raced_packets_count", 0) > 0:
+                break
+            time.sleep(0.05)
+            tel = racer.get_racing_telemetry()
+
         self.assertIsInstance(tel, dict)
         self.assertEqual(tel["packet_loss_pct"], 0.00)
         self.assertGreater(tel["raced_packets_count"], 0)
