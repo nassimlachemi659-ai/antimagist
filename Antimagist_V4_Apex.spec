@@ -16,7 +16,9 @@ a = Analysis(
         'msi_interrupt_tuner', 'shader_sentinel', 'anticheat_guard', 'profile_switcher',
         'latency_recorder', 'recall_stripper', 'bufferbloat_auditor', 'tournament_lock',
         'predictive_interceptor', 'packet_racer', 'tpm_hardware_attestor', 'ghost_os_cryo',
-        'devops_turbo', 'battery_whisper', 'studio_master', 'privacy_scrubber', 'storage_accelerator'
+        'devops_turbo', 'battery_whisper', 'studio_master', 'privacy_scrubber', 'storage_accelerator',
+        'ultra_game_sentinel', 'web_bridge_daemon', 'floating_game_bar', 'detonation_chamber',
+        'windows_stripper', 'context_menu_v4', 'cs2_optimizer'
     ],
     hookspath=[],
     hooksconfig={},

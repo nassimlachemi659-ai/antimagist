@@ -485,6 +485,18 @@ class SecuritySandbox:
                 return True
             return False
 
+    def is_safe(self, text: str) -> bool:
+        """Fast Zero-Trust pre-flight check for command / prompt safety."""
+        if not text:
+            return True
+        inj = scan_for_injection(text)
+        if inj.is_injection and inj.severity == "high":
+            return False
+        for pattern, label in _CRITICAL_PATTERNS:
+            if re.search(pattern, text, re.I):
+                return False
+        return True
+
     # ── Core evaluate() entry point ───────────────────────────────────────────
     def evaluate(
         self,
