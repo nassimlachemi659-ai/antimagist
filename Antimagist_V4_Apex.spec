@@ -10,7 +10,8 @@ a = Analysis(
         'customtkinter', 'pystray', 'PIL', 'psutil', 'requests', 'qrcode',
         'win32com.client', 'winreg', 'keyboard', 'winsound', 'ctypes',
         'display_reflex', 'audio_stripper', 'server_radar', 'benchmark_card', 'mod_guard',
-        'esports_profiles', 'frametime_sentinel', 'discord_webhook'
+        'esports_profiles', 'frametime_sentinel', 'discord_webhook',
+        'dpc_diagnostician', 'process_isolator', 'auto_updater'
     ],
     hookspath=[],
     hooksconfig={},

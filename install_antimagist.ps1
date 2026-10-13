@@ -1,4 +1,4 @@
-﻿# Antimagist V6 Zenith - Windows 1-Click Installer
+﻿# Antimagist V7 Titan - Windows 1-Click Installer
 $ErrorActionPreference = "Stop"
 $appData = [System.Environment]::GetFolderPath("LocalApplicationData")
 $targetDir = Join-Path $appData "Antimagist"
@@ -7,7 +7,7 @@ $desktop = [System.Environment]::GetFolderPath("Desktop")
 $programs = [System.Environment]::GetFolderPath("Programs")
 
 Write-Host "==========================================================" -ForegroundColor Cyan
-Write-Host "         ANTIMAGIST V6 ZENITH - SETUP WIZARD" -ForegroundColor Green
+Write-Host "          ANTIMAGIST V7 TITAN - SETUP WIZARD" -ForegroundColor Green
 Write-Host "==========================================================" -ForegroundColor Cyan
 
 # 1. Create Target Directory
@@ -25,20 +25,20 @@ Copy-Item -Path (Join-Path $srcDir "*") -Destination $targetDir -Recurse -Force
 
 # 3. Create Desktop Shortcut
 $wsh = New-Object -ComObject WScript.Shell
-$scPath = Join-Path $desktop "Antimagist V6 Zenith.lnk"
+$scPath = Join-Path $desktop "Antimagist V7 Titan.lnk"
 $sc = $wsh.CreateShortcut($scPath)
 $sc.TargetPath = Join-Path $targetDir "Antimagist_V4_Apex.exe"
 $sc.WorkingDirectory = $targetDir
-$sc.Description = "Antimagist Enterprise Security V6 Zenith Edition"
+$sc.Description = "Antimagist Enterprise Security V7 Titan Edition"
 $sc.IconLocation = Join-Path $targetDir "antimagist.ico"
 $sc.Save()
 
 # 4. Create Start Menu Shortcut
-$smPath = Join-Path $programs "Antimagist V6 Zenith.lnk"
+$smPath = Join-Path $programs "Antimagist V7 Titan.lnk"
 $sm = $wsh.CreateShortcut($smPath)
 $sm.TargetPath = Join-Path $targetDir "Antimagist_V4_Apex.exe"
 $sm.WorkingDirectory = $targetDir
-$sm.Description = "Antimagist Enterprise Security V6 Zenith Edition"
+$sm.Description = "Antimagist Enterprise Security V7 Titan Edition"
 $sm.IconLocation = Join-Path $targetDir "antimagist.ico"
 $sm.Save()
 

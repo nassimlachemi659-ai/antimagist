@@ -62,6 +62,9 @@ from audio_stripper import AntimagistAudioStripper
 from server_radar import AntimagistServerRadar
 from benchmark_card import AntimagistBenchmarkCard
 from mod_guard import AntimagistModGuard
+from dpc_diagnostician import AntimagistDPCDiagnostician
+from process_isolator import AntimagistProcessIsolator
+from auto_updater import AntimagistAutoUpdater
 
 # Ensure UTF-8 console output
 if hasattr(sys.stdout, "reconfigure"):
@@ -72,10 +75,10 @@ if hasattr(sys.stdout, "reconfigure"):
 
 
 class AntimagistV4ApexApp(AntimagistV3App):
-    """Antimagist Enterprise Security Version 6 (Zenith Edition)."""
+    """Antimagist Enterprise Security Version 7 (Titan Edition)."""
 
     def __init__(self):
-        # 1. Initialize Core V4/V5/V6 Subsystems
+        # 1. Initialize Core Subsystems (V4 through V7)
         self.voice = AntimagistVoiceCopilot(enabled=True)
         self.sfx = AntimagistSoundFX(enabled=True)
         self.core_director = AntimagistCoreDirector()
@@ -92,12 +95,15 @@ class AntimagistV4ApexApp(AntimagistV3App):
         self.server_radar = AntimagistServerRadar()
         self.benchmark_card = AntimagistBenchmarkCard()
         self.mod_guard = AntimagistModGuard()
+        self.dpc_diagnostician = AntimagistDPCDiagnostician()
+        self.process_isolator = AntimagistProcessIsolator()
+        self.auto_updater = AntimagistAutoUpdater()
 
         # Call base constructor
         super().__init__()
 
         # Update window title
-        self.title("Antimagist — Enterprise Security V6 Zenith Edition")
+        self.title("Antimagist — Enterprise Security V7 Titan Edition")
 
         # 2. Initialize Discord Rich Presence Client
         self.discord_rpc = AntimagistDiscordRPC()
@@ -380,8 +386,11 @@ class AntimagistV4ApexApp(AntimagistV3App):
             ("🖥️ Display Reflex",    "reflex",     self.show_display_reflex_pane),
             ("🎧 Audio Stripper",    "audio",      self.show_audio_stripper_pane),
             ("🌐 Server Radar",      "radar",      self.show_server_radar_pane),
+            ("⏱️ DPC Latency",       "dpc",        self.show_dpc_pane),
+            ("🧠 Process Isolator",  "isolator",   self.show_isolator_pane),
             ("🖼️ Benchmark Card",    "card",       self.show_benchmark_card_pane),
             ("🛡️ Mod Guard",         "modguard",   self.show_mod_guard_pane),
+            ("🔄 Auto-Updater",      "updater",    self.show_updater_pane),
             ("🎯 CS2 Tuner",         "cs2",        self.show_cs2_pane),
             ("⚡ Latency Stripper",  "stripper",   self.show_stripper_pane),
             ("📈 Match History",     "analytics",  self.show_analytics_pane),
@@ -1747,6 +1756,234 @@ class AntimagistV4ApexApp(AntimagistV3App):
             self.show_toast_msg(f"Failed: {msg}")
 
     # ========================================================================
+    # V7 PILLAR 1: HARDWARE DPC & ISR DRIVER LATENCY DIAGNOSTICIAN
+    # ========================================================================
+    def show_dpc_pane(self):
+        self._highlight_nav("dpc")
+        self.clear_container()
+
+        pane = ctk.CTkFrame(self.container, fg_color="transparent")
+        pane.grid(row=0, column=0, sticky="nsew", padx=30, pady=20)
+        pane.grid_columnconfigure((0, 1), weight=1)
+        pane.grid_rowconfigure(1, weight=1)
+
+        head = ctk.CTkFrame(pane, fg_color="transparent")
+        head.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 15))
+        ctk.CTkLabel(head, text="Hardware DPC & ISR Driver Latency Diagnostician", font=("Segoe UI", 24, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w")
+        ctk.CTkLabel(head, text="Audit microsecond interrupt preemption, timer resolution, and active kernel driver latency culprits (nvlddmkm, ndis, storport)", font=("Segoe UI", 12), text_color=COLOR_TEXT_MUTED).pack(anchor="w")
+
+        # Left Card: Live Jitter & Timer Resolution
+        left_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        left_card.grid(row=1, column=0, sticky="nsew", padx=(0, 10))
+
+        audit = self.dpc_diagnostician.audit_system_latency()
+        ctk.CTkLabel(left_card, text="Win32 QPC Jitter & Timer Posture", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        f_stat = ctk.CTkFrame(left_card, fg_color="#0A0C14", corner_radius=10, border_color=COLOR_BORDER, border_width=1)
+        f_stat.pack(fill="x", padx=16, pady=(0, 14))
+
+        pills = [
+            ("Responsiveness Verdict", audit["overall_verdict"].replace("_", " "), audit["verdict_color"]),
+            ("Max Interrupt Jitter", f"{audit['jitter']['max_jitter_us']} µs", COLOR_EMERALD if audit['jitter']['max_jitter_us'] < 50 else COLOR_AMBER),
+            ("QPC Counter Clock", f"{audit['jitter']['qpc_frequency_mhz']} MHz (Hardware TSC)", COLOR_CYAN),
+            ("System Timer Resolution", f"{audit['timer']['current_ms']} ms ({audit['timer']['status_label']})", COLOR_EMERALD if audit['timer']['is_optimized'] else COLOR_AMBER),
+            ("Audited In-Memory Drivers", f"{audit['total_drivers_monitored']} Active Kernel Services", COLOR_TEXT_PRIMARY)
+        ]
+        for title, val, col in pills:
+            r = ctk.CTkFrame(f_stat, fg_color="transparent")
+            r.pack(fill="x", padx=10, pady=5)
+            ctk.CTkLabel(r, text=title, font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+            ctk.CTkLabel(r, text=val, font=("Consolas", 10, "bold"), text_color=col).pack(side="right")
+
+        ctk.CTkButton(
+            left_card, text="🔄 Re-Run Microsecond Interrupt Audit", font=("Segoe UI", 13, "bold"),
+            fg_color="#00FF9D", hover_color="#00D480", text_color="#000000",
+            height=44, corner_radius=10, command=self._refresh_dpc_audit
+        ).pack(fill="x", padx=16, pady=6)
+
+        # Right Card: Active Drivers & Remediation
+        right_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        right_card.grid(row=1, column=1, sticky="nsew", padx=(10, 0))
+
+        ctk.CTkLabel(right_card, text="Active Kernel Drivers & Optimization Guide", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        scroll_drv = ctk.CTkScrollableFrame(right_card, fg_color="transparent")
+        scroll_drv.pack(fill="both", expand=True, padx=12, pady=(0, 12))
+
+        for drv in audit.get("audited_drivers", []):
+            bx = ctk.CTkFrame(scroll_drv, fg_color="#0A0C14", corner_radius=8, border_color=COLOR_BORDER, border_width=1)
+            bx.pack(fill="x", pady=3)
+            hdr = ctk.CTkFrame(bx, fg_color="transparent")
+            hdr.pack(fill="x", padx=10, pady=(6, 2))
+            ctk.CTkLabel(hdr, text=f"⚙️ {drv['driver_file']} — {drv['name']}", font=("Segoe UI", 11, "bold"), text_color=COLOR_CYAN).pack(side="left")
+            ctk.CTkLabel(hdr, text=f"[{drv['type']}]", font=("Consolas", 10, "bold"), text_color=COLOR_EMERALD).pack(side="right")
+            ctk.CTkLabel(bx, text=drv["advice"], font=("Segoe UI", 10), text_color=COLOR_TEXT_MUTED, wraplength=420, justify="left").pack(anchor="w", padx=10, pady=(0, 6))
+
+    def _refresh_dpc_audit(self):
+        self.sfx.play_click()
+        def worker():
+            self.after(0, self.show_dpc_pane)
+        threading.Thread(target=worker, daemon=True).start()
+
+    # ========================================================================
+    # V7 PILLAR 2: INTELLIGENT PROCESS ISOLATOR & CORE ALLOCATOR
+    # ========================================================================
+    def show_isolator_pane(self):
+        self._highlight_nav("isolator")
+        self.clear_container()
+
+        pane = ctk.CTkFrame(self.container, fg_color="transparent")
+        pane.grid(row=0, column=0, sticky="nsew", padx=30, pady=20)
+        pane.grid_columnconfigure((0, 1), weight=1)
+        pane.grid_rowconfigure(1, weight=1)
+
+        head = ctk.CTkFrame(pane, fg_color="transparent")
+        head.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 15))
+        ctk.CTkLabel(head, text="Intelligent Process Isolator & Core Allocator", font=("Segoe UI", 24, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w")
+        ctk.CTkLabel(head, text="Park background bloat (Chrome, Discord, Spotify) onto secondary cores and dedicate physical P-Cores to your game", font=("Segoe UI", 12), text_color=COLOR_TEXT_MUTED).pack(anchor="w")
+
+        # Left Card: Core Topology & Action
+        left_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        left_card.grid(row=1, column=0, sticky="nsew", padx=(0, 10))
+
+        topo = self.process_isolator.get_core_allocation_topology()
+        ctk.CTkLabel(left_card, text="CPU Topology & Core Partitioning", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        f_stat = ctk.CTkFrame(left_card, fg_color="#0A0C14", corner_radius=10, border_color=COLOR_BORDER, border_width=1)
+        f_stat.pack(fill="x", padx=16, pady=(0, 14))
+
+        iso_status = "ACTIVE (Apps Parked)" if self.process_isolator.is_isolated else "STANDBY (Balanced)"
+        iso_color = COLOR_EMERALD if self.process_isolator.is_isolated else COLOR_CYAN
+
+        pills = [
+            ("Core Allocation Status", iso_status, iso_color),
+            ("Dedicated Game P-Cores", f"Cores {topo['dedicated_game_cores']}", COLOR_EMERALD),
+            ("Isolated Background Cores", f"Cores {topo['isolated_background_cores']}", COLOR_AMBER),
+            ("Physical Core Count", f"{topo['physical_cores']} Physical / {topo['total_logical_cores']} Logical", COLOR_TEXT_PRIMARY)
+        ]
+        for title, val, col in pills:
+            r = ctk.CTkFrame(f_stat, fg_color="transparent")
+            r.pack(fill="x", padx=10, pady=5)
+            ctk.CTkLabel(r, text=title, font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+            ctk.CTkLabel(r, text=val, font=("Consolas", 10, "bold"), text_color=col).pack(side="right")
+
+        ctk.CTkButton(
+            left_card, text="⚡ Isolate P-Cores & Park Background Apps", font=("Segoe UI", 13, "bold"),
+            fg_color="#00FF9D", hover_color="#00D480", text_color="#000000",
+            height=44, corner_radius=10, command=self._apply_process_isolation
+        ).pack(fill="x", padx=16, pady=6)
+
+        ctk.CTkButton(
+            left_card, text="🔄 Restore Default Windows Scheduling", font=("Segoe UI", 11),
+            fg_color="#1E293B", hover_color="#334155", text_color=COLOR_TEXT_MUTED,
+            height=34, corner_radius=8, command=self._restore_process_isolation
+        ).pack(fill="x", padx=16, pady=(6, 16))
+
+        # Right Card: Discovered Apps
+        right_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        right_card.grid(row=1, column=1, sticky="nsew", padx=(10, 0))
+
+        bg_apps = self.process_isolator.scan_background_processes()
+        ctk.CTkLabel(right_card, text=f"Managed Background Apps ({len(bg_apps)} Discovered)", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        scroll_bg = ctk.CTkScrollableFrame(right_card, fg_color="transparent")
+        scroll_bg.pack(fill="both", expand=True, padx=12, pady=(0, 12))
+
+        if not bg_apps:
+            ctk.CTkLabel(scroll_bg, text="No background bloat processes detected. Your system is lean!", font=("Segoe UI", 11), text_color=COLOR_TEXT_MUTED).pack(pady=40)
+        else:
+            for p in bg_apps:
+                row = ctk.CTkFrame(scroll_bg, fg_color="#0A0C14", corner_radius=8)
+                row.pack(fill="x", pady=3)
+                ctk.CTkLabel(row, text=f"📦 {p['name']}", font=("Segoe UI", 11, "bold"), text_color=COLOR_CYAN).pack(side="left", padx=10, pady=8)
+                ctk.CTkLabel(row, text=f"PID: {p['pid']} | Priority: {p['priority']}", font=("Consolas", 10), text_color=COLOR_TEXT_MUTED).pack(side="right", padx=10)
+
+    def _apply_process_isolation(self):
+        ok, msg, sm = self.process_isolator.isolate_for_game()
+        self.sfx.play_success()
+        self.show_toast_msg(msg)
+        self.show_isolator_pane()
+
+    def _restore_process_isolation(self):
+        ok, msg = self.process_isolator.restore_all_processes()
+        self.sfx.play_click()
+        self.show_toast_msg(msg)
+        self.show_isolator_pane()
+
+    # ========================================================================
+    # V7 PILLAR 3: GITHUB RELEASES AUTOMATED UPDATER
+    # ========================================================================
+    def show_updater_pane(self):
+        self._highlight_nav("updater")
+        self.clear_container()
+
+        pane = ctk.CTkFrame(self.container, fg_color="transparent")
+        pane.grid(row=0, column=0, sticky="nsew", padx=30, pady=20)
+        pane.grid_columnconfigure((0, 1), weight=1)
+        pane.grid_rowconfigure(1, weight=1)
+
+        head = ctk.CTkFrame(pane, fg_color="transparent")
+        head.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 15))
+        ctk.CTkLabel(head, text="GitHub Releases Automated Updater", font=("Segoe UI", 24, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w")
+        ctk.CTkLabel(head, text="Check official repository releases, inspect changelogs, and download portable builds directly from GitHub", font=("Segoe UI", 12), text_color=COLOR_TEXT_MUTED).pack(anchor="w")
+
+        # Left Card: Version Status & Controls
+        left_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        left_card.grid(row=1, column=0, sticky="nsew", padx=(0, 10))
+
+        info = self.auto_updater.cached_update_info or self.auto_updater.check_for_updates()
+        ctk.CTkLabel(left_card, text="Release Version Status", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        f_stat = ctk.CTkFrame(left_card, fg_color="#0A0C14", corner_radius=10, border_color=COLOR_BORDER, border_width=1)
+        f_stat.pack(fill="x", padx=16, pady=(0, 14))
+
+        status_text = "NEW VERSION AVAILABLE" if info["update_available"] else "UP TO DATE"
+        status_col = COLOR_EMERALD if not info["update_available"] else COLOR_AMBER
+
+        pills = [
+            ("Installed Version", f"v{self.auto_updater.current_version} Titan", COLOR_CYAN),
+            ("Latest GitHub Tag", info["latest_version"], COLOR_EMERALD),
+            ("Release Status", status_text, status_col),
+            ("Published Timestamp", str(info.get("published_at", "Latest")), COLOR_TEXT_MUTED)
+        ]
+        for title, val, col in pills:
+            r = ctk.CTkFrame(f_stat, fg_color="transparent")
+            r.pack(fill="x", padx=10, pady=5)
+            ctk.CTkLabel(r, text=title, font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+            ctk.CTkLabel(r, text=val, font=("Consolas", 10, "bold"), text_color=col).pack(side="right")
+
+        ctk.CTkButton(
+            left_card, text="🔍 Check for Updates Now", font=("Segoe UI", 13, "bold"),
+            fg_color="#00FF9D", hover_color="#00D480", text_color="#000000",
+            height=44, corner_radius=10, command=self._check_updater_now
+        ).pack(fill="x", padx=16, pady=6)
+
+        ctk.CTkButton(
+            left_card, text="🌐 Open Official GitHub Releases Page", font=("Segoe UI", 11),
+            fg_color="#1E293B", hover_color="#334155", text_color=COLOR_TEXT_PRIMARY,
+            height=34, corner_radius=8, command=self.auto_updater.open_releases_page
+        ).pack(fill="x", padx=16, pady=(6, 16))
+
+        # Right Card: Release Notes
+        right_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        right_card.grid(row=1, column=1, sticky="nsew", padx=(10, 0))
+        right_card.grid_columnconfigure(0, weight=1)
+        right_card.grid_rowconfigure(1, weight=1)
+
+        ctk.CTkLabel(right_card, text="Latest Release Changelog", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).grid(row=0, column=0, sticky="w", padx=16, pady=(16, 8))
+
+        txt_notes = ctk.CTkTextbox(right_card, font=("Consolas", 10), fg_color="#0A0C14", text_color=COLOR_TEXT_PRIMARY, corner_radius=8)
+        txt_notes.grid(row=1, column=0, sticky="nsew", padx=16, pady=(0, 16))
+        txt_notes.insert("end", f"=== {info.get('release_title', 'Antimagist')} ===\n\n{info.get('release_notes', 'Official Release')}\n")
+
+    def _check_updater_now(self):
+        self.sfx.play_click()
+        def worker():
+            self.auto_updater.check_for_updates()
+            self.after(0, self.show_updater_pane)
+        threading.Thread(target=worker, daemon=True).start()
+
+    # ========================================================================
     # TELEMETRY LOOP WITH REAL-TIME GPU & DISCORD STATUS POLLING
     # ========================================================================
     def _poll_telemetry_loop(self):
@@ -1771,7 +2008,7 @@ class AntimagistV4ApexApp(AntimagistV3App):
                 # Periodic Discord Presence refresh (every ~15s)
                 if hasattr(self, "discord_rpc") and self.discord_rpc.is_connected:
                     self.discord_rpc.update_presence(
-                        details="Protected by Antimagist V6 Zenith",
+                        details="Protected by Antimagist V7 Titan",
                         state=f"{gm['gpu_name'][:12]} ({gm['temperature_c']}°C) | Protected"
                     )
             except Exception:
