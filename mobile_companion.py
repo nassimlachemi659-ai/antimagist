@@ -36,8 +36,12 @@ MOBILE_HTML_TEMPLATE = """<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Antimagist V4 — Apex Mobile HUD</title>
+    <title>Antimagist V8 — Sovereign Mobile PWA</title>
+    <link rel="manifest" href="/manifest.json?token=%%TOKEN%%">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#08090D">
+    <link rel="apple-touch-icon" href="/icon.png">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: #08090D; color: #F8FAFC; min-height: 100vh; padding: 18px; display: flex; flex-direction: column; }
@@ -334,6 +338,22 @@ class AntimagistMobileCompanion:
                         self.send_header("Content-Type", "text/html; charset=utf-8")
                         self.end_headers()
                         self.wfile.write(html.encode("utf-8"))
+
+                    elif parsed.path == "/manifest.json":
+                        manifest_data = {
+                            "name": "Antimagist V8 Sovereign HUD",
+                            "short_name": "Antimagist",
+                            "start_url": f"/?token={companion_self.token}",
+                            "display": "standalone",
+                            "background_color": "#08090D",
+                            "theme_color": "#00FF9D",
+                            "description": "Antimagist Real-Time Esports Companion & Remote Telemetry"
+                        }
+                        raw = json.dumps(manifest_data).encode("utf-8")
+                        self.send_response(200)
+                        self.send_header("Content-Type", "application/json")
+                        self.end_headers()
+                        self.wfile.write(raw)
 
                     elif parsed.path == "/api/telemetry":
                         data = {}

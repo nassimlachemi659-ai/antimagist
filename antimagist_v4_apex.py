@@ -32,6 +32,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox
 from PIL import Image
 import customtkinter as ctk
+from typing import Dict, Any, List, Optional, Tuple
 
 from antimagist_v3_ultra import (
     AntimagistV3App,
@@ -69,6 +70,10 @@ from usb_polling_sentinel import AntimagistUSBPollingSentinel
 from memory_pacer import AntimagistMemoryPacer
 from throttle_watchdog import AntimagistThrottleWatchdog
 from lan_sync import AntimagistLANSync
+from msi_interrupt_tuner import AntimagistMSITuner
+from shader_sentinel import AntimagistShaderSentinel
+from anticheat_guard import AntimagistAntiCheatGuard
+from profile_switcher import AntimagistProfileSwitcher
 
 # Ensure UTF-8 console output
 if hasattr(sys.stdout, "reconfigure"):
@@ -79,10 +84,10 @@ if hasattr(sys.stdout, "reconfigure"):
 
 
 class AntimagistV4ApexApp(AntimagistV3App):
-    """Antimagist Enterprise Security Version 7+ (Ultra Edition)."""
+    """Antimagist Enterprise Security Version 8 (Sovereign Edition)."""
 
     def __init__(self):
-        # 1. Initialize Core Subsystems (V4 through V7+)
+        # 1. Initialize Core Subsystems (V4 through V8 Sovereign)
         self.voice = AntimagistVoiceCopilot(enabled=True)
         self.sfx = AntimagistSoundFX(enabled=True)
         self.core_director = AntimagistCoreDirector()
@@ -106,12 +111,17 @@ class AntimagistV4ApexApp(AntimagistV3App):
         self.memory_pacer = AntimagistMemoryPacer()
         self.throttle_watchdog = AntimagistThrottleWatchdog()
         self.lan_sync = AntimagistLANSync()
+        self.msi_tuner = AntimagistMSITuner()
+        self.shader_sentinel = AntimagistShaderSentinel()
+        self.anticheat_guard = AntimagistAntiCheatGuard()
+        self.profile_switcher = AntimagistProfileSwitcher(on_profile_changed=self._on_profile_switched_hook)
+        self.profile_switcher.start_hotkey_listener()
 
         # Call base constructor
         super().__init__()
 
         # Update window title
-        self.title("Antimagist — Enterprise Security V7+ Ultra Edition")
+        self.title("Antimagist — Enterprise Security V8 Sovereign Edition")
 
         # 2. Initialize Discord Rich Presence Client
         self.discord_rpc = AntimagistDiscordRPC()
@@ -400,6 +410,10 @@ class AntimagistV4ApexApp(AntimagistV3App):
             ("🧠 Memory Pacer",      "mempacer",   self.show_memory_pacer_pane),
             ("🔥 Throttle Watchdog", "throttle",   self.show_throttle_pane),
             ("📡 LAN Team Sync",     "lansync",    self.show_lan_sync_pane),
+            ("⚡ MSI-X IRQ Director", "msi",       self.show_msi_pane),
+            ("🎮 Shader Sentinel",    "shader",    self.show_shader_pane),
+            ("🛡️ Anti-Cheat Guard",   "acguard",   self.show_anticheat_pane),
+            ("🎛️ Profile Switcher",   "switcher",  self.show_profile_switcher_pane),
             ("🖼️ Benchmark Card",    "card",       self.show_benchmark_card_pane),
             ("🛡️ Mod Guard",         "modguard",   self.show_mod_guard_pane),
             ("🔄 Auto-Updater",      "updater",    self.show_updater_pane),
@@ -2391,6 +2405,324 @@ class AntimagistV4ApexApp(AntimagistV3App):
         self.show_lan_sync_pane()
 
     # ========================================================================
+    # V8 SOVEREIGN ENGINE 1: MSI-X & IRQ CORE DIRECTOR
+    # ========================================================================
+    def show_msi_pane(self):
+        self._highlight_nav("msi")
+        self.clear_container()
+
+        pane = ctk.CTkFrame(self.container, fg_color="transparent")
+        pane.grid(row=0, column=0, sticky="nsew", padx=30, pady=20)
+        pane.grid_columnconfigure((0, 1), weight=1)
+        pane.grid_rowconfigure(1, weight=1)
+
+        head = ctk.CTkFrame(pane, fg_color="transparent")
+        head.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 15))
+        ctk.CTkLabel(head, text="MSI-X & Interrupt Request (IRQ) Core Director", font=("Segoe UI", 24, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w")
+        ctk.CTkLabel(head, text="Eliminate legacy line-based (INTx) interrupt collisions on CPU Core 0 and steer GPU/NIC traffic directly to execution cores", font=("Segoe UI", 12), text_color=COLOR_TEXT_MUTED).pack(anchor="w")
+
+        # Left Card: Interrupt Health & Actions
+        left_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        left_card.grid(row=1, column=0, sticky="nsew", padx=(0, 10))
+
+        audit = self.msi_tuner.audit_interrupt_health()
+        ctk.CTkLabel(left_card, text="PCI Interrupt Architecture Posture", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        f_stat = ctk.CTkFrame(left_card, fg_color="#0A0C14", corner_radius=10, border_color=COLOR_BORDER, border_width=1)
+        f_stat.pack(fill="x", padx=16, pady=(0, 14))
+
+        status_col = COLOR_EMERALD if audit["status"] == "OPTIMAL_MSI_PIPELINE" else COLOR_AMBER
+
+        pills = [
+            ("Interrupt Pipeline Status", audit["status"], status_col),
+            ("MSI-X Active Devices", f"{audit['msi_active_count']} Controllers", COLOR_EMERALD),
+            ("Legacy Line-Based (INTx)", f"{audit['legacy_intx_count']} Controllers", COLOR_AMBER if audit['legacy_intx_count'] > 0 else COLOR_EMERALD),
+            ("Audited Hardware Total", f"{audit['total_audited']} Devices", COLOR_CYAN)
+        ]
+        for title, val, col in pills:
+            r = ctk.CTkFrame(f_stat, fg_color="transparent")
+            r.pack(fill="x", padx=10, pady=4)
+            ctk.CTkLabel(r, text=title, font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+            ctk.CTkLabel(r, text=val, font=("Consolas", 10, "bold"), text_color=col).pack(side="right")
+
+        ctk.CTkLabel(left_card, text=audit["advice"], font=("Segoe UI", 11), text_color=COLOR_TEXT_MUTED, wraplength=420, justify="left").pack(anchor="w", padx=16, pady=(0, 10))
+
+        ctk.CTkButton(
+            left_card, text="🔄 Refresh PCI Interrupt Audit", font=("Segoe UI", 13, "bold"),
+            fg_color="#00FF9D", hover_color="#00D480", text_color="#000000",
+            height=44, corner_radius=10, command=self._refresh_msi_pane
+        ).pack(fill="x", padx=16, pady=(6, 16))
+
+        # Right Card: Audited Hardware Tree
+        right_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        right_card.grid(row=1, column=1, sticky="nsew", padx=(10, 0))
+
+        devs = audit["devices"]
+        ctk.CTkLabel(right_card, text=f"Audited Gaming Controllers ({len(devs)})", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        scroll_msi = ctk.CTkScrollableFrame(right_card, fg_color="transparent")
+        scroll_msi.pack(fill="both", expand=True, padx=12, pady=(0, 12))
+
+        for d in devs:
+            bx = ctk.CTkFrame(scroll_msi, fg_color="#0A0C14", corner_radius=8, border_color=COLOR_BORDER, border_width=1)
+            bx.pack(fill="x", pady=4)
+            hdr = ctk.CTkFrame(bx, fg_color="transparent")
+            hdr.pack(fill="x", padx=10, pady=(6, 2))
+            col = COLOR_EMERALD if d["msi_supported"] else COLOR_AMBER
+            ctk.CTkLabel(hdr, text=f"⚙️ {d['name'][:36]}", font=("Segoe UI", 11, "bold"), text_color=COLOR_CYAN).pack(side="left")
+            ctk.CTkLabel(hdr, text=f"[{d['status']}]", font=("Consolas", 10, "bold"), text_color=col).pack(side="right")
+            ctk.CTkLabel(bx, text=f"Class: {d['class']} | Service: {d['service']} | Limit: {d['msi_limit']}", font=("Consolas", 9), text_color=COLOR_TEXT_MUTED).pack(anchor="w", padx=10, pady=(0, 6))
+
+    def _refresh_msi_pane(self):
+        self.sfx.play_click()
+        self.show_msi_pane()
+
+    # ========================================================================
+    # V8 SOVEREIGN ENGINE 2: DIRECTX / VULKAN SHADER COMPILATION SENTINEL
+    # ========================================================================
+    def show_shader_pane(self):
+        self._highlight_nav("shader")
+        self.clear_container()
+
+        pane = ctk.CTkFrame(self.container, fg_color="transparent")
+        pane.grid(row=0, column=0, sticky="nsew", padx=30, pady=20)
+        pane.grid_columnconfigure((0, 1), weight=1)
+        pane.grid_rowconfigure(1, weight=1)
+
+        head = ctk.CTkFrame(pane, fg_color="transparent")
+        head.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 15))
+        ctk.CTkLabel(head, text="DirectX / Vulkan Shader Compilation Sentinel", font=("Segoe UI", 24, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w")
+        ctk.CTkLabel(head, text="Eliminate traversal micro-stutter and mid-game shader compilation spikes in Unreal Engine 5, Call of Duty, and Apex", font=("Segoe UI", 12), text_color=COLOR_TEXT_MUTED).pack(anchor="w")
+
+        # Left Card: Shader Storage Telemetry & Flush Action
+        left_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        left_card.grid(row=1, column=0, sticky="nsew", padx=(0, 10))
+
+        audit = self.shader_sentinel.audit_shader_caches()
+        ctk.CTkLabel(left_card, text="Shader Cache Telemetry & Health", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        f_stat = ctk.CTkFrame(left_card, fg_color="#0A0C14", corner_radius=10, border_color=COLOR_BORDER, border_width=1)
+        f_stat.pack(fill="x", padx=16, pady=(0, 14))
+
+        status_col = COLOR_EMERALD if audit["status"] == "HEALTHY_OPTIMAL" else COLOR_AMBER
+
+        pills = [
+            ("Shader Pool Health", audit["status"], status_col),
+            ("Total Cached Footprint", f"{audit['total_size_mb']} MB ({audit['total_size_gb']} GB)", COLOR_CYAN),
+            ("Compiled Shader Blobs", f"{audit['total_files']} Files", COLOR_TEXT_PRIMARY),
+            ("Corrupted 0-Byte Blobs", f"{audit['corrupt_zero_byte_files']} Files", COLOR_CRIMSON if audit['corrupt_zero_byte_files'] > 0 else COLOR_EMERALD)
+        ]
+        for title, val, col in pills:
+            r = ctk.CTkFrame(f_stat, fg_color="transparent")
+            r.pack(fill="x", padx=10, pady=4)
+            ctk.CTkLabel(r, text=title, font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+            ctk.CTkLabel(r, text=val, font=("Consolas", 10, "bold"), text_color=col).pack(side="right")
+
+        ctk.CTkLabel(left_card, text=audit["advice"], font=("Segoe UI", 11), text_color=COLOR_TEXT_MUTED, wraplength=420, justify="left").pack(anchor="w", padx=16, pady=(0, 10))
+
+        ctk.CTkButton(
+            left_card, text="🧹 1-Click Flush Stale Shader Caches", font=("Segoe UI", 13, "bold"),
+            fg_color="#00FF9D", hover_color="#00D480", text_color="#000000",
+            height=44, corner_radius=10, command=self._purge_shader_caches_now
+        ).pack(fill="x", padx=16, pady=6)
+
+        ctk.CTkButton(
+            left_card, text="🔄 Refresh Shader Audit", font=("Segoe UI", 11),
+            fg_color="#1E293B", hover_color="#334155", text_color=COLOR_TEXT_MUTED,
+            height=34, corner_radius=8, command=self._refresh_shader_pane
+        ).pack(fill="x", padx=16, pady=(6, 16))
+
+        # Right Card: Shader Cache Pools
+        right_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        right_card.grid(row=1, column=1, sticky="nsew", padx=(10, 0))
+
+        ctk.CTkLabel(right_card, text="Vendor Shader Storage Pools", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        scroll_sh = ctk.CTkScrollableFrame(right_card, fg_color="transparent")
+        scroll_sh.pack(fill="both", expand=True, padx=12, pady=(0, 12))
+
+        for p in audit["pools"]:
+            bx = ctk.CTkFrame(scroll_sh, fg_color="#0A0C14", corner_radius=8, border_color=COLOR_BORDER, border_width=1)
+            bx.pack(fill="x", pady=4)
+            hdr = ctk.CTkFrame(bx, fg_color="transparent")
+            hdr.pack(fill="x", padx=10, pady=(6, 2))
+            ctk.CTkLabel(hdr, text=f"📦 {p['pool_name']}", font=("Segoe UI", 11, "bold"), text_color=COLOR_CYAN).pack(side="left")
+            st_text = f"{p['size_mb']} MB ({p['file_count']} files)" if p["exists"] else "NOT CREATED"
+            ctk.CTkLabel(hdr, text=st_text, font=("Consolas", 10, "bold"), text_color=COLOR_EMERALD if p["exists"] else COLOR_TEXT_MUTED).pack(side="right")
+            ctk.CTkLabel(bx, text=f"Path: {p['path']}", font=("Consolas", 9), text_color=COLOR_TEXT_MUTED).pack(anchor="w", padx=10, pady=(0, 6))
+
+    def _purge_shader_caches_now(self):
+        self.sfx.play_warp_boost()
+        ok, msg, cnt = self.shader_sentinel.purge_shader_cache()
+        self.show_toast_msg(msg)
+        self.show_shader_pane()
+
+    def _refresh_shader_pane(self):
+        self.sfx.play_click()
+        self.show_shader_pane()
+
+    # ========================================================================
+    # V8 SOVEREIGN ENGINE 3: PRE-MATCH ANTI-CHEAT & SECURE BOOT TRIPWIRE
+    # ========================================================================
+    def show_anticheat_pane(self):
+        self._highlight_nav("acguard")
+        self.clear_container()
+
+        pane = ctk.CTkFrame(self.container, fg_color="transparent")
+        pane.grid(row=0, column=0, sticky="nsew", padx=30, pady=20)
+        pane.grid_columnconfigure((0, 1), weight=1)
+        pane.grid_rowconfigure(1, weight=1)
+
+        head = ctk.CTkFrame(pane, fg_color="transparent")
+        head.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 15))
+        ctk.CTkLabel(head, text="Pre-Match Anti-Cheat & Secure Boot Tripwire", font=("Segoe UI", 24, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w")
+        ctk.CTkLabel(head, text="Pre-match integrity diagnostics for Riot Vanguard, BattlEye, Easy Anti-Cheat, and Faceit to prevent tournament kicks", font=("Segoe UI", 12), text_color=COLOR_TEXT_MUTED).pack(anchor="w")
+
+        # Left Card: Overall Certification & Security Posture
+        left_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        left_card.grid(row=1, column=0, sticky="nsew", padx=(0, 10))
+
+        audit = self.anticheat_guard.audit_tournament_readiness()
+        ctk.CTkLabel(left_card, text="Tournament Readiness Certification", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        f_stat = ctk.CTkFrame(left_card, fg_color="#0A0C14", corner_radius=10, border_color=COLOR_BORDER, border_width=1)
+        f_stat.pack(fill="x", padx=16, pady=(0, 14))
+
+        status_col = COLOR_EMERALD if audit["status"] == "TOURNAMENT_CERTIFIED_READY" else COLOR_AMBER
+
+        pills = [
+            ("Tournament Certification", audit["status"], status_col),
+            ("Windows Secure Boot", audit["secure_boot"]["status"], COLOR_EMERALD if audit["secure_boot"]["secure_boot_enabled"] else COLOR_CRIMSON),
+            ("Hardware TPM Posture", f"{audit['tpm']['status']} (v{audit['tpm']['spec_version']})", COLOR_EMERALD),
+            ("Blacklisted Drivers Found", f"{len(audit['flagged_drivers'])} Vulnerable Files", COLOR_CRIMSON if audit['flagged_drivers'] else COLOR_EMERALD)
+        ]
+        for title, val, col in pills:
+            r = ctk.CTkFrame(f_stat, fg_color="transparent")
+            r.pack(fill="x", padx=10, pady=4)
+            ctk.CTkLabel(r, text=title, font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+            ctk.CTkLabel(r, text=val, font=("Consolas", 10, "bold"), text_color=col).pack(side="right")
+
+        ctk.CTkLabel(left_card, text=audit["advice"], font=("Segoe UI", 11), text_color=COLOR_TEXT_MUTED, wraplength=420, justify="left").pack(anchor="w", padx=16, pady=(0, 10))
+
+        ctk.CTkButton(
+            left_card, text="🔍 Re-Run Pre-Match Integrity Audit", font=("Segoe UI", 13, "bold"),
+            fg_color="#00FF9D", hover_color="#00D480", text_color="#000000",
+            height=44, corner_radius=10, command=self._refresh_anticheat_pane
+        ).pack(fill="x", padx=16, pady=(6, 16))
+
+        # Right Card: Anti-Cheat Engine Status
+        right_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        right_card.grid(row=1, column=1, sticky="nsew", padx=(10, 0))
+
+        ctk.CTkLabel(right_card, text="Kernel Anti-Cheat Engine Watchdog", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        scroll_ac = ctk.CTkScrollableFrame(right_card, fg_color="transparent")
+        scroll_ac.pack(fill="both", expand=True, padx=12, pady=(0, 12))
+
+        for ac in audit["anticheat_engines"]:
+            bx = ctk.CTkFrame(scroll_ac, fg_color="#0A0C14", corner_radius=8, border_color=COLOR_BORDER, border_width=1)
+            bx.pack(fill="x", pady=4)
+            hdr = ctk.CTkFrame(bx, fg_color="transparent")
+            hdr.pack(fill="x", padx=10, pady=(6, 2))
+            col = COLOR_EMERALD if ac["running"] else (COLOR_CYAN if ac["installed"] else COLOR_TEXT_MUTED)
+            ctk.CTkLabel(hdr, text=f"🛡️ {ac['name']}", font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+            drv_name = ac.get('driver', 'kernel')
+            ctk.CTkLabel(bx, text=f"Service: {ac['service']} | Driver: {drv_name}", font=("Consolas", 9), text_color=COLOR_TEXT_MUTED).pack(anchor="w", padx=10, pady=(0, 6))
+
+    def _refresh_anticheat_pane(self):
+        self.sfx.play_click()
+        self.show_anticheat_pane()
+
+    # ========================================================================
+    # V8 SOVEREIGN ENGINE 4: GLOBAL IN-GAME HOTKEY PROFILE SWITCHER
+    # ========================================================================
+    def show_profile_switcher_pane(self):
+        self._highlight_nav("switcher")
+        self.clear_container()
+
+        pane = ctk.CTkFrame(self.container, fg_color="transparent")
+        pane.grid(row=0, column=0, sticky="nsew", padx=30, pady=20)
+        pane.grid_columnconfigure((0, 1), weight=1)
+        pane.grid_rowconfigure(1, weight=1)
+
+        head = ctk.CTkFrame(pane, fg_color="transparent")
+        head.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 15))
+        ctk.CTkLabel(head, text="Global In-Game Hotkey Profile Switcher", font=("Segoe UI", 24, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w")
+        ctk.CTkLabel(head, text="Zero alt-tab profile switching via global hotkeys with instant audio announcements and hardware reconfiguration", font=("Segoe UI", 12), text_color=COLOR_TEXT_MUTED).pack(anchor="w")
+
+        # Left Card: Active Profile & 1-Click Toggles
+        left_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        left_card.grid(row=1, column=0, sticky="nsew", padx=(0, 10))
+
+        cur = self.profile_switcher.get_active_profile()
+        ctk.CTkLabel(left_card, text="Engaged System Profile", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        f_stat = ctk.CTkFrame(left_card, fg_color="#0A0C14", corner_radius=10, border_color=COLOR_BORDER, border_width=1)
+        f_stat.pack(fill="x", padx=16, pady=(0, 14))
+
+        pills = [
+            ("Active Preset", cur["name"], cur["color"]),
+            ("Global Hotkey", cur["hotkey"], COLOR_CYAN),
+            ("Timer Resolution", f"{cur['timer_resolution_ms']} ms", COLOR_EMERALD),
+            ("Memory Compression", "DISABLED" if not cur["memory_compression"] else "ENABLED", COLOR_CYAN)
+        ]
+        for title, val, col in pills:
+            r = ctk.CTkFrame(f_stat, fg_color="transparent")
+            r.pack(fill="x", padx=10, pady=4)
+            ctk.CTkLabel(r, text=title, font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+            ctk.CTkLabel(r, text=val, font=("Consolas", 10, "bold"), text_color=col).pack(side="right")
+
+        ctk.CTkLabel(left_card, text="Manual 1-Click Profile Overrides:", font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_MUTED).pack(anchor="w", padx=16, pady=(4, 6))
+
+        ctk.CTkButton(
+            left_card, text="⚡ Esports Tournament Pro (Ctrl+Alt+1)", font=("Segoe UI", 12, "bold"),
+            fg_color="#00FF9D", hover_color="#00D480", text_color="#000000",
+            height=38, corner_radius=8, command=lambda: self._trigger_profile_switch("tournament")
+        ).pack(fill="x", padx=16, pady=4)
+
+        ctk.CTkButton(
+            left_card, text="🎥 Streamer / Creator Shield (Ctrl+Alt+2)", font=("Segoe UI", 12, "bold"),
+            fg_color="#A855F7", hover_color="#9333EA", text_color="#000000",
+            height=38, corner_radius=8, command=lambda: self._trigger_profile_switch("streamer")
+        ).pack(fill="x", padx=16, pady=4)
+
+        ctk.CTkButton(
+            left_card, text="🔄 Windows Balanced Default (Ctrl+Alt+3)", font=("Segoe UI", 11),
+            fg_color="#1E293B", hover_color="#334155", text_color=COLOR_TEXT_PRIMARY,
+            height=34, corner_radius=8, command=lambda: self._trigger_profile_switch("balanced")
+        ).pack(fill="x", padx=16, pady=(4, 16))
+
+        # Right Card: Profile Architecture
+        right_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        right_card.grid(row=1, column=1, sticky="nsew", padx=(10, 0))
+
+        ctk.CTkLabel(right_card, text="Performance Profiles Specification", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        scroll_pr = ctk.CTkScrollableFrame(right_card, fg_color="transparent")
+        scroll_pr.pack(fill="both", expand=True, padx=12, pady=(0, 12))
+
+        guides = [
+            ("⚡ Tournament Pro Mode (Ctrl+Alt+1)", "Optimized for maximum competitive responsiveness. Sets timer resolution to 0.5ms, pins active game to physical P-Cores, binds audiodg.exe to dedicated Core 2, disables USB selective suspend, and shuts off kernel memory compression to prevent traversal spikes."),
+            ("🎥 Streamer / Creator Shield (Ctrl+Alt+2)", "Optimized for multi-app stability while streaming. Balances core distribution across P-Cores and secondary cores, protects OBS Studio priority against CPU starvation, and prevents NVENC encoder micro-stutters."),
+            ("🔄 Windows Balanced Default (Ctrl+Alt+3)", "Restores standard Windows OS power scheduling, re-enables balanced core allocation, and returns timer resolution to 15.6ms for minimum power draw during web browsing or office tasks.")
+        ]
+        for title, desc in guides:
+            bx = ctk.CTkFrame(scroll_pr, fg_color="#0A0C14", corner_radius=8, border_color=COLOR_BORDER, border_width=1)
+            bx.pack(fill="x", pady=4)
+            ctk.CTkLabel(bx, text=title, font=("Segoe UI", 11, "bold"), text_color=COLOR_CYAN).pack(anchor="w", padx=10, pady=(6, 2))
+            ctk.CTkLabel(bx, text=desc, font=("Segoe UI", 10), text_color=COLOR_TEXT_MUTED, wraplength=420, justify="left").pack(anchor="w", padx=10, pady=(0, 6))
+
+    def _trigger_profile_switch(self, key: str):
+        self.profile_switcher.switch_profile(key)
+        self.show_profile_switcher_pane()
+
+    def _on_profile_switched_hook(self, profile_key: str, prof: Dict[str, Any]):
+        """Executed automatically when a profile is changed via global hotkey or UI."""
+        self.sfx.play_warp_boost()
+        self.voice.speak(f"Antimagist Profile: {prof['name']} engaged.")
+        self.show_toast_msg(f"Active Profile: {prof['name']} ({prof['hotkey']})")
+
+    # ========================================================================
     # TELEMETRY LOOP WITH REAL-TIME GPU & DISCORD STATUS POLLING
     # ========================================================================
     def _poll_telemetry_loop(self):
@@ -2415,8 +2747,8 @@ class AntimagistV4ApexApp(AntimagistV3App):
                 # Periodic Discord Presence refresh (every ~15s)
                 if hasattr(self, "discord_rpc") and self.discord_rpc.is_connected:
                     self.discord_rpc.update_presence(
-                        details="Protected by Antimagist V7+ Ultra",
-                        state=f"{gm['gpu_name'][:12]} ({gm['temperature_c']}°C) | Protected"
+                        details="Protected by Antimagist V8 Sovereign",
+                        state=f"{gm['gpu_name'][:12]} ({gm['temperature_c']}°C) | Sovereign"
                     )
             except Exception:
                 pass
@@ -2453,7 +2785,7 @@ class AntimagistV4ApexApp(AntimagistV3App):
         self.voice.alert_ping_optimized()
 
     def destroy(self):
-        """Clean shutdown of V7+ services."""
+        """Clean shutdown of V8 Sovereign services."""
         try:
             self.game_watchdog.stop_watchdog()
         except Exception:
@@ -2476,6 +2808,10 @@ class AntimagistV4ApexApp(AntimagistV3App):
             pass
         try:
             self.lan_sync.stop_listener()
+        except Exception:
+            pass
+        try:
+            self.profile_switcher.stop_hotkey_listener()
         except Exception:
             pass
         super().destroy()

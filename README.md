@@ -1,7 +1,7 @@
-# 🛡️ Antimagist Enterprise Security V7+ (Ultra Edition)
+# 🛡️ Antimagist Enterprise Security V8 (Sovereign Edition)
 
 [![CI](https://github.com/nassimlachemi659-ai/antimagist/actions/workflows/ci.yml/badge.svg)](https://github.com/nassimlachemi659-ai/antimagist/actions)
-[![Latest Release](https://img.shields.io/badge/Release-v7.1.0--Ultra-orange?style=for-the-badge&logo=github)](https://github.com/nassimlachemi659-ai/antimagist/releases)
+[![Latest Release](https://img.shields.io/badge/Release-v8.0.0--Sovereign-orange?style=for-the-badge&logo=github)](https://github.com/nassimlachemi659-ai/antimagist/releases)
 [![Platform: Windows 10 & 11](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-blue?style=for-the-badge&logo=windows)](https://microsoft.com/windows)
 [![Python: 3.12](https://img.shields.io/badge/Python-3.12-yellow?style=for-the-badge&logo=python)](https://python.org)
 [![Anti-Cheat: 100% Safe](https://img.shields.io/badge/Anti--Cheat-100%25%20Safe%20(Zero%20Hooks)-success?style=for-the-badge)](https://github.com)
@@ -13,32 +13,28 @@
 
 ---
 
-## ⚡ What's New in V7+ Ultra: The 4 Elite Engines
+## ⚡ What's New in V8 Sovereign: The Kernel Hardware Frontier
 
-Antimagist V7+ Ultra expands the competitive suite with 4 advanced latency and tournament engines:
+Antimagist V8 Sovereign brings direct PCI interrupt architecture, shader cache lifecycle control, pre-match anti-cheat certification, and instant global hotkey switching across 33 unified navigation panes:
 
-### 1. 🖱️ USB Polling Rate & 1000Hz–8000Hz Flick Sentinel (`usb_polling_sentinel.py`)
-- **Microsecond Packet Delta Measurement:** Queries native Win32 `QueryPerformanceCounter` alongside raw mouse motion packets to compute real-time polling rates (125Hz, 500Hz, 1000Hz, 2000Hz, 4000Hz, 8000Hz).
-- **Interval Jitter Standard Deviation & Delivery Consistency:** Measures microsecond packet variance to identify timing jitter and packet clumping during rapid tournament flick shots.
-- **xHCI Selective Suspend Elimination:** Safely audits and disables Windows USB Selective Suspend in active AC/DC power schemes via `powercfg`, locking the USB host controller awake to prevent 2ms - 15ms wake delays.
+### 1. ⚡ MSI-X & Interrupt Request (IRQ) Core Director (`msi_interrupt_tuner.py`)
+- **Eliminates Line-Based INTx Collisions:** Scans PCI device tree for GPUs, NVMe controllers, and 2.5GbE network adapters.
+- **Message Signaled Interrupts (MSI-X):** Converts legacy shared interrupt routing to direct memory MSI-X writes (`MSISupported = 1`), preventing CPU Core 0 bottlenecks and eliminating DPC interrupt queue latency.
 
-### 2. 🧠 Windows Memory Compression & Pagefile Pacer (`memory_pacer.py`)
-- **MMAgent Architectural Audit:** Inspects Windows Memory Management Agent (`MMAgent`) configuration, active pagefile sizing, and RAM capacity via Win32 `GlobalMemoryStatusEx`.
-- **Zero Decompression Thrashing (>= 16 GB RAM):** Offers 1-click safe toggles for Windows kernel Memory Compression and Page Combining (`Disable-MMAgent -mc`, `Disable-MMAgent -PageCombining`). Disabling compression on high-RAM rigs eliminates background decompression micro-stutters during heavy games like Warzone, Tarkov, and Rust.
-- **Standby Working Set Pacer:** Safely trims inactive process working sets to stabilize free physical memory pools without inducing out-of-memory errors.
+### 2. 🎮 DirectX / Vulkan Shader Compilation Sentinel (`shader_sentinel.py`)
+- **Eliminates Traversal Stutter:** Scans NVIDIA (`DXCache`, `ComputeCache`), AMD (`DxCache`), and DirectX (`D3DSCache`) storage pools.
+- **Corrupted Cache Elimination & 1-Click Flush:** Purges corrupted 0-byte shader blobs that cause game crashes, and provides 1-click safe flushing before major tournament matches to guarantee smooth asset compilation.
 
-### 3. 🔥 Hardware Thermal Throttle & Clock Drop Watchdog (`throttle_watchdog.py`)
-- **Real-Time GPU Boost & Thermals:** Samples GPU core temperatures, graphics clocks, and load via NVIDIA NVML / `nvidia-smi` and universal driver queries.
-- **CPU Frequency Preemption Watchdog:** Queries high-resolution hardware counters to verify active boost clocks and detect throttling under heavy (> 80%) load.
-- **Thermal Tripwire Alerts & Correlation Log:** Automatically trips warnings and logs throttle events (> 83°C GPU / > 90°C CPU or > 150 MHz drop) to correlate with in-game 1% low frame stutter.
+### 3. 🛡️ Pre-Match Anti-Cheat & Secure Boot Tripwire (`anticheat_guard.py`)
+- **Pre-Match Integrity Certification:** Audits Riot Vanguard, BattlEye, Easy Anti-Cheat, and Faceit service states before launching matches.
+- **TPM 2.0 & Secure Boot Verification:** Audits Windows 11 hardware posture and scans `C:\Windows\System32\drivers` for blacklisted vulnerable drivers (`AsIO.sys`, `RTCore64.sys`, `ene.sys`) that trigger anti-cheat kicks or bans.
 
-### 4. 📡 LAN Esports Team & Tournament Synchronizer (`lan_sync.py`)
-- **100% Offline Subnet Sync:** Lightweight UDP peer discovery over port 8789 designed for tournament scrims, bootcamps, and air-gapped LAN events (zero cloud dependencies).
-- **Cryptographic SHA-256 Verification:** Team captains and IGLs can broadcast tournament configs, timer resolutions, and server radar preferences with cryptographic integrity signatures to all team PCs in 1 click.
+### 4. 🎛️ Global In-Game Hotkey Profile Switcher (`profile_switcher.py`)
+- **Zero Alt-Tab Profile Switching:** Instant global hotkeys (<kbd>Ctrl+Alt+1</kbd> for Tournament Pro, <kbd>Ctrl+Alt+2</kbd> for Streamer Shield, <kbd>Ctrl+Alt+3</kbd> for Balanced Default) with audible Voice Copilot confirmation and dynamic hardware reconfiguration.
 
----
-
-## ⏱️ V7 Titan Pillars (Included in V7+)
+### 5. 📱 Mobile Companion PWA & Cyberpunk Web Showcase (`docs/index.html`)
+- Upgraded Mobile Companion to a Progressive Web App (PWA) with manifest, touch haptics, and standalone display mode for desk-mounted smartphones.
+- Interactive web showcase featuring a live HTML5 frametime simulator.
 
 1. **⏱️ Hardware DPC & ISR Driver Latency Diagnostician (`dpc_diagnostician.py`):** LatencyMon alternative measuring microsecond QPC interrupt jitter and auditing active drivers (`nvlddmkm.sys`, `ndis.sys`, `stornvme.sys`).
 2. **🧠 Intelligent Process Isolator & Core Allocator (`process_isolator.py`):** Process Lasso alternative parking background bloat (Chrome, Discord, Spotify) to secondary cores while locking active game to physical P-Cores.
@@ -89,7 +85,7 @@ We want to hear your real-world benchmarks, system feedback, and feature suggest
 ## 🚀 Quick Start & Installation
 
 ### Option 1: 1-Click Setup (Recommended)
-1. Download `Antimagist-v7.1.0-Ultra.zip` from [Releases](https://github.com/nassimlachemi659-ai/antimagist/releases).
+1. Download `Antimagist-v8.0.0-Sovereign.zip` from [Releases](https://github.com/nassimlachemi659-ai/antimagist/releases).
 2. Extract and run `Install_Antimagist_V7.bat`.
 3. Automatically installs to `%LocalAppData%\Antimagist` (no UAC / Administrator prompt needed).
 4. Launches from your **Desktop** or **Start Menu** shortcut.
@@ -109,21 +105,21 @@ python antimagist_v4_apex.py
 
 ---
 
-## 🧪 Master Verification & Regression Suite (35/35 Tests)
+## 🧪 Master Verification & Regression Suite (40/40 Tests)
 
-Antimagist includes a master automated test suite verifying all 35 core subsystems and engines:
+Antimagist includes a master automated test suite verifying all 40 core subsystems and engines:
 
 ```bash
 python test_master_v7_suite.py
 ```
 ```
 ===========================================================================
-  ANTIMAGIST V7+ ULTRA — MASTER VERIFICATION & REGRESSION SUITE
+  ANTIMAGIST V8 SOVEREIGN — MASTER VERIFICATION & REGRESSION SUITE
 ===========================================================================
-Ran 35 tests in 14.917s
+Ran 40 tests in 30.323s
 
 OK
-[SUCCESS] 100% OF TESTS PASSED (35/35) WITH ZERO CRASHES OR REGRESSIONS.
+[SUCCESS] 100% OF TESTS PASSED (40/40) WITH ZERO CRASHES OR REGRESSIONS.
 ```
 
 ---

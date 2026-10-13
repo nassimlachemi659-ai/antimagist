@@ -23,7 +23,7 @@ if hasattr(sys.stdout, "reconfigure"):
     except Exception:
         pass
 
-CURRENT_VERSION = "7.1.0"
+CURRENT_VERSION = "8.0.0"
 REPO_OWNER = "nassimlachemi659-ai"
 REPO_NAME = "antimagist"
 API_URL = f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/releases/latest"

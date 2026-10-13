@@ -1,8 +1,8 @@
 """
-installer_builder.py — Antimagist V7+ Ultra One-Click Installer & Deployment Wizard
-===================================================================================
-Antimagist Enterprise Security V7+ Component
-- Packages Antimagist V7+ Ultra into a turnkey Windows setup script
+installer_builder.py — Antimagist V8 Sovereign One-Click Installer & Deployment Wizard
+=====================================================================================
+Antimagist Enterprise Security V8 Component
+- Packages Antimagist V8 Sovereign into a turnkey Windows setup script
 - Installs to %LocalAppData%\\Antimagist without requiring admin rights
 - Creates Desktop and Start Menu Shortcuts with high-resolution custom icon
 - Includes clean 1-click Uninstaller (uninstall_antimagist.bat)
@@ -11,7 +11,7 @@ Antimagist Enterprise Security V7+ Component
 import os
 import sys
 
-INSTALLER_PS1 = r"""# Antimagist V7+ Ultra - Windows 1-Click Installer
+INSTALLER_PS1 = r"""# Antimagist V8 Sovereign - Windows 1-Click Installer
 $ErrorActionPreference = "Stop"
 $appData = [System.Environment]::GetFolderPath("LocalApplicationData")
 $targetDir = Join-Path $appData "Antimagist"
@@ -20,7 +20,7 @@ $desktop = [System.Environment]::GetFolderPath("Desktop")
 $programs = [System.Environment]::GetFolderPath("Programs")
 
 Write-Host "==========================================================" -ForegroundColor Cyan
-Write-Host "          ANTIMAGIST V7+ ULTRA - SETUP WIZARD" -ForegroundColor Green
+Write-Host "          ANTIMAGIST V8 SOVEREIGN - SETUP WIZARD" -ForegroundColor Green
 Write-Host "==========================================================" -ForegroundColor Cyan
 
 # 1. Create Target Directory
@@ -38,20 +38,20 @@ Copy-Item -Path (Join-Path $srcDir "*") -Destination $targetDir -Recurse -Force
 
 # 3. Create Desktop Shortcut
 $wsh = New-Object -ComObject WScript.Shell
-$scPath = Join-Path $desktop "Antimagist V7+ Ultra.lnk"
+$scPath = Join-Path $desktop "Antimagist V8 Sovereign.lnk"
 $sc = $wsh.CreateShortcut($scPath)
 $sc.TargetPath = Join-Path $targetDir "Antimagist_V4_Apex.exe"
 $sc.WorkingDirectory = $targetDir
-$sc.Description = "Antimagist Enterprise Security V7+ Ultra Edition"
+$sc.Description = "Antimagist Enterprise Security V8 Sovereign Edition"
 $sc.IconLocation = Join-Path $targetDir "antimagist.ico"
 $sc.Save()
 
 # 4. Create Start Menu Shortcut
-$smPath = Join-Path $programs "Antimagist V7+ Ultra.lnk"
+$smPath = Join-Path $programs "Antimagist V8 Sovereign.lnk"
 $sm = $wsh.CreateShortcut($smPath)
 $sm.TargetPath = Join-Path $targetDir "Antimagist_V4_Apex.exe"
 $sm.WorkingDirectory = $targetDir
-$sm.Description = "Antimagist Enterprise Security V7+ Ultra Edition"
+$sm.Description = "Antimagist Enterprise Security V8 Sovereign Edition"
 $sm.IconLocation = Join-Path $targetDir "antimagist.ico"
 $sm.Save()
 

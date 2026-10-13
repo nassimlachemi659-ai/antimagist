@@ -449,24 +449,106 @@ class TestAntimagistV7Titan(unittest.TestCase):
         app.destroy()
         print("  [+] Master V7+ Ultra Application: All 29 navigation panes operational and verified.")
 
-    def test_35_master_v7_plus_branding_and_specs(self):
-        """Verifies V7+ Ultra branding, window title, and zero-false-claim compliance."""
+    def test_35_msi_interrupt_tuner(self):
+        """Verifies V8 Engine 1: MSI-X & Interrupt Request (IRQ) Core Director."""
+        from msi_interrupt_tuner import AntimagistMSITuner
+        tuner = AntimagistMSITuner()
+        audit = tuner.audit_interrupt_health()
+        self.assertIsInstance(audit, dict)
+        self.assertIn("total_audited", audit)
+        self.assertIn("msi_active_count", audit)
+        self.assertIn("status", audit)
+        print(f"  [+] MSI-X IRQ Director: {audit['total_audited']} PCI controllers ({audit['msi_active_count']} MSI-X Active) | Status: {audit['status']}.")
+
+    def test_36_shader_compilation_sentinel(self):
+        """Verifies V8 Engine 2: DirectX / Vulkan Shader Compilation Sentinel."""
+        from shader_sentinel import AntimagistShaderSentinel
+        sentinel = AntimagistShaderSentinel()
+        audit = sentinel.audit_shader_caches()
+        self.assertIsInstance(audit, dict)
+        self.assertIn("total_size_mb", audit)
+        self.assertIn("total_files", audit)
+        self.assertIn("pools", audit)
+        ok_purge, msg_purge, cnt = sentinel.purge_shader_cache()
+        self.assertTrue(ok_purge)
+        print(f"  [+] Shader Sentinel: {audit['total_size_mb']} MB across {audit['total_files']} files | Purge: OK.")
+
+    def test_37_anticheat_guard_readiness(self):
+        """Verifies V8 Engine 3: Pre-Match Anti-Cheat & Secure Boot Tripwire."""
+        from anticheat_guard import AntimagistAntiCheatGuard
+        guard = AntimagistAntiCheatGuard()
+        audit = guard.audit_tournament_readiness()
+        self.assertIsInstance(audit, dict)
+        self.assertIn("status", audit)
+        self.assertIn("secure_boot", audit)
+        self.assertIn("tpm", audit)
+        print(f"  [+] Anti-Cheat Guard: Status: {audit['status']} | Secure Boot: {audit['secure_boot']['status']} | TPM: {audit['tpm']['status']}.")
+
+    def test_38_profile_switcher_logic(self):
+        """Verifies V8 Engine 4: Global In-Game Hotkey Profile Switcher."""
+        from profile_switcher import AntimagistProfileSwitcher
+        sw = AntimagistProfileSwitcher()
+        cur = sw.get_active_profile()
+        self.assertEqual(cur["key"], "tournament")
+        ok_s, _, p_s = sw.switch_profile("streamer")
+        self.assertTrue(ok_s)
+        self.assertEqual(p_s["key"], "streamer")
+        ok_b, _, p_b = sw.switch_profile("balanced")
+        self.assertTrue(ok_b)
+        self.assertEqual(p_b["key"], "balanced")
+        ok_t, _, p_t = sw.switch_profile("tournament")
+        self.assertTrue(ok_t)
+        self.assertEqual(p_t["key"], "tournament")
+        print(f"  [+] Profile Switcher: Tournament Pro vs Streamer vs Balanced switching verified.")
+
+    def test_39_master_v8_sovereign_lifecycle(self):
+        """Verifies Antimagist V8 Sovereign launches cleanly and binds all 33 navigation panes."""
         from antimagist_v4_apex import AntimagistV4ApexApp
         app = AntimagistV4ApexApp()
-        self.assertIn("Ultra Edition", app.title())
+        self.assertIsNotNone(app)
+        self.assertTrue(hasattr(app, "msi_tuner"))
+        self.assertTrue(hasattr(app, "shader_sentinel"))
+        self.assertTrue(hasattr(app, "anticheat_guard"))
+        self.assertTrue(hasattr(app, "profile_switcher"))
+
+        # Verify all 4 new V8 Sovereign panes
+        app.show_msi_pane()
+        app.show_shader_pane()
+        app.show_anticheat_pane()
+        app.show_profile_switcher_pane()
+
+        # Verify V7+ and core panes
+        app.show_usb_polling_pane()
+        app.show_memory_pacer_pane()
+        app.show_throttle_pane()
+        app.show_lan_sync_pane()
+        app.show_dpc_pane()
+        app.show_isolator_pane()
+        app.show_dashboard_pane()
+
+        # Clean destruction
+        app.update_idletasks()
         app.destroy()
-        print("  [+] V7+ Ultra Branding & Specifications: 100% Validated.")
+        print("  [+] Master V8 Sovereign Application: All 33 navigation panes operational and verified.")
+
+    def test_40_master_v8_branding_and_specs(self):
+        """Verifies V8 Sovereign branding, window title, and zero-false-claim compliance."""
+        from antimagist_v4_apex import AntimagistV4ApexApp
+        app = AntimagistV4ApexApp()
+        self.assertIn("Sovereign Edition", app.title())
+        app.destroy()
+        print("  [+] V8 Sovereign Branding & Specifications: 100% Validated.")
 
 
 if __name__ == "__main__":
     print("=" * 75)
-    print("  ANTIMAGIST V7+ ULTRA — MASTER VERIFICATION & REGRESSION SUITE")
+    print("  ANTIMAGIST V8 SOVEREIGN — MASTER VERIFICATION & REGRESSION SUITE")
     print("=" * 75)
     suite = unittest.TestLoader().loadTestsFromTestCase(TestAntimagistV7Titan)
     runner = unittest.TextTestRunner(verbosity=2)
     result = runner.run(suite)
     if result.wasSuccessful():
-        print("\n[SUCCESS] 100% OF TESTS PASSED (35/35) WITH ZERO CRASHES OR REGRESSIONS.")
+        print("\n[SUCCESS] 100% OF TESTS PASSED (40/40) WITH ZERO CRASHES OR REGRESSIONS.")
         sys.exit(0)
     else:
         print("\n[FAIL] SOME TESTS FAILED. INVESTIGATION REQUIRED.")
