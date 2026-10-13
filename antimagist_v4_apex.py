@@ -74,6 +74,10 @@ from msi_interrupt_tuner import AntimagistMSITuner
 from shader_sentinel import AntimagistShaderSentinel
 from anticheat_guard import AntimagistAntiCheatGuard
 from profile_switcher import AntimagistProfileSwitcher
+from latency_recorder import AntimagistLatencyRecorder
+from recall_stripper import AntimagistRecallStripper
+from bufferbloat_auditor import AntimagistBufferbloatAuditor
+from tournament_lock import AntimagistTournamentLock
 
 # Ensure UTF-8 console output
 if hasattr(sys.stdout, "reconfigure"):
@@ -84,10 +88,10 @@ if hasattr(sys.stdout, "reconfigure"):
 
 
 class AntimagistV4ApexApp(AntimagistV3App):
-    """Antimagist Enterprise Security Version 8 (Sovereign Edition)."""
+    """Antimagist Enterprise Security Version 9 (Apex Predator Edition)."""
 
     def __init__(self):
-        # 1. Initialize Core Subsystems (V4 through V8 Sovereign)
+        # 1. Initialize Core Subsystems (V4 through V9 Apex Predator)
         self.voice = AntimagistVoiceCopilot(enabled=True)
         self.sfx = AntimagistSoundFX(enabled=True)
         self.core_director = AntimagistCoreDirector()
@@ -116,12 +120,16 @@ class AntimagistV4ApexApp(AntimagistV3App):
         self.anticheat_guard = AntimagistAntiCheatGuard()
         self.profile_switcher = AntimagistProfileSwitcher(on_profile_changed=self._on_profile_switched_hook)
         self.profile_switcher.start_hotkey_listener()
+        self.latency_recorder = AntimagistLatencyRecorder()
+        self.recall_stripper = AntimagistRecallStripper()
+        self.bufferbloat_auditor = AntimagistBufferbloatAuditor()
+        self.tournament_lock = AntimagistTournamentLock()
 
         # Call base constructor
         super().__init__()
 
         # Update window title
-        self.title("Antimagist — Enterprise Security V8 Sovereign Edition")
+        self.title("Antimagist — Enterprise Security V9 Apex Predator Edition")
 
         # 2. Initialize Discord Rich Presence Client
         self.discord_rpc = AntimagistDiscordRPC()
@@ -414,6 +422,10 @@ class AntimagistV4ApexApp(AntimagistV3App):
             ("🎮 Shader Sentinel",    "shader",    self.show_shader_pane),
             ("🛡️ Anti-Cheat Guard",   "acguard",   self.show_anticheat_pane),
             ("🎛️ Profile Switcher",   "switcher",  self.show_profile_switcher_pane),
+            ("📼 Match Recorder",    "recorder",   self.show_match_recorder_pane),
+            ("🪟 Win11 AI Stripper", "recall",     self.show_recall_stripper_pane),
+            ("🚀 Bufferbloat & QoS", "bufferbloat",self.show_bufferbloat_pane),
+            ("🔒 Tournament Lock",   "tourneylock",self.show_tournament_lock_pane),
             ("🖼️ Benchmark Card",    "card",       self.show_benchmark_card_pane),
             ("🛡️ Mod Guard",         "modguard",   self.show_mod_guard_pane),
             ("🔄 Auto-Updater",      "updater",    self.show_updater_pane),
@@ -2727,6 +2739,425 @@ class AntimagistV4ApexApp(AntimagistV3App):
         self.sfx.play_warp_boost()
         self.voice.speak(f"Antimagist Profile: {prof['name']} engaged.")
         self.show_toast_msg(f"Active Profile: {prof['name']} ({prof['hotkey']})")
+
+    # ========================================================================
+    # V9 APEX PREDATOR PILLAR 1: ESPORTS MATCH RECORDER & SESSION REPLAY
+    # ========================================================================
+    def show_match_recorder_pane(self):
+        self._highlight_nav("recorder")
+        self.clear_container()
+
+        pane = ctk.CTkFrame(self.container, fg_color="transparent")
+        pane.grid(row=0, column=0, sticky="nsew", padx=30, pady=20)
+        pane.grid_columnconfigure((0, 1), weight=1)
+        pane.grid_rowconfigure(1, weight=1)
+
+        head = ctk.CTkFrame(pane, fg_color="transparent")
+        head.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 15))
+        ctk.CTkLabel(head, text="Esports Match Latency Recorder & Stutter Attribution", font=("Segoe UI", 24, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w")
+        ctk.CTkLabel(head, text="Continuous match frametime telemetry, 1% lows monitoring, and instantaneous culprit process attribution", font=("Segoe UI", 12), text_color=COLOR_TEXT_MUTED).pack(anchor="w")
+
+        # Left Card: Live Session Controls & Metrics
+        left_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        left_card.grid(row=1, column=0, sticky="nsew", padx=(0, 10))
+
+        st = self.latency_recorder.get_active_session_stats()
+        ctk.CTkLabel(left_card, text="Telemetry Recorder Controls", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        f_stat = ctk.CTkFrame(left_card, fg_color="#0A0C14", corner_radius=10, border_color=COLOR_BORDER, border_width=1)
+        f_stat.pack(fill="x", padx=16, pady=(0, 14))
+
+        status_txt = "🔴 RECORDING ACTIVE" if st["is_recording"] else "⚪ STANDBY (READY TO RECORD)"
+        status_col = COLOR_CRIMSON if st["is_recording"] else COLOR_EMERALD
+
+        pills = [
+            ("Recording State", status_txt, status_col),
+            ("Active Session ID", st["session_id"], COLOR_CYAN),
+            ("Duration", f"{st['duration_sec']} seconds", COLOR_TEXT_PRIMARY),
+            ("Average Framerate", f"{st['avg_fps']} FPS", COLOR_EMERALD if st['avg_fps'] > 120 else COLOR_CYAN),
+            ("1% Low Framerate", f"{st['one_pct_low']} FPS", COLOR_AMBER if st['one_pct_low'] < 60 else COLOR_EMERALD),
+            ("Average Frametime", f"{st['avg_frametime_ms']} ms", COLOR_TEXT_PRIMARY),
+            ("Detected Stutters (>20ms)", f"{st['stutter_count']} Events", COLOR_CRIMSON if st['stutter_count'] > 0 else COLOR_EMERALD),
+            ("Pacing Consistency Score", f"{st['pacing_score']} / 100", COLOR_EMERALD if st['pacing_score'] >= 80 else COLOR_AMBER)
+        ]
+        for title, val, col in pills:
+            r = ctk.CTkFrame(f_stat, fg_color="transparent")
+            r.pack(fill="x", padx=10, pady=3)
+            ctk.CTkLabel(r, text=title, font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+            ctk.CTkLabel(r, text=val, font=("Consolas", 10, "bold"), text_color=col).pack(side="right")
+
+        btn_txt = "⏹️ Stop Session & Compile Report" if st["is_recording"] else "🔴 Start Match Telemetry Recording"
+        btn_col = COLOR_CRIMSON if st["is_recording"] else "#00FF9D"
+        btn_txt_col = "#FFFFFF" if st["is_recording"] else "#000000"
+
+        ctk.CTkButton(
+            left_card, text=btn_txt, font=("Segoe UI", 13, "bold"),
+            fg_color=btn_col, hover_color="#DC2626" if st["is_recording"] else "#00D480",
+            text_color=btn_txt_col, height=44, corner_radius=10,
+            command=self._toggle_match_recorder_session
+        ).pack(fill="x", padx=16, pady=6)
+
+        ctk.CTkButton(
+            left_card, text="💾 Export Match Forensic Report to Desktop (JSON)", font=("Segoe UI", 11),
+            fg_color="#1E293B", hover_color="#334155", text_color=COLOR_CYAN,
+            height=34, corner_radius=8, command=self._export_match_recorder_json
+        ).pack(fill="x", padx=16, pady=(4, 16))
+
+        # Right Card: Stutter Culprit Attribution Log
+        right_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        right_card.grid(row=1, column=1, sticky="nsew", padx=(10, 0))
+
+        ctk.CTkLabel(right_card, text="Stutter Attribution Incident Log", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        scroll_log = ctk.CTkScrollableFrame(right_card, fg_color="transparent")
+        scroll_log.pack(fill="both", expand=True, padx=12, pady=(0, 12))
+
+        stutters = st.get("stutters", [])
+        if not stutters:
+            ctk.CTkLabel(
+                scroll_log,
+                text="Zero micro-stutter incidents logged.\nStart a recording session during a match to capture live gunfight pacing.",
+                font=("Segoe UI", 11), text_color=COLOR_TEXT_MUTED, justify="center"
+            ).pack(pady=40)
+        else:
+            for s in stutters:
+                bx = ctk.CTkFrame(scroll_log, fg_color="#0A0C14", corner_radius=8, border_color="#334155", border_width=1)
+                bx.pack(fill="x", pady=4)
+                top_r = ctk.CTkFrame(bx, fg_color="transparent")
+                top_r.pack(fill="x", padx=10, pady=(6, 2))
+                ctk.CTkLabel(top_r, text=f"⚠️ {s['frametime_ms']} ms Spike @ {s['timestamp_sec']}s", font=("Segoe UI", 11, "bold"), text_color=COLOR_CRIMSON).pack(side="left")
+                ctk.CTkLabel(top_r, text=s["severity"], font=("Consolas", 10, "bold"), text_color=COLOR_AMBER).pack(side="right")
+                
+                bot_r = ctk.CTkFrame(bx, fg_color="transparent")
+                bot_r.pack(fill="x", padx=10, pady=(0, 6))
+                ctk.CTkLabel(bot_r, text=f"Culprit: {s['culprit_process']}", font=("Segoe UI", 10), text_color=COLOR_CYAN).pack(side="left")
+
+    def _toggle_match_recorder_session(self):
+        self.sfx.play_click()
+        if self.latency_recorder.is_recording:
+            rep = self.latency_recorder.stop_session()
+            self.sfx.play_warp_boost()
+            self.voice.speak(f"Recording complete. Average framerate was {rep['avg_fps']} FPS.")
+            self.show_toast_msg(f"Match report compiled: {rep['avg_fps']} Avg FPS | {rep['stutter_count']} Stutters.")
+        else:
+            ok, msg = self.latency_recorder.start_session("Active Esports Match")
+            self.voice.speak("Antimagist Match Latency Recorder online.")
+            self.show_toast_msg(msg)
+        self.show_match_recorder_pane()
+
+    def _export_match_recorder_json(self):
+        self.sfx.play_click()
+        out_path = self.latency_recorder.export_session_json()
+        self.sfx.play_success()
+        messagebox.showinfo("Report Exported", f"Forensic telemetry JSON exported to:\n{out_path}")
+
+    # ========================================================================
+    # V9 APEX PREDATOR PILLAR 2: WIN11 RECALL & MODERN AI TELEMETRY STRIPPER
+    # ========================================================================
+    def show_recall_stripper_pane(self):
+        self._highlight_nav("recall")
+        self.clear_container()
+
+        pane = ctk.CTkFrame(self.container, fg_color="transparent")
+        pane.grid(row=0, column=0, sticky="nsew", padx=30, pady=20)
+        pane.grid_columnconfigure((0, 1), weight=1)
+        pane.grid_rowconfigure(1, weight=1)
+
+        head = ctk.CTkFrame(pane, fg_color="transparent")
+        head.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 15))
+        ctk.CTkLabel(head, text="Windows 11 Recall & Background AI Stripper", font=("Segoe UI", 24, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w")
+        ctk.CTkLabel(head, text="Eliminate Windows Recall snapshots, Copilot background hosts, Edge pre-launching, and diagnostic telemetry", font=("Segoe UI", 12), text_color=COLOR_TEXT_MUTED).pack(anchor="w")
+
+        # Left Card: AI Posture & Actions
+        left_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        left_card.grid(row=1, column=0, sticky="nsew", padx=(0, 10))
+
+        audit = self.recall_stripper.audit_ai_telemetry_posture()
+        ctk.CTkLabel(left_card, text="Windows 11 AI Telemetry Posture", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        f_stat = ctk.CTkFrame(left_card, fg_color="#0A0C14", corner_radius=10, border_color=COLOR_BORDER, border_width=1)
+        f_stat.pack(fill="x", padx=16, pady=(0, 14))
+
+        col_score = COLOR_EMERALD if audit["score_pct"] >= 80 else (COLOR_AMBER if audit["score_pct"] >= 40 else COLOR_CRIMSON)
+
+        pills = [
+            ("Optimized AI Policies", f"{audit['optimized_count']} / {audit['total_policies']} ({audit['score_pct']}%)", col_score),
+            ("Subsystem Posture", audit["status"], col_score),
+            ("AI Snapshot Engine", "STRIPPED" if audit["score_pct"] >= 80 else "ACTIVE_BACKGROUND_LOAD", col_score),
+            ("Edge Silent Pre-launch", "DISABLED" if audit["score_pct"] >= 80 else "PRE-LAUNCHING ACTIVE", COLOR_CYAN)
+        ]
+        for title, val, col in pills:
+            r = ctk.CTkFrame(f_stat, fg_color="transparent")
+            r.pack(fill="x", padx=10, pady=4)
+            ctk.CTkLabel(r, text=title, font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+            ctk.CTkLabel(r, text=val, font=("Consolas", 10, "bold"), text_color=col).pack(side="right")
+
+        ctk.CTkButton(
+            left_card, text="⚡ Strip All Windows 11 AI & Recall Bloat", font=("Segoe UI", 13, "bold"),
+            fg_color="#00FF9D", hover_color="#00D480", text_color="#000000",
+            height=44, corner_radius=10, command=self._apply_strip_ai_bloat
+        ).pack(fill="x", padx=16, pady=6)
+
+        ctk.CTkButton(
+            left_card, text="🔄 Restore Windows 11 AI Defaults", font=("Segoe UI", 11),
+            fg_color="#1E293B", hover_color="#334155", text_color=COLOR_TEXT_MUTED,
+            height=34, corner_radius=8, command=self._restore_ai_bloat_defaults
+        ).pack(fill="x", padx=16, pady=(4, 16))
+
+        # Right Card: Individual Policy Breakdown
+        right_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        right_card.grid(row=1, column=1, sticky="nsew", padx=(10, 0))
+
+        ctk.CTkLabel(right_card, text="Individual AI Policy Audit Matrix", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        scroll_pol = ctk.CTkScrollableFrame(right_card, fg_color="transparent")
+        scroll_pol.pack(fill="both", expand=True, padx=12, pady=(0, 12))
+
+        for pol in audit.get("policies", []):
+            bx = ctk.CTkFrame(scroll_pol, fg_color="#0A0C14", corner_radius=8, border_color="#334155", border_width=1)
+            bx.pack(fill="x", pady=4)
+            top_r = ctk.CTkFrame(bx, fg_color="transparent")
+            top_r.pack(fill="x", padx=10, pady=(6, 2))
+            col = COLOR_EMERALD if pol["is_optimized"] else COLOR_CRIMSON
+            ctk.CTkLabel(top_r, text=pol["name"], font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+            ctk.CTkLabel(top_r, text=pol["status_label"], font=("Consolas", 10, "bold"), text_color=col).pack(side="right")
+
+            ctk.CTkLabel(bx, text=pol["desc"], font=("Segoe UI", 10), text_color=COLOR_TEXT_MUTED, wraplength=420, justify="left").pack(anchor="w", padx=10, pady=(0, 6))
+
+    def _apply_strip_ai_bloat(self):
+        self.sfx.play_click()
+        ok, msg, applied = self.recall_stripper.strip_all_ai_bloat()
+        if ok:
+            self.sfx.play_success()
+            self.voice.speak("Windows 11 Recall and AI telemetry stripped.")
+            messagebox.showinfo("Stripping Complete", msg)
+        else:
+            self.sfx.play_breach_siren()
+            messagebox.showerror("Elevation Required", msg)
+        self.show_recall_stripper_pane()
+
+    def _restore_ai_bloat_defaults(self):
+        self.sfx.play_click()
+        ok, msg = self.recall_stripper.restore_defaults()
+        self.show_toast_msg(msg)
+        self.show_recall_stripper_pane()
+
+    # ========================================================================
+    # V9 APEX PREDATOR PILLAR 3: BUFFERBLOAT AUDITOR & GAMING DSCP QOS
+    # ========================================================================
+    def show_bufferbloat_pane(self):
+        self._highlight_nav("bufferbloat")
+        self.clear_container()
+
+        pane = ctk.CTkFrame(self.container, fg_color="transparent")
+        pane.grid(row=0, column=0, sticky="nsew", padx=30, pady=20)
+        pane.grid_columnconfigure((0, 1), weight=1)
+        pane.grid_rowconfigure(1, weight=1)
+
+        head = ctk.CTkFrame(pane, fg_color="transparent")
+        head.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 15))
+        ctk.CTkLabel(head, text="Network Bufferbloat Auditor & Windows QoS DSCP Engine", font=("Segoe UI", 24, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w")
+        ctk.CTkLabel(head, text="Measure loaded ping latency vs idle RTT and tag competitive gaming packets with DSCP 46 Expedited Forwarding", font=("Segoe UI", 12), text_color=COLOR_TEXT_MUTED).pack(anchor="w")
+
+        # Left Card: Bufferbloat Test
+        left_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        left_card.grid(row=1, column=0, sticky="nsew", padx=(0, 10))
+
+        audit = self.bufferbloat_auditor.audit_qos_posture()
+        test_res = audit.get("latest_test") or {}
+
+        ctk.CTkLabel(left_card, text="Bufferbloat Latency Diagnostic", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        f_stat = ctk.CTkFrame(left_card, fg_color="#0A0C14", corner_radius=10, border_color=COLOR_BORDER, border_width=1)
+        f_stat.pack(fill="x", padx=16, pady=(0, 14))
+
+        grade = test_res.get("grade", "A+")
+        col_grade = COLOR_EMERALD if grade in ["A+", "A"] else (COLOR_AMBER if grade == "B" else COLOR_CRIMSON)
+
+        pills = [
+            ("Bufferbloat Grade", grade, col_grade),
+            ("Unloaded Idle Ping", f"{test_res.get('unloaded_ping_ms', 0.0)} ms", COLOR_CYAN),
+            ("Loaded Traffic Ping", f"{test_res.get('loaded_ping_ms', 0.0)} ms", COLOR_TEXT_PRIMARY),
+            ("Buffer Latency Delta", f"+{test_res.get('bufferbloat_delta_ms', 0.0)} ms", col_grade),
+            ("Verdict", test_res.get("verdict", "OPTIMAL"), col_grade),
+            ("Last Benchmark", test_res.get("test_timestamp", "Ready"), COLOR_TEXT_MUTED)
+        ]
+        for title, val, col in pills:
+            r = ctk.CTkFrame(f_stat, fg_color="transparent")
+            r.pack(fill="x", padx=10, pady=4)
+            ctk.CTkLabel(r, text=title, font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+            ctk.CTkLabel(r, text=val, font=("Consolas", 10, "bold"), text_color=col).pack(side="right")
+
+        ctk.CTkButton(
+            left_card, text="🚀 Run Live Bufferbloat Stress Test", font=("Segoe UI", 13, "bold"),
+            fg_color="#00FF9D", hover_color="#00D480", text_color="#000000",
+            height=44, corner_radius=10, command=self._run_bufferbloat_test_ui
+        ).pack(fill="x", padx=16, pady=6)
+
+        # Right Card: Windows Policy QoS Engine
+        right_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        right_card.grid(row=1, column=1, sticky="nsew", padx=(10, 0))
+
+        ctk.CTkLabel(right_card, text="Windows Group Policy QoS (DSCP 46)", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        f_qos = ctk.CTkFrame(right_card, fg_color="#0A0C14", corner_radius=10, border_color=COLOR_BORDER, border_width=1)
+        f_qos.pack(fill="x", padx=16, pady=(0, 10))
+
+        r1 = ctk.CTkFrame(f_qos, fg_color="transparent")
+        r1.pack(fill="x", padx=10, pady=4)
+        ctk.CTkLabel(r1, text="Tagged Esports Titles", font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+        ctk.CTkLabel(r1, text=f"{audit['tagged_games_count']} / {audit['total_games']} Active", font=("Consolas", 10, "bold"), text_color=COLOR_EMERALD if audit['is_fully_optimized'] else COLOR_AMBER).pack(side="right")
+
+        r2 = ctk.CTkFrame(f_qos, fg_color="transparent")
+        r2.pack(fill="x", padx=10, pady=4)
+        ctk.CTkLabel(r2, text="TCPIP Non-NLA Bypass", font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+        ctk.CTkLabel(r2, text="ENABLED" if audit["nla_bypass_active"] else "DISABLED", font=("Consolas", 10, "bold"), text_color=COLOR_EMERALD if audit["nla_bypass_active"] else COLOR_TEXT_MUTED).pack(side="right")
+
+        ctk.CTkButton(
+            right_card, text="⚡ Tag All Competitive Games with DSCP 46 (EF)", font=("Segoe UI", 12, "bold"),
+            fg_color="#00F0FF", hover_color="#00B4D8", text_color="#000000",
+            height=38, corner_radius=8, command=self._apply_dscp_qos_ui
+        ).pack(fill="x", padx=16, pady=(4, 10))
+
+        scroll_qos = ctk.CTkScrollableFrame(right_card, fg_color="transparent")
+        scroll_qos.pack(fill="both", expand=True, padx=12, pady=(0, 12))
+
+        for p in audit.get("policies", []):
+            bx = ctk.CTkFrame(scroll_qos, fg_color="#0A0C14", corner_radius=8, border_color="#334155", border_width=1)
+            bx.pack(fill="x", pady=3)
+            r = ctk.CTkFrame(bx, fg_color="transparent")
+            r.pack(fill="x", padx=10, pady=5)
+            col = COLOR_EMERALD if p["is_active"] else COLOR_TEXT_MUTED
+            ctk.CTkLabel(r, text=f"🎮 {p['game']} ({p['exe']})", font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+            ctk.CTkLabel(r, text=p["status"], font=("Consolas", 10, "bold"), text_color=col).pack(side="right")
+
+    def _run_bufferbloat_test_ui(self):
+        self.sfx.play_click()
+        self.show_toast_msg("Running Bufferbloat stress test...")
+        def worker():
+            res = self.bufferbloat_auditor.measure_bufferbloat()
+            def update():
+                self.sfx.play_success()
+                self.voice.speak(f"Bufferbloat score: Grade {res['grade']}.")
+                self.show_bufferbloat_pane()
+            self.after(0, update)
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _apply_dscp_qos_ui(self):
+        self.sfx.play_click()
+        ok, msg = self.bufferbloat_auditor.apply_gaming_dscp_qos()
+        if ok:
+            self.sfx.play_success()
+            self.voice.speak("Windows Policy QoS applied. Gaming packets tagged.")
+            messagebox.showinfo("QoS Applied", msg)
+        else:
+            self.sfx.play_breach_siren()
+            messagebox.showerror("QoS Elevation Required", msg)
+        self.show_bufferbloat_pane()
+
+    # ========================================================================
+    # V9 APEX PREDATOR PILLAR 4: TOURNAMENT ANTI-TAMPER SYSTEM LOCK
+    # ========================================================================
+    def show_tournament_lock_pane(self):
+        self._highlight_nav("tourneylock")
+        self.clear_container()
+
+        pane = ctk.CTkFrame(self.container, fg_color="transparent")
+        pane.grid(row=0, column=0, sticky="nsew", padx=30, pady=20)
+        pane.grid_columnconfigure((0, 1), weight=1)
+        pane.grid_rowconfigure(1, weight=1)
+
+        head = ctk.CTkFrame(pane, fg_color="transparent")
+        head.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 15))
+        ctk.CTkLabel(head, text="Tournament Anti-Tamper System Lock & Ledger", font=("Segoe UI", 24, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w")
+        ctk.CTkLabel(head, text="Pre-match cryptographic baseline snapshotting, live background mutation auditing, and certified proof generation", font=("Segoe UI", 12), text_color=COLOR_TEXT_MUTED).pack(anchor="w")
+
+        # Left Card: System Lock State
+        left_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        left_card.grid(row=1, column=0, sticky="nsew", padx=(0, 10))
+
+        audit = self.tournament_lock.verify_tournament_integrity()
+        ctk.CTkLabel(left_card, text="Cryptographic System Lock", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        f_stat = ctk.CTkFrame(left_card, fg_color="#0A0C14", corner_radius=10, border_color=COLOR_BORDER, border_width=1)
+        f_stat.pack(fill="x", padx=16, pady=(0, 14))
+
+        is_lck = self.tournament_lock.is_locked
+        stat_txt = "🔒 LOCKED & MONITORED" if is_lck else "⚪ UNLOCKED (DESKTOP MODE)"
+        stat_col = COLOR_EMERALD if is_lck else COLOR_TEXT_MUTED
+
+        hash_display = f"{self.tournament_lock.baseline_hash[:16]}..." if self.tournament_lock.baseline_hash else "NOT_LOCKED"
+
+        pills = [
+            ("Tournament Lock State", stat_txt, stat_col),
+            ("Active Match Tag", self.tournament_lock.match_tag, COLOR_CYAN),
+            ("Integrity Hash (SHA-256)", hash_display, COLOR_CYAN),
+            ("Processes Monitored", str(audit.get("initial_processes", 0)), COLOR_TEXT_PRIMARY),
+            ("Elapsed Lock Time", f"{audit.get('lock_duration_sec', 0.0)}s", COLOR_TEXT_PRIMARY),
+            ("Integrity Verdict", audit.get("verdict", "NOT_MONITORED"), COLOR_EMERALD if audit.get("violations_count", 0) == 0 else COLOR_CRIMSON)
+        ]
+        for title, val, col in pills:
+            r = ctk.CTkFrame(f_stat, fg_color="transparent")
+            r.pack(fill="x", padx=10, pady=4)
+            ctk.CTkLabel(r, text=title, font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+            ctk.CTkLabel(r, text=val, font=("Consolas", 10, "bold"), text_color=col).pack(side="right")
+
+        btn_txt = "🔓 Release Lock & Issue Certificate" if is_lck else "🔒 Engage Tournament System Lock"
+        btn_col = COLOR_CRIMSON if is_lck else "#00FF9D"
+        btn_txt_col = "#FFFFFF" if is_lck else "#000000"
+
+        ctk.CTkButton(
+            left_card, text=btn_txt, font=("Segoe UI", 13, "bold"),
+            fg_color=btn_col, hover_color="#DC2626" if is_lck else "#00D480",
+            text_color=btn_txt_col, height=44, corner_radius=10,
+            command=self._toggle_tournament_lock_ui
+        ).pack(fill="x", padx=16, pady=6)
+
+        # Right Card: Tamper Audit & Certificate Log
+        right_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        right_card.grid(row=1, column=1, sticky="nsew", padx=(10, 0))
+
+        ctk.CTkLabel(right_card, text="Integrity Tripwire Incident Feed", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        scroll_tm = ctk.CTkScrollableFrame(right_card, fg_color="transparent")
+        scroll_tm.pack(fill="both", expand=True, padx=12, pady=(0, 12))
+
+        violations = audit.get("violations", [])
+        if not is_lck:
+            ctk.CTkLabel(
+                scroll_tm,
+                text="Tournament lock is inactive.\nEngage lock prior to an official tournament match to capture a cryptographic baseline.",
+                font=("Segoe UI", 11), text_color=COLOR_TEXT_MUTED, justify="center"
+            ).pack(pady=40)
+        elif not violations:
+            ctk.CTkLabel(
+                scroll_tm,
+                text="✅ 100% TOURNAMENT INTEGRITY VERIFIED\nNo suspicious processes, unapproved DLL injectors, or kernel services detected.",
+                font=("Segoe UI", 11, "bold"), text_color=COLOR_EMERALD, justify="center"
+            ).pack(pady=40)
+        else:
+            for v in violations:
+                bx = ctk.CTkFrame(scroll_tm, fg_color="#0A0C14", corner_radius=8, border_color="#EF4444", border_width=1)
+                bx.pack(fill="x", pady=4)
+                ctk.CTkLabel(bx, text=f"🚨 {v['type']}: {v['name']} (PID {v['pid']})", font=("Segoe UI", 11, "bold"), text_color=COLOR_CRIMSON).pack(anchor="w", padx=10, pady=(6, 2))
+                ctk.CTkLabel(bx, text=f"Time: {v['timestamp']} | Severity: {v['severity']}", font=("Segoe UI", 10), text_color=COLOR_AMBER).pack(anchor="w", padx=10, pady=(0, 6))
+
+    def _toggle_tournament_lock_ui(self):
+        self.sfx.play_click()
+        if self.tournament_lock.is_locked:
+            cert = self.tournament_lock.release_tournament_lock()
+            self.sfx.play_success()
+            self.voice.speak(f"Tournament lock released. Final certificate: {cert['certificate_id']}.")
+            messagebox.showinfo(
+                "Match Certified",
+                f"Tournament Session Completed!\n• Certificate: {cert['certificate_id']}\n• Verdict: {cert['final_verdict']}\n• Violations: {cert['total_violations']}"
+            )
+        else:
+            res = self.tournament_lock.engage_tournament_lock("Official Esports Match")
+            self.sfx.play_warp_boost()
+            self.voice.speak("Tournament lock engaged. Baseline snapshot recorded.")
+            self.show_toast_msg(f"System Locked! Monitored: {res['processes_monitored']} processes.")
+        self.show_tournament_lock_pane()
 
     # ========================================================================
     # TELEMETRY LOOP WITH REAL-TIME GPU & DISCORD STATUS POLLING

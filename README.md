@@ -1,7 +1,7 @@
-# 🛡️ Antimagist Enterprise Security V8 (Sovereign Edition)
+# 🛡️ Antimagist Enterprise Security V9 (Apex Predator Edition)
 
 [![CI](https://github.com/nassimlachemi659-ai/antimagist/actions/workflows/ci.yml/badge.svg)](https://github.com/nassimlachemi659-ai/antimagist/actions)
-[![Latest Release](https://img.shields.io/badge/Release-v8.0.0--Sovereign-orange?style=for-the-badge&logo=github)](https://github.com/nassimlachemi659-ai/antimagist/releases)
+[![Latest Release](https://img.shields.io/badge/Release-v9.0.0--ApexPredator-orange?style=for-the-badge&logo=github)](https://github.com/nassimlachemi659-ai/antimagist/releases)
 [![Platform: Windows 10 & 11](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-blue?style=for-the-badge&logo=windows)](https://microsoft.com/windows)
 [![Python: 3.12](https://img.shields.io/badge/Python-3.12-yellow?style=for-the-badge&logo=python)](https://python.org)
 [![Anti-Cheat: 100% Safe](https://img.shields.io/badge/Anti--Cheat-100%25%20Safe%20(Zero%20Hooks)-success?style=for-the-badge)](https://github.com)
@@ -13,9 +13,33 @@
 
 ---
 
-## ⚡ What's New in V8 Sovereign: The Kernel Hardware Frontier
+## ⚡ What's New in V9 Apex Predator: The Esports Championship Frontier
 
-Antimagist V8 Sovereign brings direct PCI interrupt architecture, shader cache lifecycle control, pre-match anti-cheat certification, and instant global hotkey switching across 33 unified navigation panes:
+Antimagist V9 Apex Predator introduces in-match telemetry recording with microsecond stutter culprit attribution, Windows 11 Recall & modern AI bloat stripping, network bufferbloat QoS packet tagging, and cryptographic tournament anti-tamper system locking across 37 unified navigation panes:
+
+### 1. 📼 Esports Match Latency Recorder & Session Replay (`latency_recorder.py`)
+- **Continuous In-Match Telemetry Buffer:** High-resolution circular telemetry recorder tracking frametimes, 1% lows, DPC jitter, and network ping during competitive matches.
+- **Micro-Stutter Culprit Attribution:** When a frametime spike (> 20ms) occurs during a gunfight, instantly captures the top CPU/disk process and logs the culprit (e.g. `SearchIndexer.exe (PID 4820, 18.2% CPU)`).
+- **Forensic Post-Match Export:** Exports comprehensive cryptographic match summaries to JSON on your desktop for team coaches and tournament reviews.
+
+### 2. 🪟 Windows 11 Recall, Copilot & Modern AI Stripper (`recall_stripper.py`)
+- **Eliminates 24H2/23H2 Background AI Bloat:** Disables Windows Recall screen snapshot indexing (`DisableAIDataAnalysis`, `TurnOffRecall`), Windows Copilot background workers (`TurnOffWindowsCopilot`), and Start Menu Bing querying.
+- **Edge Silent Pre-launch Purge:** Prevents Microsoft Edge from pre-launching hidden background processes (`AllowPrelaunch = 0`, `StartupBoostEnabled = 0`) that reserve standby RAM.
+- **100% Safe & Reversible:** Group Policy registry modifications with 1-click restore to defaults.
+
+### 3. 🚀 Bufferbloat Auditor & Windows QoS DSCP Engine (`bufferbloat_auditor.py`)
+- **Real-Time Bufferbloat Grading:** Measures baseline unloaded ping vs loaded ping under multi-stream network traffic to compute buffer latency delta ($+\Delta\text{ms}$) and assign grades (A+ to F).
+- **Windows Policy QoS DSCP 46 (EF):** Automatically configures Windows Group Policy QoS (`HKLM\SOFTWARE\Policies\Microsoft\Windows\QoS`) to tag game packets (CS2, Valorant, Apex Legends, Overwatch 2, Rainbow Six Siege) with DSCP 46 Expedited Forwarding.
+- **Non-NLA Domain Bypass:** Sets `Tcpip\QoS\Do not use NLA = 1` so gaming QoS tags apply across all local home network routers.
+
+### 4. 🔒 Tournament Anti-Tamper System Lock & Hardware Ledger (`tournament_lock.py`)
+- **Pre-Match Cryptographic Baseline:** Captures an anti-tamper baseline of running processes, loaded kernel drivers, timer resolution, and hardware topology hashed with SHA-256.
+- **Live Match Tripwire:** Continuously monitors for unapproved background processes, debugger hooks, unauthorized injectors, or newly spawned driver services during official tournament games.
+- **Certified Verification Proof:** Generates tamper-proof tournament certificates (`CERT-XXXX`) for LAN admins and esports referees.
+
+---
+
+## 🏆 The Core V8 Sovereign & V7 Titan Engines (Included in V9)
 
 ### 1. ⚡ MSI-X & Interrupt Request (IRQ) Core Director (`msi_interrupt_tuner.py`)
 - **Eliminates Line-Based INTx Collisions:** Scans PCI device tree for GPUs, NVMe controllers, and 2.5GbE network adapters.

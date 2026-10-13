@@ -13,7 +13,8 @@ a = Analysis(
         'esports_profiles', 'frametime_sentinel', 'discord_webhook',
         'dpc_diagnostician', 'process_isolator', 'auto_updater',
         'usb_polling_sentinel', 'memory_pacer', 'throttle_watchdog', 'lan_sync',
-        'msi_interrupt_tuner', 'shader_sentinel', 'anticheat_guard', 'profile_switcher'
+        'msi_interrupt_tuner', 'shader_sentinel', 'anticheat_guard', 'profile_switcher',
+        'latency_recorder', 'recall_stripper', 'bufferbloat_auditor', 'tournament_lock'
     ],
     hookspath=[],
     hooksconfig={},
