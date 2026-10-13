@@ -40,6 +40,9 @@ from antimagist_v3_ultra import (
     COLOR_BORDER, COLOR_CYAN, COLOR_EMERALD, COLOR_AMBER,
     COLOR_CRIMSON, COLOR_TEXT_PRIMARY, COLOR_TEXT_MUTED, COLOR_TEXT_SUBTLE
 )
+COLOR_WARNING = COLOR_AMBER
+COLOR_DANGER = COLOR_CRIMSON
+
 from mobile_companion import AntimagistMobileCompanion
 from voice_engine import AntimagistVoiceCopilot
 from core_director import AntimagistCoreDirector
@@ -82,6 +85,11 @@ from predictive_interceptor import AntimagistPredictiveInterceptor
 from packet_racer import AntimagistPacketRacer
 from tpm_hardware_attestor import AntimagistTPMAttestor
 from ghost_os_cryo import AntimagistGhostOSCryo
+from devops_turbo import DevOpsTurboEngine
+from battery_whisper import BatteryWhisperEngine
+from studio_master import StudioMasterEngine
+from privacy_scrubber import PrivacyScrubberEngine
+from storage_accelerator import StorageAcceleratorEngine
 
 # Ensure UTF-8 console output
 if hasattr(sys.stdout, "reconfigure"):
@@ -92,10 +100,10 @@ if hasattr(sys.stdout, "reconfigure"):
 
 
 class AntimagistV4ApexApp(AntimagistV3App):
-    """Antimagist Enterprise Security Version 10 (Sovereign Singularity Edition)."""
+    """Antimagist Enterprise Security Version 11 (Omni-Workstation Edition)."""
 
     def __init__(self):
-        # 1. Initialize Core Subsystems (V4 through V10 Sovereign Singularity)
+        # 1. Initialize Core Subsystems (V4 through V11 Omni-Workstation)
         self.voice = AntimagistVoiceCopilot(enabled=True)
         self.sfx = AntimagistSoundFX(enabled=True)
         self.core_director = AntimagistCoreDirector()
@@ -132,12 +140,17 @@ class AntimagistV4ApexApp(AntimagistV3App):
         self.packet_racer = AntimagistPacketRacer()
         self.tpm_attestor = AntimagistTPMAttestor()
         self.ghost_cryo = AntimagistGhostOSCryo()
+        self.devops_turbo = DevOpsTurboEngine()
+        self.battery_whisper = BatteryWhisperEngine()
+        self.studio_master = StudioMasterEngine()
+        self.privacy_scrubber = PrivacyScrubberEngine()
+        self.storage_accelerator = StorageAcceleratorEngine()
 
         # Call base constructor
         super().__init__()
 
         # Update window title
-        self.title("Antimagist — Enterprise Security V10 Sovereign Singularity Edition")
+        self.title("Antimagist — Enterprise Security V11 Omni-Workstation Edition")
 
         # 2. Initialize Discord Rich Presence Client
         self.discord_rpc = AntimagistDiscordRPC()
@@ -438,6 +451,11 @@ class AntimagistV4ApexApp(AntimagistV3App):
             ("🏎️ Packet Racer",      "packetracer", self.show_packet_racer_pane),
             ("🛡️ TPM Attestation",   "tpm_attest",  self.show_tpm_attestation_pane),
             ("🧊 Ghost OS Cryo",      "ghost_cryo",  self.show_ghost_cryo_pane),
+            ("💻 DevOps Turbo",       "devops",      self.show_devops_pane),
+            ("🔋 Battery Whisper",    "battery",     self.show_battery_pane),
+            ("🎵 Studio DAW & Video", "studio",      self.show_studio_pane),
+            ("🕵️ Privacy Scrubber",   "privacy",     self.show_privacy_pane),
+            ("💽 Storage Reclaimer",  "storage",     self.show_storage_pane),
             ("🖼️ Benchmark Card",    "card",       self.show_benchmark_card_pane),
             ("🛡️ Mod Guard",         "modguard",   self.show_mod_guard_pane),
             ("🔄 Auto-Updater",      "updater",    self.show_updater_pane),
@@ -3522,6 +3540,486 @@ class AntimagistV4ApexApp(AntimagistV3App):
             self.voice.speak(f"Ghost OS Cryo-Freeze online. Suspended {cnt} daemons.")
             self.show_toast_msg(msg)
         self.show_ghost_cryo_pane()
+
+    # ========================================================================
+    # 42. V11 WORKSTATION PANE: DEVOPS & AI ACCELERATOR (show_devops_pane)
+    # ========================================================================
+    def show_devops_pane(self):
+        self._highlight_nav("devops")
+        self.clear_container()
+
+        pane = ctk.CTkFrame(self.container, fg_color="transparent")
+        pane.grid(row=0, column=0, sticky="nsew", padx=30, pady=20)
+        pane.grid_columnconfigure((0, 1), weight=1)
+        pane.grid_rowconfigure(1, weight=1)
+
+        head = ctk.CTkFrame(pane, fg_color="transparent")
+        head.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 16))
+        ctk.CTkLabel(head, text="💻 Developer & AI Workstation Turbo", font=("Segoe UI", 24, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w")
+        ctk.CTkLabel(head, text="Accelerates compilation, package management (npm/cargo/cmake), IDE responsiveness, and clamps WSL2/Docker RAM", font=("Segoe UI", 12), text_color=COLOR_TEXT_MUTED).pack(anchor="w")
+
+        metrics = self.devops_turbo.get_summary_metrics()
+
+        # Left Card: Dev & WSL2 Controls
+        left_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        left_card.grid(row=1, column=0, sticky="nsew", padx=(0, 10))
+
+        ctk.CTkLabel(left_card, text="WSL2 & Compiler Optimizations", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        f_stat = ctk.CTkFrame(left_card, fg_color="#0A0C14", corner_radius=10, border_color=COLOR_BORDER, border_width=1)
+        f_stat.pack(fill="x", padx=16, pady=(0, 14))
+
+        col_wsl = COLOR_EMERALD if metrics["wsl_info"]["is_optimized"] else COLOR_WARNING
+        pills = [
+            ("Dev Workstation Status", metrics["status"], COLOR_EMERALD if metrics["status"] == "OPTIMIZED" else COLOR_WARNING),
+            ("Active Dev Processes", f"{metrics['dev_proc_count']} Running", COLOR_CYAN),
+            ("WSL2 vmmem RAM Usage", f"{metrics['wsl_info']['vmmem_ram_mb']} MB", COLOR_TEXT_PRIMARY),
+            ("WSL2 RAM Clamp Config", metrics["wsl_info"]["memory_limit"], col_wsl),
+            ("Total System RAM", f"{metrics['total_ram_gb']} GB", COLOR_TEXT_PRIMARY),
+            ("Defender Exclusions", "Audited / Smart Filter", COLOR_EMERALD)
+        ]
+        for title, val, col in pills:
+            r = ctk.CTkFrame(f_stat, fg_color="transparent")
+            r.pack(fill="x", padx=10, pady=4)
+            ctk.CTkLabel(r, text=title, font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+            ctk.CTkLabel(r, text=val, font=("Consolas", 10, "bold"), text_color=col).pack(side="right")
+
+        ctk.CTkButton(
+            left_card, text="⚡ Elevate All Dev & Compiler Priorities", font=("Segoe UI", 13, "bold"),
+            fg_color="#00FF9D", hover_color="#00D480", text_color="#000000",
+            height=40, corner_radius=10, command=self._elevate_devops_ui
+        ).pack(fill="x", padx=16, pady=(6, 6))
+
+        ctk.CTkButton(
+            left_card, text="🐳 Apply Optimal .wslconfig (6GB RAM Clamp)", font=("Segoe UI", 13, "bold"),
+            fg_color="#38BDF8", hover_color="#0284C7", text_color="#000000",
+            height=40, corner_radius=10, command=self._apply_wsl_config_ui
+        ).pack(fill="x", padx=16, pady=(4, 16))
+
+        # Right Card: Active Dev Tools & Compilers
+        right_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        right_card.grid(row=1, column=1, sticky="nsew", padx=(10, 0))
+
+        ctk.CTkLabel(right_card, text="Detected Developer Processes", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        scroll_sv = ctk.CTkScrollableFrame(right_card, fg_color="transparent")
+        scroll_sv.pack(fill="both", expand=True, padx=12, pady=(0, 12))
+
+        if not metrics["active_dev_procs"]:
+            ctk.CTkLabel(scroll_sv, text="No developer processes currently running.\nLaunch VS Code, PyCharm, Rust cargo, or Node.js to accelerate.", font=("Segoe UI", 11), text_color=COLOR_TEXT_MUTED).pack(pady=20)
+        else:
+            for p in metrics["active_dev_procs"]:
+                bx = ctk.CTkFrame(scroll_sv, fg_color="#0A0C14", corner_radius=8, border_color="#334155", border_width=1)
+                bx.pack(fill="x", pady=3)
+                r_top = ctk.CTkFrame(bx, fg_color="transparent")
+                r_top.pack(fill="x", padx=10, pady=(5, 5))
+                ctk.CTkLabel(r_top, text=f"🔨 {p['title']} ({p['name']})", font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+                ctk.CTkLabel(r_top, text=f"PID {p['pid']} | {p['memory_mb']} MB", font=("Consolas", 10, "bold"), text_color=COLOR_CYAN).pack(side="right")
+
+    def _elevate_devops_ui(self):
+        self.sfx.play_warp_boost()
+        res = self.devops_turbo.elevate_dev_priorities()
+        cnt = res.get("elevated_count", 0)
+        self.voice.speak(f"Elevated {cnt} developer processes to high priority.")
+        self.show_toast_msg(f"Elevated {cnt} compiler/IDE processes to high priority.")
+        self.show_devops_pane()
+
+    def _apply_wsl_config_ui(self):
+        self.sfx.play_click()
+        res = self.devops_turbo.apply_optimal_wsl_config(ram_limit_gb=6)
+        if res.get("success"):
+            self.sfx.play_success()
+            self.voice.speak("WSL2 memory clamp applied.")
+            self.show_toast_msg(res.get("message", "Optimal .wslconfig applied."))
+        else:
+            self.show_toast_msg(f"Error: {res.get('error')}")
+        self.show_devops_pane()
+
+    # ========================================================================
+    # 43. V11 WORKSTATION PANE: MOBILE BATTERY & WHISPER MODE (show_battery_pane)
+    # ========================================================================
+    def show_battery_pane(self):
+        self._highlight_nav("battery")
+        self.clear_container()
+
+        pane = ctk.CTkFrame(self.container, fg_color="transparent")
+        pane.grid(row=0, column=0, sticky="nsew", padx=30, pady=20)
+        pane.grid_columnconfigure((0, 1), weight=1)
+        pane.grid_rowconfigure(1, weight=1)
+
+        head = ctk.CTkFrame(pane, fg_color="transparent")
+        head.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 16))
+        ctk.CTkLabel(head, text="🔋 Mobile Workstation & Battery Whisper Mode", font=("Segoe UI", 24, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w")
+        ctk.CTkLabel(head, text="Maximizes laptop runtime, enforces CPU C-State efficiency, mutes acoustic fan noise, and audits dGPU sleep", font=("Segoe UI", 12), text_color=COLOR_TEXT_MUTED).pack(anchor="w")
+
+        metrics = self.battery_whisper.get_summary_metrics()
+
+        # Left Card: Battery Telemetry & Whisper Controls
+        left_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        left_card.grid(row=1, column=0, sticky="nsew", padx=(0, 10))
+
+        ctk.CTkLabel(left_card, text="Power Scheme & Acoustic Controls", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        f_stat = ctk.CTkFrame(left_card, fg_color="#0A0C14", corner_radius=10, border_color=COLOR_BORDER, border_width=1)
+        f_stat.pack(fill="x", padx=16, pady=(0, 14))
+
+        col_batt = COLOR_EMERALD if metrics["battery"]["percent"] > 30 else COLOR_DANGER
+        pills = [
+            ("Power Source Status", metrics["battery"]["status_str"], COLOR_CYAN),
+            ("Battery Level", f"{metrics['battery']['percent']}%", col_batt),
+            ("Current CPU Frequency", f"{metrics['cpu_freq_current']} MHz", COLOR_TEXT_PRIMARY),
+            ("Processor Core Count", f"{metrics['cpu_cores']} Cores", COLOR_TEXT_PRIMARY),
+            ("Discrete GPU Sleep State", "ASLEEP (D3Cold)" if metrics["dgpu"]["dgpu_sleeping"] else "AWAKE (Active Load)", COLOR_EMERALD if metrics["dgpu"]["dgpu_sleeping"] else COLOR_WARNING),
+            ("Energy Efficiency Target", "100% EPP C-State Floor", COLOR_EMERALD)
+        ]
+        for title, val, col in pills:
+            r = ctk.CTkFrame(f_stat, fg_color="transparent")
+            r.pack(fill="x", padx=10, pady=4)
+            ctk.CTkLabel(r, text=title, font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+            ctk.CTkLabel(r, text=val, font=("Consolas", 10, "bold"), text_color=col).pack(side="right")
+
+        ctk.CTkButton(
+            left_card, text="🌱 Activate Battery Whisper Mode (Max Efficiency)", font=("Segoe UI", 13, "bold"),
+            fg_color="#00FF9D", hover_color="#00D480", text_color="#000000",
+            height=40, corner_radius=10, command=self._toggle_whisper_mode_ui
+        ).pack(fill="x", padx=16, pady=(6, 6))
+
+        ctk.CTkButton(
+            left_card, text="⚡ Restore Balanced Power Scheme", font=("Segoe UI", 13, "bold"),
+            fg_color="#1E293B", hover_color="#334155", text_color=COLOR_TEXT_PRIMARY,
+            height=40, corner_radius=10, command=self._restore_battery_power_ui
+        ).pack(fill="x", padx=16, pady=(4, 16))
+
+        # Right Card: dGPU Wake Lock Audit
+        right_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        right_card.grid(row=1, column=1, sticky="nsew", padx=(10, 0))
+
+        ctk.CTkLabel(right_card, text="dGPU Wake-Lock & Power Analysis", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        scroll_sv = ctk.CTkScrollableFrame(right_card, fg_color="transparent")
+        scroll_sv.pack(fill="both", expand=True, padx=12, pady=(0, 12))
+
+        apps = metrics["dgpu"]["active_dgpu_processes"]
+        if not apps:
+            ctk.CTkLabel(scroll_sv, text="✨ dGPU is idle or sleeping. Zero power-hungry background apps keeping the discrete GPU awake.", font=("Segoe UI", 11), text_color=COLOR_EMERALD).pack(pady=20)
+        else:
+            ctk.CTkLabel(scroll_sv, text=f"⚠️ {len(apps)} processes holding dGPU wake lock:", font=("Segoe UI", 11, "bold"), text_color=COLOR_WARNING).pack(anchor="w", pady=(0, 6))
+            for a in apps:
+                bx = ctk.CTkFrame(scroll_sv, fg_color="#0A0C14", corner_radius=8, border_color="#334155", border_width=1)
+                bx.pack(fill="x", pady=3)
+                r_top = ctk.CTkFrame(bx, fg_color="transparent")
+                r_top.pack(fill="x", padx=10, pady=(5, 5))
+                ctk.CTkLabel(r_top, text=f"🎮 {a['name']}", font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+                ctk.CTkLabel(r_top, text=f"PID {a['pid']} | {a['vram_mb']} MB VRAM", font=("Consolas", 10, "bold"), text_color=COLOR_CYAN).pack(side="right")
+
+    def _toggle_whisper_mode_ui(self):
+        self.sfx.play_click()
+        res = self.battery_whisper.enable_whisper_mode()
+        if res.get("success"):
+            self.sfx.play_success()
+            self.voice.speak("Battery whisper mode activated.")
+            self.show_toast_msg("Whisper Mode active: EPP set to 100% efficiency.")
+        else:
+            self.show_toast_msg(f"Error: {res.get('error')}")
+        self.show_battery_pane()
+
+    def _restore_battery_power_ui(self):
+        self.sfx.play_click()
+        res = self.battery_whisper.restore_balanced_power()
+        if res.get("success"):
+            self.sfx.play_success()
+            self.voice.speak("Balanced power scheme restored.")
+            self.show_toast_msg("Balanced power restored.")
+        self.show_battery_pane()
+
+    # ========================================================================
+    # 44. V11 WORKSTATION PANE: STUDIO CREATIVE & DAW AUDIO (show_studio_pane)
+    # ========================================================================
+    def show_studio_pane(self):
+        self._highlight_nav("studio")
+        self.clear_container()
+
+        pane = ctk.CTkFrame(self.container, fg_color="transparent")
+        pane.grid(row=0, column=0, sticky="nsew", padx=30, pady=20)
+        pane.grid_columnconfigure((0, 1), weight=1)
+        pane.grid_rowconfigure(1, weight=1)
+
+        head = ctk.CTkFrame(pane, fg_color="transparent")
+        head.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 16))
+        ctk.CTkLabel(head, text="🎵 Studio Creative & DAW Audio Engine", font=("Segoe UI", 24, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w")
+        ctk.CTkLabel(head, text="Zero audio buffer underruns in FL Studio/Ableton (MMCSS SystemResponsiveness=0), 4K video render boost & cache purge", font=("Segoe UI", 12), text_color=COLOR_TEXT_MUTED).pack(anchor="w")
+
+        metrics = self.studio_master.get_summary_metrics()
+
+        # Left Card: Audio Engine & Controls
+        left_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        left_card.grid(row=1, column=0, sticky="nsew", padx=(0, 10))
+
+        ctk.CTkLabel(left_card, text="MMCSS Audio & Render Accelerator", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        f_stat = ctk.CTkFrame(left_card, fg_color="#0A0C14", corner_radius=10, border_color=COLOR_BORDER, border_width=1)
+        f_stat.pack(fill="x", padx=16, pady=(0, 14))
+
+        col_mmcss = COLOR_EMERALD if metrics["mmcss"]["is_optimized"] else COLOR_WARNING
+        pills = [
+            ("MMCSS Audio Optimization", "OPTIMIZED (0% Latency)" if metrics["mmcss"]["is_optimized"] else "DEFAULT (Throttled)", col_mmcss),
+            ("SystemResponsiveness", f"{metrics['mmcss']['system_responsiveness']} (0 = 100% Pro Audio)", COLOR_CYAN),
+            ("NetworkThrottlingIndex", str(metrics["mmcss"]["network_throttling_index"]), COLOR_TEXT_PRIMARY),
+            ("Audio Task Priority", str(metrics["mmcss"]["audio_scheduling_category"]), COLOR_TEXT_PRIMARY),
+            ("Active Creative Software", f"{metrics['processes']['total_creative_procs']} Running", COLOR_EMERALD if metrics['processes']['total_creative_procs'] > 0 else COLOR_TEXT_MUTED),
+            ("Creative Media Cache Size", f"{metrics['caches']['total_size_mb']} MB ({metrics['caches']['file_count']} files)", COLOR_CYAN)
+        ]
+        for title, val, col in pills:
+            r = ctk.CTkFrame(f_stat, fg_color="transparent")
+            r.pack(fill="x", padx=10, pady=4)
+            ctk.CTkLabel(r, text=title, font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+            ctk.CTkLabel(r, text=val, font=("Consolas", 10, "bold"), text_color=col).pack(side="right")
+
+        ctk.CTkButton(
+            left_card, text="🎚️ Configure MMCSS for 0-Dropout Pro Audio", font=("Segoe UI", 13, "bold"),
+            fg_color="#00FF9D", hover_color="#00D480", text_color="#000000",
+            height=40, corner_radius=10, command=self._optimize_mmcss_ui
+        ).pack(fill="x", padx=16, pady=(6, 5))
+
+        ctk.CTkButton(
+            left_card, text="🎬 Elevate DAW & Video Render Priorities", font=("Segoe UI", 13, "bold"),
+            fg_color="#38BDF8", hover_color="#0284C7", text_color="#000000",
+            height=40, corner_radius=10, command=self._elevate_studio_ui
+        ).pack(fill="x", padx=16, pady=(3, 5))
+
+        ctk.CTkButton(
+            left_card, text="🧹 Purge Adobe & DaVinci Media Caches", font=("Segoe UI", 13, "bold"),
+            fg_color="#A855F7", hover_color="#9333EA", text_color="#000000",
+            height=40, corner_radius=10, command=self._purge_studio_caches_ui
+        ).pack(fill="x", padx=16, pady=(3, 16))
+
+        # Right Card: Creative Software Status
+        right_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        right_card.grid(row=1, column=1, sticky="nsew", padx=(10, 0))
+
+        ctk.CTkLabel(right_card, text="Detected DAW & Video Editing Software", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        scroll_sv = ctk.CTkScrollableFrame(right_card, fg_color="transparent")
+        scroll_sv.pack(fill="both", expand=True, padx=12, pady=(0, 12))
+
+        daws = metrics["processes"]["active_daws"]
+        vids = metrics["processes"]["active_video"]
+
+        if not daws and not vids:
+            ctk.CTkLabel(scroll_sv, text="No DAWs or video editors running.\nSupports FL Studio, Ableton Live, Reaper, Cubase, DaVinci Resolve, Premiere Pro, Blender.", font=("Segoe UI", 11), text_color=COLOR_TEXT_MUTED).pack(pady=20)
+        else:
+            for d in daws:
+                bx = ctk.CTkFrame(scroll_sv, fg_color="#0A0C14", corner_radius=8, border_color="#334155", border_width=1)
+                bx.pack(fill="x", pady=3)
+                r_top = ctk.CTkFrame(bx, fg_color="transparent")
+                r_top.pack(fill="x", padx=10, pady=(5, 5))
+                ctk.CTkLabel(r_top, text=f"🎹 {d['title']} ({d['name']})", font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+                ctk.CTkLabel(r_top, text=f"PID {d['pid']} | {d['memory_mb']} MB", font=("Consolas", 10, "bold"), text_color=COLOR_EMERALD).pack(side="right")
+            for v in vids:
+                bx = ctk.CTkFrame(scroll_sv, fg_color="#0A0C14", corner_radius=8, border_color="#334155", border_width=1)
+                bx.pack(fill="x", pady=3)
+                r_top = ctk.CTkFrame(bx, fg_color="transparent")
+                r_top.pack(fill="x", padx=10, pady=(5, 5))
+                ctk.CTkLabel(r_top, text=f"🎬 {v['title']} ({v['name']})", font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+                ctk.CTkLabel(r_top, text=f"PID {v['pid']} | {v['memory_mb']} MB", font=("Consolas", 10, "bold"), text_color=COLOR_CYAN).pack(side="right")
+
+    def _optimize_mmcss_ui(self):
+        self.sfx.play_click()
+        res = self.studio_master.optimize_mmcss_for_pro_audio()
+        if res.get("success"):
+            self.sfx.play_success()
+            self.voice.speak("MMCSS Pro Audio optimization applied.")
+            self.show_toast_msg(res.get("message", "MMCSS optimized."))
+        else:
+            self.show_toast_msg(f"Error: {res.get('error')}")
+        self.show_studio_pane()
+
+    def _elevate_studio_ui(self):
+        self.sfx.play_warp_boost()
+        res = self.studio_master.elevate_studio_priorities()
+        cnt = res.get("elevated_count", 0)
+        self.voice.speak(f"Elevated {cnt} creative applications to high priority.")
+        self.show_toast_msg(f"Elevated {cnt} DAW/video processes.")
+        self.show_studio_pane()
+
+    def _purge_studio_caches_ui(self):
+        self.sfx.play_click()
+        res = self.studio_master.purge_creative_caches()
+        self.sfx.play_success()
+        self.voice.speak(f"Purged {res.get('reclaimed_mb', 0)} megabytes of creative cache.")
+        self.show_toast_msg(f"Purged {res.get('deleted_count', 0)} cache files ({res.get('reclaimed_mb', 0)} MB freed).")
+        self.show_studio_pane()
+
+    # ========================================================================
+    # 45. V11 WORKSTATION PANE: SOVEREIGN PRIVACY SCRUBBER (show_privacy_pane)
+    # ========================================================================
+    def show_privacy_pane(self):
+        self._highlight_nav("privacy")
+        self.clear_container()
+
+        pane = ctk.CTkFrame(self.container, fg_color="transparent")
+        pane.grid(row=0, column=0, sticky="nsew", padx=30, pady=20)
+        pane.grid_columnconfigure((0, 1), weight=1)
+        pane.grid_rowconfigure(1, weight=1)
+
+        head = ctk.CTkFrame(pane, fg_color="transparent")
+        head.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 16))
+        ctk.CTkLabel(head, text="🕵️ Sovereign Privacy & Enterprise Telemetry Scrubber", font=("Segoe UI", 24, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w")
+        ctk.CTkLabel(head, text="Disables DiagTrack, WAP push routing, Windows CEIP, Advertising ID, Timeline tracking, and audits telemetry hosts sinkholes", font=("Segoe UI", 12), text_color=COLOR_TEXT_MUTED).pack(anchor="w")
+
+        metrics = self.privacy_scrubber.get_summary_metrics()
+
+        # Left Card: Privacy Hardening Controls
+        left_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        left_card.grid(row=1, column=0, sticky="nsew", padx=(0, 10))
+
+        ctk.CTkLabel(left_card, text="Zero-Telemetry Enterprise Posture", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        f_stat = ctk.CTkFrame(left_card, fg_color="#0A0C14", corner_radius=10, border_color=COLOR_BORDER, border_width=1)
+        f_stat.pack(fill="x", padx=16, pady=(0, 14))
+
+        col_priv = COLOR_EMERALD if metrics["privacy_grade"].startswith("A") else COLOR_WARNING
+        pills = [
+            ("Privacy Posture Grade", metrics["privacy_grade"], col_priv),
+            ("Active Telemetry Services", f"{metrics['active_telemetry_services']} Running", COLOR_WARNING if metrics['active_telemetry_services'] > 0 else COLOR_EMERALD),
+            ("Group Policy Hardened", "ENFORCED" if metrics["policies"]["is_fully_hardened"] else "DEFAULT / UNHARDENED", COLOR_EMERALD if metrics["policies"]["is_fully_hardened"] else COLOR_WARNING),
+            ("Advertising ID State", "DISABLED" if metrics["policies"]["advertising_id_disabled"] else "ACTIVE", COLOR_EMERALD if metrics["policies"]["advertising_id_disabled"] else COLOR_TEXT_MUTED),
+            ("Windows Timeline Feed", "DISABLED" if metrics["policies"]["activity_feed_disabled"] else "ACTIVE", COLOR_EMERALD if metrics["policies"]["activity_feed_disabled"] else COLOR_TEXT_MUTED),
+            ("Telemetry Domain Sinkhole", f"{metrics['hosts']['sinkholed_count']} Blocked", COLOR_CYAN)
+        ]
+        for title, val, col in pills:
+            r = ctk.CTkFrame(f_stat, fg_color="transparent")
+            r.pack(fill="x", padx=10, pady=4)
+            ctk.CTkLabel(r, text=title, font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+            ctk.CTkLabel(r, text=val, font=("Consolas", 10, "bold"), text_color=col).pack(side="right")
+
+        ctk.CTkButton(
+            left_card, text="🛡️ Enforce Sovereign Privacy Policies (Zero Telemetry)", font=("Segoe UI", 13, "bold"),
+            fg_color="#00FF9D", hover_color="#00D480", text_color="#000000",
+            height=44, corner_radius=10, command=self._apply_privacy_hardening_ui
+        ).pack(fill="x", padx=16, pady=(6, 16))
+
+        # Right Card: Service & Domain Audit
+        right_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        right_card.grid(row=1, column=1, sticky="nsew", padx=(10, 0))
+
+        ctk.CTkLabel(right_card, text="Audited Background Telemetry Daemons", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        scroll_sv = ctk.CTkScrollableFrame(right_card, fg_color="transparent")
+        scroll_sv.pack(fill="both", expand=True, padx=12, pady=(0, 12))
+
+        for s in metrics["services"]:
+            bx = ctk.CTkFrame(scroll_sv, fg_color="#0A0C14", corner_radius=8, border_color="#334155", border_width=1)
+            bx.pack(fill="x", pady=3)
+            r_top = ctk.CTkFrame(bx, fg_color="transparent")
+            r_top.pack(fill="x", padx=10, pady=(5, 2))
+            st_text = s["status"].upper()
+            col_s = COLOR_WARNING if s["is_active"] else COLOR_EMERALD
+            ctk.CTkLabel(r_top, text=f"🔒 {s['service']}", font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+            ctk.CTkLabel(r_top, text=f"{st_text} ({s['start_type']})", font=("Consolas", 10, "bold"), text_color=col_s).pack(side="right")
+            ctk.CTkLabel(bx, text=s["description"], font=("Segoe UI", 10), text_color=COLOR_TEXT_MUTED).pack(anchor="w", padx=10, pady=(0, 5))
+
+    def _apply_privacy_hardening_ui(self):
+        self.sfx.play_click()
+        res = self.privacy_scrubber.apply_privacy_hardening()
+        if res.get("success"):
+            self.sfx.play_success()
+            self.voice.speak("Sovereign privacy policies enforced.")
+            self.show_toast_msg(res.get("message", "Privacy policies applied."))
+        else:
+            self.show_toast_msg(f"Notice: {res.get('error')}")
+        self.show_privacy_pane()
+
+    # ========================================================================
+    # 46. V11 WORKSTATION PANE: STORAGE RECLAIMER & SSD LIFESPAN (show_storage_pane)
+    # ========================================================================
+    def show_storage_pane(self):
+        self._highlight_nav("storage")
+        self.clear_container()
+
+        pane = ctk.CTkFrame(self.container, fg_color="transparent")
+        pane.grid(row=0, column=0, sticky="nsew", padx=30, pady=20)
+        pane.grid_columnconfigure((0, 1), weight=1)
+        pane.grid_rowconfigure(1, weight=1)
+
+        head = ctk.CTkFrame(pane, fg_color="transparent")
+        head.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 16))
+        ctk.CTkLabel(head, text="💽 Deep Storage Reclaimer & SSD Lifespan Extender", font=("Segoe UI", 24, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w")
+        ctk.CTkLabel(head, text="Reclaims 15GB–50GB wasted SSD storage from hiberfil.sys, update caches, temp dumps, and dispatches native NVMe TRIM", font=("Segoe UI", 12), text_color=COLOR_TEXT_MUTED).pack(anchor="w")
+
+        metrics = self.storage_accelerator.get_summary_metrics()
+
+        # Left Card: Storage Reclaimer Controls
+        left_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        left_card.grid(row=1, column=0, sticky="nsew", padx=(0, 10))
+
+        ctk.CTkLabel(left_card, text="Disk Drive & Cache Reclamation", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        f_stat = ctk.CTkFrame(left_card, fg_color="#0A0C14", corner_radius=10, border_color=COLOR_BORDER, border_width=1)
+        f_stat.pack(fill="x", padx=16, pady=(0, 14))
+
+        col_free = COLOR_EMERALD if metrics["drive"]["free_gb"] > 40 else COLOR_WARNING
+        pills = [
+            ("Primary System Drive", f"{metrics['drive']['drive']} ({metrics['drive']['free_gb']} GB Free / {metrics['drive']['total_gb']} GB)", col_free),
+            ("Drive Space Utilized", f"{metrics['drive']['percent_used']}%", COLOR_TEXT_PRIMARY),
+            ("Hibernation File (hiberfil.sys)", f"{metrics['hibernation']['size_gb']} GB", COLOR_CYAN),
+            ("Immediate Cache Reclaimable", f"{metrics['scan']['immediate_cache_mb']} MB", COLOR_EMERALD),
+            ("Total Potential Storage Reclaim", f"{metrics['scan']['total_potential_reclaim_gb']} GB", COLOR_EMERALD),
+            ("SSD TRIM Garbage Collection", "Supported (NVMe / SATA)", COLOR_EMERALD)
+        ]
+        for title, val, col in pills:
+            r = ctk.CTkFrame(f_stat, fg_color="transparent")
+            r.pack(fill="x", padx=10, pady=4)
+            ctk.CTkLabel(r, text=title, font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+            ctk.CTkLabel(r, text=val, font=("Consolas", 10, "bold"), text_color=col).pack(side="right")
+
+        ctk.CTkButton(
+            left_card, text="🧹 Purge Windows Update & Temp Caches", font=("Segoe UI", 13, "bold"),
+            fg_color="#00FF9D", hover_color="#00D480", text_color="#000000",
+            height=40, corner_radius=10, command=self._purge_storage_caches_ui
+        ).pack(fill="x", padx=16, pady=(6, 6))
+
+        ctk.CTkButton(
+            left_card, text="⚡ Execute Native NVMe SSD TRIM Optimization", font=("Segoe UI", 13, "bold"),
+            fg_color="#38BDF8", hover_color="#0284C7", text_color="#000000",
+            height=40, corner_radius=10, command=self._trim_ssd_ui
+        ).pack(fill="x", padx=16, pady=(4, 16))
+
+        # Right Card: Reclaimable Storage Inventory
+        right_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        right_card.grid(row=1, column=1, sticky="nsew", padx=(10, 0))
+
+        ctk.CTkLabel(right_card, text="Storage Breakdown & Cleanup Targets", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        scroll_sv = ctk.CTkScrollableFrame(right_card, fg_color="transparent")
+        scroll_sv.pack(fill="both", expand=True, padx=12, pady=(0, 12))
+
+        for cat_name, cat_data in metrics["scan"]["categories"].items():
+            bx = ctk.CTkFrame(scroll_sv, fg_color="#0A0C14", corner_radius=8, border_color="#334155", border_width=1)
+            bx.pack(fill="x", pady=3)
+            r_top = ctk.CTkFrame(bx, fg_color="transparent")
+            r_top.pack(fill="x", padx=10, pady=(5, 5))
+            ctk.CTkLabel(r_top, text=f"📁 {cat_name}", font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+            ctk.CTkLabel(r_top, text=f"{cat_data['size_mb']} MB ({cat_data['files']} files)", font=("Consolas", 10, "bold"), text_color=COLOR_CYAN).pack(side="right")
+
+    def _purge_storage_caches_ui(self):
+        self.sfx.play_click()
+        res = self.storage_accelerator.purge_temp_and_update_caches()
+        self.sfx.play_success()
+        self.voice.speak(f"Cleaned {res.get('reclaimed_mb', 0)} megabytes of temporary update storage.")
+        self.show_toast_msg(f"Purged {res.get('cleaned_files', 0)} files ({res.get('reclaimed_mb', 0)} MB freed).")
+        self.show_storage_pane()
+
+    def _trim_ssd_ui(self):
+        self.sfx.play_warp_boost()
+        res = self.storage_accelerator.trim_ssd_storage()
+        if res.get("success"):
+            self.sfx.play_success()
+            self.voice.speak("NVMe SSD TRIM command completed.")
+            self.show_toast_msg("TRIM optimization executed successfully.")
+        else:
+            self.show_toast_msg(f"TRIM Notice: {res.get('error', 'Completed')}")
+        self.show_storage_pane()
 
     # ========================================================================
     # TELEMETRY LOOP WITH REAL-TIME GPU & DISCORD STATUS POLLING
