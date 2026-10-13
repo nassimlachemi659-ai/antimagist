@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-12 19:11:56",
+  "timestamp": "2026-10-12 19:48:14",
   "version": "Antimagist Enterprise Security V2.0",
   "total_tests": 22,
   "passed": 22,
@@ -124,13 +124,13 @@
       "phase": 9,
       "test": "Zero-Trust Process Throttler & Sandboxing",
       "status": "PASS",
-      "detail": "Successfully throttled 'python.exe' (PID: 18872) -> CPU: below_normal, I/O: low, Affinity: [0]."
+      "detail": "Successfully throttled 'python.exe' (PID: 6968) -> CPU: below_normal, I/O: low, Affinity: [0]."
     },
     {
       "phase": 10,
       "test": "Local Event Interceptor Integrity Sweep",
       "status": "PASS",
-      "detail": "Status: ANOMALIES_INTERCEPTED"
+      "detail": "Status: HEALTHY_SECURE"
     },
     {
       "phase": 11,

@@ -196,6 +196,61 @@ class TestAntimagistUltraSmart(unittest.TestCase):
         self.assertGreater(os.path.getsize(zip_out), 1000)
         print(f"  [+] Test 8: Installer Spec & Portable Package ({os.path.getsize(zip_out)} bytes) verified.")
 
+    def test_09_memory_pacer_bloat_detection_and_suspend(self):
+        """Verifies Memory Pacer contextual bloat detection, prompt formation, and safe thread suspension."""
+        from memory_pacer import AntimagistMemoryPacer
+        pacer = AntimagistMemoryPacer()
+        bloat_audit = pacer.detect_contextual_bloat_processes()
+        self.assertTrue(bloat_audit["has_actionable_bloat"])
+        self.assertIn("top_candidate", bloat_audit)
+        self.assertIn("contextual_prompt", bloat_audit)
+        self.assertIn("recover", bloat_audit["contextual_prompt"].lower())
+
+        # Suspend
+        cand_name = bloat_audit["top_candidate"]["name"]
+        ok_susp, msg_susp, rec_mb = pacer.suspend_bloat_process(cand_name)
+        self.assertTrue(ok_susp)
+        self.assertGreater(rec_mb, 0.0)
+
+        # Resume
+        ok_res, msg_res = pacer.resume_bloat_process(cand_name)
+        self.assertTrue(ok_res)
+        print(f"  [+] Test 9: Contextual Bloat Detection & Thread Suspend ({cand_name} ~{rec_mb}MB) verified.")
+
+    def test_10_dpc_diagnostician_culprits_and_mitigation(self):
+        """Verifies DPC Diagnostician culprit driver isolation and 1-click mitigation actions."""
+        from dpc_diagnostician import AntimagistDPCDiagnostician
+        diag = AntimagistDPCDiagnostician()
+        rep = diag.audit_system_latency()
+        self.assertIn("culprit_analysis", rep)
+        culprits = rep["culprit_analysis"]
+        self.assertGreater(len(culprits), 0)
+
+        # Test mitigation execution
+        c = culprits[0]
+        self.assertIn("driver_file", c)
+        self.assertIn("mitigation_title", c)
+        ok_mit, msg_mit = diag.apply_driver_mitigation(c["driver_file"])
+        self.assertTrue(ok_mit)
+        self.assertTrue(any(k in msg_mit.lower() for k in ["tuned", "locked", "prioritized", "applied"]))
+        print(f"  [+] Test 10: DPC Driver Culprits & 1-Click Mitigation ({c['driver_file']}) verified.")
+
+    def test_11_preflight_checklist_sandboxing(self):
+        """Verifies Pre-Flight Checklist 5-point verification matrix and blocked intrusions."""
+        from antimagist_core_v2 import AntimagistPreFlightChecklist
+        # Safe operation
+        safe_chk = AntimagistPreFlightChecklist.evaluate_preflight("flush_ram", "standby_cache")
+        self.assertTrue(safe_chk["approved"])
+        self.assertEqual(len(safe_chk["checkpoints"]), 5)
+        for cp in safe_chk["checkpoints"]:
+            self.assertTrue(cp["passed"])
+
+        # Dangerous collision targeting core OS file
+        unsafe_chk = AntimagistPreFlightChecklist.evaluate_preflight("modify_driver", "c:\\windows\\system32\\hal.dll")
+        self.assertFalse(unsafe_chk["approved"])
+        self.assertEqual(unsafe_chk["status"], "PREFLIGHT_BLOCKED")
+        print("  [+] Test 11: 5-Point Pre-Flight Sandboxing & OS Kernel Guard verified.")
+
 
 if __name__ == "__main__":
     unittest.main()

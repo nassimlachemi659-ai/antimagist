@@ -80,3 +80,110 @@ NoneType: None
 NoneType: None
 
 --------------------------------------------------------------------------------
+[2026-10-12T19:48:08] [SECURITY_EVENT] Type: THROTTLE_BLOCKED | Action: throttle_process | Details: {"pid": 4, "reason": "ZERO-TRUST REJECT: Process ID 4 is a protected kernel system entity."}
+[2026-10-12T19:48:08] [SECURITY_EVENT] Type: PROCESS_THROTTLED | Action: throttle_process | Details: {"pid": 5736, "name": "python.exe", "applied_priority": "below_normal", "applied_io": "low", "applied_affinity": [0], "memory_reclaimed_mb": 120.1, "status": "THROTTLED_AND_SANDBOXED"}
+[2026-10-12T19:48:08] [SECURITY_EVENT] Type: PROCESS_THROTTLED | Action: throttle_process | Details: {"pid": 5736, "name": "python.exe", "applied_priority": "normal", "applied_io": "normal", "applied_affinity": null, "memory_reclaimed_mb": 2.6, "status": "THROTTLED_AND_SANDBOXED"}
+[2026-10-12T19:48:08] [SECURITY_EVENT] Type: PROCESS_THROTTLED | Action: throttle_process | Details: {"pid": 5736, "name": "python.exe", "applied_priority": "normal", "applied_io": "low", "applied_affinity": null, "memory_reclaimed_mb": 74.3, "status": "THROTTLED_AND_SANDBOXED"}
+[2026-10-12T19:48:08] [SECURITY_EVENT] Type: INTEGRITY_SWEEP_COMPLETED | Action: system_integrity_sweep | Details: {"timestamp": "2026-10-12T19:48:08", "status": "HEALTHY_SECURE", "registry_anomalies_count": 0, "dll_injections_count": 0, "registry_details": [], "dll_details": []}
+[2026-10-12T19:48:08] [SECURITY_EVENT] Type: ARGUMENT_WHITELIST_BREACH | Action: throttle_process | Details: {"forbidden": ["unauthorized_injected_param"]}
+[2026-10-12T19:48:08] [SECURITY_EVENT] Type: PROCESS_THROTTLED | Action: throttle_process | Details: {"pid": 5736, "name": "python.exe", "applied_priority": "normal", "applied_io": "normal", "applied_affinity": null, "memory_reclaimed_mb": 16.2, "status": "THROTTLED_AND_SANDBOXED"}
+[2026-10-12T19:48:09] [SECURITY_EVENT] Type: ARGUMENT_WHITELIST_BREACH | Action: flush_ram | Details: {"forbidden": ["unauthorized_flag"]}
+[2026-10-12T19:48:09] [SECURITY_EVENT] Type: UNAUTHORIZED_ACTION | Action: drop_table_users | Details: {"args": {}}
+[2026-10-12T19:48:09] [SECURITY_EVENT] Type: INJECTION_ATTEMPT | Action: sweep_junk | Details: {"char": ";", "param": "target_scope"}
+[2026-10-12T19:48:09] [SECURITY_EVENT] Type: INJECTION_ATTEMPT | Action: sweep_junk | Details: {"char": "&", "param": "target_scope"}
+[2026-10-12T19:48:09] [SECURITY_EVENT] Type: INJECTION_ATTEMPT | Action: sweep_junk | Details: {"char": "|", "param": "target_scope"}
+[2026-10-12T19:48:09] [SECURITY_EVENT] Type: INJECTION_ATTEMPT | Action: sweep_junk | Details: {"char": "`", "param": "target_scope"}
+[2026-10-12T19:48:09] [SECURITY_EVENT] Type: OS_PROTECTION_BLOCKED | Action: quarantine | Details: {"path": "C:\\Windows\\System32\\ntoskrnl.exe"}
+[2026-10-12T19:48:09] [SECURITY_EVENT] Type: OS_PROTECTION_BLOCKED | Action: quarantine | Details: {"path": "C:\\Windows\\explorer.exe"}
+[2026-10-12T19:48:09] [SECURITY_EVENT] Type: OS_PROTECTION_BLOCKED | Action: quarantine | Details: {"path": "C:\\Program Files\\Windows Defender\\MsMpEng.exe"}
+
+[2026-10-12T19:48:09] [CRASH_INTERCEPT] Module: DriverBridgeTest | Type: ConnectionResetError
+  Message: Synthetic Win32 Driver IO Fault for Sanity Test
+  Telemetry: RAM=31.3% | CPU=21.5%
+  Metadata: {"fault_subsystem": "KernelDriverBridge", "retry_count": 3}
+  Traceback:
+NoneType: None
+
+--------------------------------------------------------------------------------
+[2026-10-12T19:48:14] [SECURITY_EVENT] Type: ARGUMENT_WHITELIST_BREACH | Action: flush_ram | Details: {"forbidden": ["unwhitelisted_key"]}
+[2026-10-12T19:48:14] [SECURITY_EVENT] Type: INJECTION_ATTEMPT | Action: sweep_junk | Details: {"char": ";", "param": "target_scope"}
+[2026-10-12T19:48:14] [SECURITY_EVENT] Type: UNAUTHORIZED_ACTION | Action: unauthorized_shell_trigger | Details: {"args": {}}
+[2026-10-12T19:48:14] [SECURITY_EVENT] Type: OS_PROTECTION_BLOCKED | Action: quarantine | Details: {"path": "C:\\WINDOWS\\System32\\cmd.exe"}
+
+[2026-10-12T19:48:14] [CRASH_INTERCEPT] Module: SanityAuditPhase7 | Type: RuntimeError
+  Message: Simulated Driver IO Exception for Sanity Verification
+  Telemetry: RAM=31.2% | CPU=15.8%
+  Metadata: {"unit_test": true}
+  Traceback:
+NoneType: None
+
+--------------------------------------------------------------------------------
+[2026-10-12T19:48:14] [SECURITY_EVENT] Type: THROTTLE_BLOCKED | Action: throttle_process | Details: {"pid": 4, "reason": "ZERO-TRUST REJECT: Process ID 4 is a protected kernel system entity."}
+[2026-10-12T19:48:14] [SECURITY_EVENT] Type: PROCESS_THROTTLED | Action: throttle_process | Details: {"pid": 6968, "name": "python.exe", "applied_priority": "below_normal", "applied_io": "low", "applied_affinity": [0], "memory_reclaimed_mb": 37.1, "status": "THROTTLED_AND_SANDBOXED"}
+[2026-10-12T19:48:14] [SECURITY_EVENT] Type: PROCESS_THROTTLED | Action: throttle_process | Details: {"pid": 6968, "name": "python.exe", "applied_priority": "normal", "applied_io": "normal", "applied_affinity": null, "memory_reclaimed_mb": 2.5, "status": "THROTTLED_AND_SANDBOXED"}
+[2026-10-12T19:48:14] [SECURITY_EVENT] Type: PROCESS_THROTTLED | Action: throttle_process | Details: {"pid": 6968, "name": "python.exe", "applied_priority": "normal", "applied_io": "low", "applied_affinity": null, "memory_reclaimed_mb": 3.5, "status": "THROTTLED_AND_SANDBOXED"}
+[2026-10-12T19:48:14] [SECURITY_EVENT] Type: INTEGRITY_SWEEP_COMPLETED | Action: system_integrity_sweep | Details: {"timestamp": "2026-10-12T19:48:14", "status": "HEALTHY_SECURE", "registry_anomalies_count": 0, "dll_injections_count": 0, "registry_details": [], "dll_details": []}
+[2026-10-13T13:37:16] [SECURITY_EVENT] Type: UNAUTHORIZED_ACTION | Action: flush_ram; rm -rf / | Details: {"args": {}}
+[2026-10-13T13:37:16] [SECURITY_EVENT] Type: UNAUTHORIZED_REMOTE_ACTION | Action: flush_ram; rm -rf / | Details: {"reason": "VALIDATION_REJECT: Unauthorized action trigger 'flush_ram; rm -rf /'. Not in argument whitelist."}
+[2026-10-13T13:37:29] [SECURITY_EVENT] Type: THROTTLE_BLOCKED | Action: throttle_process | Details: {"pid": 4, "reason": "ZERO-TRUST REJECT: Process ID 4 is a protected kernel system entity."}
+[2026-10-13T13:37:29] [SECURITY_EVENT] Type: PROCESS_THROTTLED | Action: throttle_process | Details: {"pid": 9404, "name": "python.exe", "applied_priority": "below_normal", "applied_io": "low", "applied_affinity": [0], "memory_reclaimed_mb": 119.6, "status": "THROTTLED_AND_SANDBOXED"}
+[2026-10-13T13:37:29] [SECURITY_EVENT] Type: PROCESS_THROTTLED | Action: throttle_process | Details: {"pid": 9404, "name": "python.exe", "applied_priority": "normal", "applied_io": "normal", "applied_affinity": null, "memory_reclaimed_mb": 2.8, "status": "THROTTLED_AND_SANDBOXED"}
+[2026-10-13T13:37:29] [SECURITY_EVENT] Type: PROCESS_THROTTLED | Action: throttle_process | Details: {"pid": 9404, "name": "python.exe", "applied_priority": "normal", "applied_io": "low", "applied_affinity": null, "memory_reclaimed_mb": 30.7, "status": "THROTTLED_AND_SANDBOXED"}
+[2026-10-13T13:37:29] [SECURITY_EVENT] Type: INTEGRITY_SWEEP_COMPLETED | Action: system_integrity_sweep | Details: {"timestamp": "2026-10-13T13:37:29", "status": "HEALTHY_SECURE", "registry_anomalies_count": 0, "dll_injections_count": 0, "registry_details": [], "dll_details": []}
+[2026-10-13T13:37:29] [SECURITY_EVENT] Type: ARGUMENT_WHITELIST_BREACH | Action: throttle_process | Details: {"forbidden": ["unauthorized_injected_param"]}
+[2026-10-13T13:37:29] [SECURITY_EVENT] Type: PROCESS_THROTTLED | Action: throttle_process | Details: {"pid": 9404, "name": "python.exe", "applied_priority": "normal", "applied_io": "normal", "applied_affinity": null, "memory_reclaimed_mb": 18.2, "status": "THROTTLED_AND_SANDBOXED"}
+[2026-10-13T13:37:30] [SECURITY_EVENT] Type: ARGUMENT_WHITELIST_BREACH | Action: flush_ram | Details: {"forbidden": ["unauthorized_flag"]}
+[2026-10-13T13:37:30] [SECURITY_EVENT] Type: UNAUTHORIZED_ACTION | Action: drop_table_users | Details: {"args": {}}
+[2026-10-13T13:37:30] [SECURITY_EVENT] Type: INJECTION_ATTEMPT | Action: sweep_junk | Details: {"char": ";", "param": "target_scope"}
+[2026-10-13T13:37:30] [SECURITY_EVENT] Type: INJECTION_ATTEMPT | Action: sweep_junk | Details: {"char": "&", "param": "target_scope"}
+[2026-10-13T13:37:30] [SECURITY_EVENT] Type: INJECTION_ATTEMPT | Action: sweep_junk | Details: {"char": "|", "param": "target_scope"}
+[2026-10-13T13:37:30] [SECURITY_EVENT] Type: INJECTION_ATTEMPT | Action: sweep_junk | Details: {"char": "`", "param": "target_scope"}
+[2026-10-13T13:37:30] [SECURITY_EVENT] Type: OS_PROTECTION_BLOCKED | Action: quarantine | Details: {"path": "C:\\Windows\\System32\\ntoskrnl.exe"}
+[2026-10-13T13:37:30] [SECURITY_EVENT] Type: OS_PROTECTION_BLOCKED | Action: quarantine | Details: {"path": "C:\\Windows\\explorer.exe"}
+[2026-10-13T13:37:30] [SECURITY_EVENT] Type: OS_PROTECTION_BLOCKED | Action: quarantine | Details: {"path": "C:\\Program Files\\Windows Defender\\MsMpEng.exe"}
+
+[2026-10-13T13:37:30] [CRASH_INTERCEPT] Module: DriverBridgeTest | Type: ConnectionResetError
+  Message: Synthetic Win32 Driver IO Fault for Sanity Test
+  Telemetry: RAM=19.5% | CPU=35.2%
+  Metadata: {"fault_subsystem": "KernelDriverBridge", "retry_count": 3}
+  Traceback:
+NoneType: None
+
+--------------------------------------------------------------------------------
+[2026-10-13T13:39:23] [SECURITY_EVENT] Type: UNAUTHORIZED_ACTION | Action: flush_ram; rm -rf / | Details: {"args": {}}
+[2026-10-13T13:39:23] [SECURITY_EVENT] Type: UNAUTHORIZED_REMOTE_ACTION | Action: flush_ram; rm -rf / | Details: {"reason": "VALIDATION_REJECT: Unauthorized action trigger 'flush_ram; rm -rf /'. Not in argument whitelist."}
+[2026-10-13T13:50:02] [SECURITY_EVENT] Type: UNAUTHORIZED_ACTION | Action: flush_ram; rm -rf / | Details: {"args": {}}
+[2026-10-13T13:50:02] [SECURITY_EVENT] Type: UNAUTHORIZED_REMOTE_ACTION | Action: flush_ram; rm -rf / | Details: {"reason": "VALIDATION_REJECT: Unauthorized action trigger 'flush_ram; rm -rf /'. Not in argument whitelist."}
+[2026-10-13T13:50:16] [SECURITY_EVENT] Type: THROTTLE_BLOCKED | Action: throttle_process | Details: {"pid": 4, "reason": "ZERO-TRUST REJECT: Process ID 4 is a protected kernel system entity."}
+[2026-10-13T13:50:16] [SECURITY_EVENT] Type: PROCESS_THROTTLED | Action: throttle_process | Details: {"pid": 8376, "name": "python.exe", "applied_priority": "below_normal", "applied_io": "low", "applied_affinity": [0], "memory_reclaimed_mb": 119.5, "status": "THROTTLED_AND_SANDBOXED"}
+[2026-10-13T13:50:16] [SECURITY_EVENT] Type: PROCESS_THROTTLED | Action: throttle_process | Details: {"pid": 8376, "name": "python.exe", "applied_priority": "normal", "applied_io": "normal", "applied_affinity": null, "memory_reclaimed_mb": 2.6, "status": "THROTTLED_AND_SANDBOXED"}
+[2026-10-13T13:50:16] [SECURITY_EVENT] Type: PROCESS_THROTTLED | Action: throttle_process | Details: {"pid": 8376, "name": "python.exe", "applied_priority": "normal", "applied_io": "low", "applied_affinity": null, "memory_reclaimed_mb": 73.0, "status": "THROTTLED_AND_SANDBOXED"}
+[2026-10-13T13:50:17] [SECURITY_EVENT] Type: INTEGRITY_SWEEP_COMPLETED | Action: system_integrity_sweep | Details: {"timestamp": "2026-10-13T13:50:17", "status": "HEALTHY_SECURE", "registry_anomalies_count": 0, "dll_injections_count": 0, "registry_details": [], "dll_details": []}
+[2026-10-13T13:50:17] [SECURITY_EVENT] Type: ARGUMENT_WHITELIST_BREACH | Action: throttle_process | Details: {"forbidden": ["unauthorized_injected_param"]}
+[2026-10-13T13:50:17] [SECURITY_EVENT] Type: PROCESS_THROTTLED | Action: throttle_process | Details: {"pid": 8376, "name": "python.exe", "applied_priority": "normal", "applied_io": "normal", "applied_affinity": null, "memory_reclaimed_mb": 16.1, "status": "THROTTLED_AND_SANDBOXED"}
+[2026-10-13T13:50:17] [SECURITY_EVENT] Type: ARGUMENT_WHITELIST_BREACH | Action: flush_ram | Details: {"forbidden": ["unauthorized_flag"]}
+[2026-10-13T13:50:17] [SECURITY_EVENT] Type: UNAUTHORIZED_ACTION | Action: drop_table_users | Details: {"args": {}}
+[2026-10-13T13:50:17] [SECURITY_EVENT] Type: INJECTION_ATTEMPT | Action: sweep_junk | Details: {"char": ";", "param": "target_scope"}
+[2026-10-13T13:50:17] [SECURITY_EVENT] Type: INJECTION_ATTEMPT | Action: sweep_junk | Details: {"char": "&", "param": "target_scope"}
+[2026-10-13T13:50:17] [SECURITY_EVENT] Type: INJECTION_ATTEMPT | Action: sweep_junk | Details: {"char": "|", "param": "target_scope"}
+[2026-10-13T13:50:17] [SECURITY_EVENT] Type: INJECTION_ATTEMPT | Action: sweep_junk | Details: {"char": "`", "param": "target_scope"}
+[2026-10-13T13:50:17] [SECURITY_EVENT] Type: OS_PROTECTION_BLOCKED | Action: quarantine | Details: {"path": "C:\\Windows\\System32\\ntoskrnl.exe"}
+[2026-10-13T13:50:17] [SECURITY_EVENT] Type: OS_PROTECTION_BLOCKED | Action: quarantine | Details: {"path": "C:\\Windows\\explorer.exe"}
+[2026-10-13T13:50:17] [SECURITY_EVENT] Type: OS_PROTECTION_BLOCKED | Action: quarantine | Details: {"path": "C:\\Program Files\\Windows Defender\\MsMpEng.exe"}
+
+[2026-10-13T13:50:17] [CRASH_INTERCEPT] Module: DriverBridgeTest | Type: ConnectionResetError
+  Message: Synthetic Win32 Driver IO Fault for Sanity Test
+  Telemetry: RAM=16.9% | CPU=15.4%
+  Metadata: {"fault_subsystem": "KernelDriverBridge", "retry_count": 3}
+  Traceback:
+NoneType: None
+
+--------------------------------------------------------------------------------
+[2026-10-13T13:50:18] [SECURITY_EVENT] Type: UNAUTHORIZED_ACTION | Action: flush_ram; rm -rf / | Details: {"args": {}}
+[2026-10-13T13:50:18] [SECURITY_EVENT] Type: UNAUTHORIZED_REMOTE_ACTION | Action: flush_ram; rm -rf / | Details: {"reason": "VALIDATION_REJECT: Unauthorized action trigger 'flush_ram; rm -rf /'. Not in argument whitelist."}
+[2026-10-13T14:26:04] [SECURITY_EVENT] Type: UNAUTHORIZED_ACTION | Action: flush_ram; rm -rf / | Details: {"args": {}}
+[2026-10-13T14:26:04] [SECURITY_EVENT] Type: UNAUTHORIZED_REMOTE_ACTION | Action: flush_ram; rm -rf / | Details: {"reason": "VALIDATION_REJECT: Unauthorized action trigger 'flush_ram; rm -rf /'. Not in argument whitelist."}
+[2026-10-13T14:34:56] [SECURITY_EVENT] Type: UNAUTHORIZED_ACTION | Action: flush_ram; rm -rf / | Details: {"args": {}}
+[2026-10-13T14:34:56] [SECURITY_EVENT] Type: UNAUTHORIZED_REMOTE_ACTION | Action: flush_ram; rm -rf / | Details: {"reason": "VALIDATION_REJECT: Unauthorized action trigger 'flush_ram; rm -rf /'. Not in argument whitelist."}
+[2026-10-13T14:35:18] [SECURITY_EVENT] Type: UNAUTHORIZED_ACTION | Action: flush_ram; rm -rf / | Details: {"args": {}}
+[2026-10-13T14:35:18] [SECURITY_EVENT] Type: UNAUTHORIZED_REMOTE_ACTION | Action: flush_ram; rm -rf / | Details: {"reason": "VALIDATION_REJECT: Unauthorized action trigger 'flush_ram; rm -rf /'. Not in argument whitelist."}

@@ -33,8 +33,11 @@ from antimagist_core_v2 import (
     AntimagistHardwareMock,
     AntimagistSanityLogger,
     AntimagistStrictValidator,
+    AntimagistPreFlightChecklist,
 )
 from ultra_game_sentinel import AntimagistUltraGameSentinel
+from memory_pacer import AntimagistMemoryPacer
+from dpc_diagnostician import AntimagistDPCDiagnostician
 
 if hasattr(sys.stdout, "reconfigure"):
     try:
@@ -63,6 +66,8 @@ class AntimagistWebBridgeDaemon:
         self.throttler = AntimagistProcessThrottler()
         self.interceptor = AntimagistLocalEventInterceptor()
         self.game_sentinel = AntimagistUltraGameSentinel()
+        self.memory_pacer = AntimagistMemoryPacer()
+        self.dpc_diagnostician = AntimagistDPCDiagnostician()
         self.logger = AntimagistSanityLogger()
 
         self.server: Optional[HTTPServer] = None
@@ -284,6 +289,8 @@ class AntimagistWebBridgeDaemon:
             "packet_rtt_ms": 16.4,
             "processes": procs,
             "game_sentinel": self.game_sentinel.get_telemetry_snapshot(),
+            "memory_pacer_advisory": self.memory_pacer.detect_contextual_bloat_processes(),
+            "dpc_culprits": self.dpc_diagnostician.analyze_culprits(),
         }
 
     def execute_remote_action(self, action_name: str, params: Dict[str, Any]) -> Dict[str, Any]:
@@ -317,6 +324,27 @@ class AntimagistWebBridgeDaemon:
                 p_level = params.get("priority_level", "BELOW_NORMAL")
                 res = self.throttler.throttle_process(pid, p_level)
                 return {"success": res.get("success", False), "message": res.get("message", "Throttled"), "result": res}
+
+            elif action_name in ("suspend_bloat", "suspend_bloat_process"):
+                target = params.get("target") or params.get("name") or params.get("pid") or "XboxApp.exe"
+                ok, msg, rec_mb = self.memory_pacer.suspend_bloat_process(target)
+                return {"success": ok, "message": msg, "reclaimed_mb": rec_mb}
+
+            elif action_name in ("resume_bloat", "resume_bloat_process"):
+                target = params.get("target") or params.get("name") or params.get("pid") or "XboxApp.exe"
+                ok, msg = self.memory_pacer.resume_bloat_process(target)
+                return {"success": ok, "message": msg}
+
+            elif action_name in ("apply_dpc_mitigation", "dpc_fix"):
+                driver_file = params.get("driver_file") or params.get("mitigation_key") or "ndis.sys"
+                ok, msg = self.dpc_diagnostician.apply_driver_mitigation(driver_file)
+                return {"success": ok, "message": msg}
+
+            elif action_name == "verify_preflight":
+                act = params.get("action_name", "system_optimization")
+                tgt = params.get("target", "os_kernel")
+                res = AntimagistPreFlightChecklist.evaluate_preflight(act, tgt)
+                return {"success": res["approved"], "message": f"Pre-flight verification: {res['status']}", "checklist": res}
 
             return {"success": True, "message": f"Action '{action_name}' executed cleanly within isolated container."}
 
