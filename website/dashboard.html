@@ -1,0 +1,1633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ANTIMAGIST V2.0 — Enterprise Security Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    /* ════════════════════════════════════════════════════════════════
+       CSS CUSTOM PROPERTIES — Theme Tokens
+    ════════════════════════════════════════════════════════════════ */
+    :root {
+      --bg-base:          #060B14;
+      --bg-panel:         #0B1120;
+      --glass-bg:         rgba(11, 17, 32, 0.72);
+      --glass-border:     #00F2FE;
+      --glass-border-dim: rgba(0, 242, 254, 0.18);
+      --glass-border-warn:#F5A623;
+      --glass-border-err: #FF3B30;
+
+      --accent-cyan:   #00F2FE;
+      --accent-green:  #00FF94;
+      --accent-purple: #A78BFA;
+      --accent-amber:  #F5A623;
+      --accent-red:    #FF3B30;
+
+      --text-primary:  #E8F4FD;
+      --text-muted:    rgba(232,244,253,.45);
+      --text-dim:      rgba(232,244,253,.25);
+
+      /* Dynamic theme state — JS rewrites these vars */
+      --theme-accent:  #00F2FE;
+      --theme-glow:    rgba(0,242,254,.22);
+      --theme-state:   normal; /* normal | warning | emergency */
+
+      --sidebar-w: 240px;
+      --topbar-h:  52px;
+      --radius:    10px;
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       RESET & BASE
+    ════════════════════════════════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-base);
+      color: var(--text-primary);
+      display: flex;
+      flex-direction: column;
+      transition: background .6s;
+    }
+    a { text-decoration: none; color: inherit; }
+    button { cursor: pointer; border: none; background: none; color: inherit; font: inherit; }
+    code, .mono { font-family: 'JetBrains Mono', monospace; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--glass-border-dim); border-radius: 2px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--theme-accent); }
+
+    /* ════════════════════════════════════════════════════════════════
+       TOP BAR
+    ════════════════════════════════════════════════════════════════ */
+    .topbar {
+      height: var(--topbar-h);
+      background: rgba(6, 11, 20, .92);
+      border-bottom: 1px solid var(--glass-border-dim);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 16px;
+      z-index: 100;
+      backdrop-filter: blur(12px);
+      flex-shrink: 0;
+      transition: border-color .4s;
+    }
+    .topbar-brand {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-right: 24px;
+    }
+    .brand-glow {
+      font-size: 1rem;
+      font-weight: 900;
+      letter-spacing: .14em;
+      color: var(--theme-accent);
+      text-shadow: 0 0 18px var(--theme-glow);
+      transition: color .4s, text-shadow .4s;
+    }
+    .version-tag {
+      font-size: .62rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      color: var(--text-muted);
+      border: 1px solid var(--glass-border-dim);
+      padding: 1px 7px;
+      border-radius: 20px;
+    }
+    .topbar-spacer { flex: 1; }
+
+    /* Status pills in top bar */
+    .status-pills { display: flex; gap: 10px; align-items: center; }
+    .pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--glass-border-dim);
+      background: rgba(0,242,254,.05);
+      font-size: .7rem;
+      font-weight: 600;
+      letter-spacing: .06em;
+      color: var(--text-muted);
+      transition: all .3s;
+    }
+    .pill.active { border-color: var(--accent-green); color: var(--accent-green); background: rgba(0,255,148,.06); }
+    .pill.warn   { border-color: var(--accent-amber); color: var(--accent-amber); background: rgba(245,166,35,.08); }
+    .pill.danger { border-color: var(--accent-red);   color: var(--accent-red);   background: rgba(255,59,48,.08); }
+    .pulse-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      animation: pulse-dot 1.8s ease-in-out infinite;
+    }
+    .pill.warn .pulse-dot { background: var(--accent-amber); }
+    .pill.danger .pulse-dot { background: var(--accent-red); }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: .4; transform: scale(.7); }
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       SHELL (sidebar + main)
+    ════════════════════════════════════════════════════════════════ */
+    .shell {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       SIDEBAR
+    ════════════════════════════════════════════════════════════════ */
+    .cyber-sidebar {
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      background: var(--glass-bg);
+      border-right: 1px solid var(--glass-border-dim);
+      backdrop-filter: blur(20px);
+      display: flex;
+      flex-direction: column;
+      padding: 14px 0 20px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      transition: border-color .4s;
+    }
+
+    /* Brand row inside sidebar */
+    .sidebar-brand {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      padding: 0 16px 14px;
+      border-bottom: 1px solid var(--glass-border-dim);
+      margin-bottom: 10px;
+    }
+
+    /* Nav categories */
+    .sidebar-menu { display: flex; flex-direction: column; gap: 4px; padding: 0 8px; }
+
+    .menu-category { display: flex; flex-direction: column; }
+
+    .category-trigger {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 9px 10px;
+      border-radius: 7px;
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      transition: background .2s, color .2s;
+      user-select: none;
+    }
+    .category-trigger:hover { background: rgba(0,242,254,.07); color: var(--text-primary); }
+    .category-trigger.open  { color: var(--theme-accent); }
+    .category-trigger .cat-icon { font-size: .9rem; flex-shrink: 0; }
+    .category-trigger .cat-label { flex: 1; text-align: left; }
+    .category-trigger .arrow {
+      font-size: .6rem;
+      transition: transform .25s;
+      color: var(--text-dim);
+    }
+    .category-trigger.open .arrow { transform: rotate(180deg); color: var(--theme-accent); }
+
+    .category-items {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding: 2px 0 6px 14px;
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      transition: max-height .3s ease, opacity .25s ease;
+    }
+    .category-items.open { max-height: 400px; opacity: 1; }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 6px;
+      font-size: .75rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      transition: background .18s, color .18s, border-color .18s;
+      border: 1px solid transparent;
+      position: relative;
+    }
+    .menu-item:hover {
+      background: rgba(0,242,254,.06);
+      color: var(--text-primary);
+      border-color: var(--glass-border-dim);
+    }
+    .menu-item.active {
+      background: rgba(0,242,254,.10);
+      color: var(--theme-accent);
+      border-color: var(--glass-border-dim);
+    }
+    .menu-item.active::before {
+      content: '';
+      position: absolute;
+      left: -1px;
+      top: 20%;
+      height: 60%;
+      width: 2px;
+      background: var(--theme-accent);
+      border-radius: 2px;
+      box-shadow: 0 0 8px var(--theme-glow);
+    }
+    .menu-item .mi-icon { font-size: .85rem; }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 12px 16px 0;
+      border-top: 1px solid var(--glass-border-dim);
+      font-size: .65rem;
+      color: var(--text-dim);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .sidebar-footer .uptime { color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+
+    /* ════════════════════════════════════════════════════════════════
+       MAIN CONTENT AREA
+    ════════════════════════════════════════════════════════════════ */
+    .main-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Page title row */
+    .page-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .page-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: .04em;
+    }
+    .page-subtitle { font-size: .75rem; color: var(--text-muted); margin-top: 3px; }
+
+    /* Panels — shown/hidden by JS */
+    .panel { display: none; flex-direction: column; gap: 20px; animation: fadeIn .25s ease; }
+    .panel.active { display: flex; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; } }
+
+    /* ════════════════════════════════════════════════════════════════
+       GLASS CARDS
+    ════════════════════════════════════════════════════════════════ */
+    .glass-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border-dim);
+      border-radius: var(--radius);
+      backdrop-filter: blur(16px);
+      padding: 18px;
+      transition: border-color .4s, box-shadow .4s;
+    }
+    .glass-card:hover { border-color: rgba(0,242,254,.35); }
+    .glass-card.neon { border-color: var(--glass-border); box-shadow: 0 0 18px var(--theme-glow); }
+
+    .card-title {
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title .ct-icon { color: var(--theme-accent); font-size: .9rem; }
+
+    /* ════════════════════════════════════════════════════════════════
+       DASHBOARD — TOP ROW (Gauges + Sparklines)
+    ════════════════════════════════════════════════════════════════ */
+    .gauge-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    .gauge-card {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .gauge-wrap {
+      position: relative;
+      width: 72px;
+      height: 72px;
+      flex-shrink: 0;
+    }
+    .gauge-wrap canvas { display: block; }
+    .gauge-label {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+    .gauge-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .9rem;
+      font-weight: 700;
+      color: var(--theme-accent);
+      transition: color .4s;
+    }
+    .gauge-unit { font-size: .52rem; color: var(--text-muted); }
+
+    .gauge-info { flex: 1; min-width: 0; }
+    .gauge-name { font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); }
+    .gauge-desc { font-size: .7rem; color: var(--text-dim); margin-top: 2px; }
+    .sparkline-wrap { margin-top: 8px; }
+    .sparkline-wrap canvas { display: block; width: 100% !important; }
+
+    /* ════════════════════════════════════════════════════════════════
+       TERMINAL / LOG
+    ════════════════════════════════════════════════════════════════ */
+    .terminal {
+      background: #020509;
+      border: 1px solid var(--glass-border-dim);
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .71rem;
+      line-height: 1.7;
+      max-height: 200px;
+      overflow-y: auto;
+      color: #94A3B8;
+    }
+    .log-cyan   { color: var(--accent-cyan);   }
+    .log-green  { color: var(--accent-green);  }
+    .log-amber  { color: var(--accent-amber);  }
+    .log-red    { color: var(--accent-red);    }
+    .log-purple { color: var(--accent-purple); }
+    .log-muted  { color: #475569; }
+
+    /* ════════════════════════════════════════════════════════════════
+       ACTION BUTTONS
+    ════════════════════════════════════════════════════════════════ */
+    .action-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 10px;
+    }
+    .action-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 14px 10px;
+      border-radius: var(--radius);
+      border: 1px solid var(--glass-border-dim);
+      background: rgba(0,242,254,.03);
+      font-size: .72rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      transition: all .22s;
+      text-align: center;
+      letter-spacing: .04em;
+    }
+    .action-btn .ab-icon { font-size: 1.5rem; }
+    .action-btn:hover {
+      background: rgba(0,242,254,.09);
+      border-color: var(--theme-accent);
+      color: var(--theme-accent);
+      box-shadow: 0 0 14px var(--theme-glow);
+      transform: translateY(-2px);
+    }
+    .action-btn:active { transform: translateY(0); }
+    .action-btn.running {
+      border-color: var(--accent-green);
+      color: var(--accent-green);
+      background: rgba(0,255,148,.07);
+      animation: btn-pulse 1.2s ease-in-out infinite;
+    }
+    @keyframes btn-pulse {
+      0%,100% { box-shadow: 0 0 8px rgba(0,255,148,.2); }
+      50%      { box-shadow: 0 0 22px rgba(0,255,148,.5); }
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       PROCESS TABLE
+    ════════════════════════════════════════════════════════════════ */
+    .proc-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .73rem;
+    }
+    .proc-table th {
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      padding: 6px 10px;
+      border-bottom: 1px solid var(--glass-border-dim);
+      text-align: left;
+    }
+    .proc-table td {
+      padding: 7px 10px;
+      border-bottom: 1px solid rgba(0,242,254,.04);
+      color: var(--text-muted);
+      transition: background .15s;
+    }
+    .proc-table tr:hover td { background: rgba(0,242,254,.04); color: var(--text-primary); }
+    .proc-table .col-name { font-weight: 600; color: var(--text-primary); }
+    .proc-table .col-cpu  { color: var(--accent-cyan);   font-family: 'JetBrains Mono', monospace; }
+    .proc-table .col-mem  { color: var(--accent-green);  font-family: 'JetBrains Mono', monospace; }
+    .proc-table .col-stat { }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: .62rem;
+      font-weight: 700;
+      letter-spacing: .06em;
+    }
+    .badge-safe  { background: rgba(0,255,148,.12); color: var(--accent-green);  border: 1px solid rgba(0,255,148,.3); }
+    .badge-warn  { background: rgba(245,166,35,.12); color: var(--accent-amber);  border: 1px solid rgba(245,166,35,.3); }
+    .badge-crit  { background: rgba(255,59,48,.12);  color: var(--accent-red);    border: 1px solid rgba(255,59,48,.3); }
+
+    /* ════════════════════════════════════════════════════════════════
+       STAT GRID
+    ════════════════════════════════════════════════════════════════ */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 12px;
+    }
+    .stat-box {
+      background: rgba(0,242,254,.03);
+      border: 1px solid var(--glass-border-dim);
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .stat-label { font-size: .62rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--text-dim); }
+    .stat-value { font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; font-weight: 700; color: var(--theme-accent); transition: color .4s; }
+    .stat-sub   { font-size: .65rem; color: var(--text-dim); }
+
+    /* ════════════════════════════════════════════════════════════════
+       THREAT LIST
+    ════════════════════════════════════════════════════════════════ */
+    .threat-list { display: flex; flex-direction: column; gap: 8px; }
+    .threat-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--glass-border-dim);
+      background: rgba(0,242,254,.02);
+      transition: border-color .2s;
+    }
+    .threat-item:hover { border-color: rgba(0,242,254,.3); }
+    .threat-icon { font-size: 1.1rem; flex-shrink: 0; }
+    .threat-info { flex: 1; min-width: 0; }
+    .threat-name { font-size: .78rem; font-weight: 600; }
+    .threat-desc { font-size: .68rem; color: var(--text-muted); margin-top: 2px; }
+
+    /* ════════════════════════════════════════════════════════════════
+       NOTIFICATIONS TOAST
+    ════════════════════════════════════════════════════════════════ */
+    #toast-container {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 9999;
+    }
+    .toast {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border-dim);
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: .76rem;
+      font-weight: 500;
+      backdrop-filter: blur(16px);
+      min-width: 260px;
+      animation: toast-in .3s ease forwards;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .toast.success { border-color: var(--accent-green); color: var(--accent-green); }
+    .toast.warn    { border-color: var(--accent-amber); color: var(--accent-amber); }
+    .toast.danger  { border-color: var(--accent-red);   color: var(--accent-red);   }
+    @keyframes toast-in {
+      from { opacity: 0; transform: translateX(20px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       RESPONSIVE
+    ════════════════════════════════════════════════════════════════ */
+    @media (max-width: 680px) {
+      :root { --sidebar-w: 200px; }
+    }
+    @media (max-width: 480px) {
+      .cyber-sidebar { display: none; }
+    }
+
+    /* ════════════════════════════════════════════════════════════════
+       CONDITIONAL THEME STATES
+    ════════════════════════════════════════════════════════════════ */
+    body.state-warning {
+      --theme-accent: #F5A623;
+      --theme-glow:   rgba(245,166,35,.28);
+      --glass-border: #F5A623;
+    }
+    body.state-emergency {
+      --theme-accent: #FF3B30;
+      --theme-glow:   rgba(255,59,48,.28);
+      --glass-border: #FF3B30;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══ TOP BAR ════════════════════════════════════════════════════ -->
+  <header class="topbar" id="topbar">
+    <div class="topbar-brand">
+      <span class="brand-glow">ANTIMAGIST</span>
+      <span class="version-tag">V2.0</span>
+    </div>
+
+    <div class="status-pills">
+      <div class="pill active" id="pill-shield">
+        <span class="pulse-dot"></span>
+        SHIELD ACTIVE
+      </div>
+      <div class="pill" id="pill-temp">🌡️ GPU <span id="gpu-temp-top">—</span>°C</div>
+      <div class="pill" id="pill-health">❤️ HEALTH <span id="health-top">—</span>%</div>
+    </div>
+
+    <div class="topbar-spacer"></div>
+
+    <div class="status-pills">
+      <div class="pill" id="pill-time" style="font-family:'JetBrains Mono',monospace;font-size:.68rem;"></div>
+      <div class="pill" id="pill-uptime">⏱ <span id="uptime-label">00:00:00</span></div>
+    </div>
+  </header>
+
+  <!-- ══ SHELL ══════════════════════════════════════════════════════ -->
+  <div class="shell">
+
+    <!-- ══ SIDEBAR ════════════════════════════════════════════════ -->
+    <aside class="cyber-sidebar">
+      <div class="sidebar-brand">
+        <span class="brand-glow" style="font-size:.82rem;">ANTIMAGIST</span>
+        <span class="version-tag">V2.0</span>
+      </div>
+
+      <nav class="sidebar-menu" id="sidebar-menu">
+
+        <!-- DASHBOARD shortcut -->
+        <a class="menu-item active" data-panel="dashboard" onclick="navigate(this,'dashboard')">
+          <span class="mi-icon">🖥️</span> Dashboard
+        </a>
+
+        <!-- ── Performance Suite ── -->
+        <div class="menu-category">
+          <button class="category-trigger" onclick="toggleCategory('perf-suite',this)">
+            <span class="cat-icon">⚡</span>
+            <span class="cat-label">Performance Suite</span>
+            <span class="arrow">▼</span>
+          </button>
+          <div id="perf-suite" class="category-items">
+            <a class="menu-item" data-panel="flush-ram"  onclick="navigate(this,'flush-ram')"><span class="mi-icon">🧹</span> Flush RAM</a>
+            <a class="menu-item" data-panel="sweep-junk" onclick="navigate(this,'sweep-junk')"><span class="mi-icon">🗑️</span> Sweep Junk</a>
+            <a class="menu-item" data-panel="dpc-latency" onclick="navigate(this,'dpc-latency')"><span class="mi-icon">📉</span> DPC Latency</a>
+            <a class="menu-item" data-panel="usb-polling" onclick="navigate(this,'usb-polling')"><span class="mi-icon">🖱️</span> USB Polling Rate</a>
+          </div>
+        </div>
+
+        <!-- ── Hardware Diagnostics ── -->
+        <div class="menu-category">
+          <button class="category-trigger" onclick="toggleCategory('hardware-suite',this)">
+            <span class="cat-icon">📊</span>
+            <span class="cat-label">Hardware Diagnostics</span>
+            <span class="arrow">▼</span>
+          </button>
+          <div id="hardware-suite" class="category-items">
+            <a class="menu-item" data-panel="thermals" onclick="navigate(this,'thermals')"><span class="mi-icon">🌡️</span> Thermals &amp; Voltages</a>
+            <a class="menu-item" data-panel="shader"   onclick="navigate(this,'shader')"><span class="mi-icon">🎮</span> Shader Sentinel</a>
+            <a class="menu-item" data-panel="msi-irq"  onclick="navigate(this,'msi-irq')"><span class="mi-icon">🔗</span> MSI-X IRQ Director</a>
+          </div>
+        </div>
+
+        <!-- ── Kernel Security ── -->
+        <div class="menu-category">
+          <button class="category-trigger" onclick="toggleCategory('security-suite',this)">
+            <span class="cat-icon">🛡️</span>
+            <span class="cat-label">Kernel Security</span>
+            <span class="arrow">▼</span>
+          </button>
+          <div id="security-suite" class="category-items">
+            <a class="menu-item" data-panel="threat-scanner" onclick="navigate(this,'threat-scanner')"><span class="mi-icon">🔍</span> Threat Scanner</a>
+            <a class="menu-item" data-panel="quarantine"     onclick="navigate(this,'quarantine')"><span class="mi-icon">🔒</span> Quarantine Vault</a>
+            <a class="menu-item" data-panel="tpm"            onclick="navigate(this,'tpm')"><span class="mi-icon">🔑</span> TPM Attestation</a>
+            <a class="menu-item" data-panel="anticheat"      onclick="navigate(this,'anticheat')"><span class="mi-icon">👁️</span> Anti-Cheat Guard</a>
+          </div>
+        </div>
+
+      </nav>
+
+      <!-- Sidebar footer stats -->
+      <div class="sidebar-footer">
+        <span>SESSION UPTIME</span>
+        <span class="uptime" id="sb-uptime">00:00:00</span>
+        <span style="margin-top:4px;">KERNEL: 135 / 135 OK</span>
+      </div>
+    </aside>
+
+    <!-- ══ MAIN CONTENT ════════════════════════════════════════════ -->
+    <main class="main-content" id="main-content">
+
+      <!-- ─────────────────── DASHBOARD PANEL ─────────────────── -->
+      <div class="panel active" id="panel-dashboard">
+        <div class="page-header">
+          <div>
+            <div class="page-title">🖥️ Mission Control</div>
+            <div class="page-subtitle">Real-time system telemetry — 60-second rolling window</div>
+          </div>
+          <div class="pill active" style="font-size:.68rem;"><span class="pulse-dot"></span> LIVE</div>
+        </div>
+
+        <!-- Gauge Row -->
+        <div class="gauge-row">
+
+          <!-- CPU Gauge -->
+          <div class="glass-card gauge-card">
+            <div class="gauge-wrap">
+              <canvas id="gauge-cpu" width="72" height="72"></canvas>
+              <div class="gauge-label">
+                <span class="gauge-val" id="gval-cpu">0</span>
+                <span class="gauge-unit">%</span>
+              </div>
+            </div>
+            <div class="gauge-info">
+              <div class="gauge-name">CPU Load</div>
+              <div class="gauge-desc">All cores · avg %</div>
+              <div class="sparkline-wrap">
+                <canvas id="spark-cpu" height="28"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- RAM Gauge -->
+          <div class="glass-card gauge-card">
+            <div class="gauge-wrap">
+              <canvas id="gauge-ram" width="72" height="72"></canvas>
+              <div class="gauge-label">
+                <span class="gauge-val" id="gval-ram">0</span>
+                <span class="gauge-unit">%</span>
+              </div>
+            </div>
+            <div class="gauge-info">
+              <div class="gauge-name">Memory</div>
+              <div class="gauge-desc">Physical RAM used</div>
+              <div class="sparkline-wrap">
+                <canvas id="spark-ram" height="28"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- GPU Temp Gauge -->
+          <div class="glass-card gauge-card">
+            <div class="gauge-wrap">
+              <canvas id="gauge-gpu" width="72" height="72"></canvas>
+              <div class="gauge-label">
+                <span class="gauge-val" id="gval-gpu">—</span>
+                <span class="gauge-unit">°C</span>
+              </div>
+            </div>
+            <div class="gauge-info">
+              <div class="gauge-name">GPU Temp</div>
+              <div class="gauge-desc">Core temperature</div>
+              <div class="sparkline-wrap">
+                <canvas id="spark-gpu" height="28"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Health Gauge -->
+          <div class="glass-card gauge-card">
+            <div class="gauge-wrap">
+              <canvas id="gauge-health" width="72" height="72"></canvas>
+              <div class="gauge-label">
+                <span class="gauge-val" id="gval-health">100</span>
+                <span class="gauge-unit">%</span>
+              </div>
+            </div>
+            <div class="gauge-info">
+              <div class="gauge-name">System Health</div>
+              <div class="gauge-desc">Composite score</div>
+              <div class="sparkline-wrap">
+                <canvas id="spark-health" height="28"></canvas>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /gauge-row -->
+
+        <!-- Stat Grid -->
+        <div class="glass-card">
+          <div class="card-title"><span class="ct-icon">📡</span> Live Telemetry</div>
+          <div class="stat-grid" id="stat-grid">
+            <div class="stat-box"><div class="stat-label">Packet RTT</div><div class="stat-value" id="s-rtt">—</div><div class="stat-sub">ms avg</div></div>
+            <div class="stat-box"><div class="stat-label">DPC Latency</div><div class="stat-value" id="s-dpc">—</div><div class="stat-sub">µs peak</div></div>
+            <div class="stat-box"><div class="stat-label">RAM Free</div><div class="stat-value" id="s-ram-free">—</div><div class="stat-sub">GB</div></div>
+            <div class="stat-box"><div class="stat-label">Disk I/O</div><div class="stat-value" id="s-disk">—</div><div class="stat-sub">MB/s</div></div>
+            <div class="stat-box"><div class="stat-label">GPU Util</div><div class="stat-value" id="s-gpu-util">—</div><div class="stat-sub">%</div></div>
+            <div class="stat-box"><div class="stat-label">Threats</div><div class="stat-value" id="s-threats" style="color:var(--accent-green)">0</div><div class="stat-sub">detected</div></div>
+          </div>
+        </div>
+
+        <!-- Terminal -->
+        <div class="glass-card">
+          <div class="card-title"><span class="ct-icon">💻</span> Kernel Event Stream</div>
+          <div class="terminal" id="main-terminal">
+            <div class="log-cyan">[SYS] ANTIMAGIST V2.0 Kernel Engine initializing…</div>
+            <div class="log-green">[OK ] Zero-Trust execution layer armed.</div>
+            <div class="log-green">[OK ] Input-validation whitelist loaded — 14 action schemas.</div>
+            <div class="log-cyan">[MON] Telemetry polling active — 1 Hz refresh.</div>
+            <div class="log-muted">[LOG] Waiting for hardware data…</div>
+          </div>
+        </div>
+
+        <!-- Process Table -->
+        <div class="glass-card">
+          <div class="card-title"><span class="ct-icon">🔬</span> Zero-Trust Process Monitor</div>
+          <table class="proc-table" id="proc-table">
+            <thead>
+              <tr>
+                <th>Process</th><th>PID</th><th>CPU %</th><th>RAM MB</th><th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="proc-tbody">
+              <tr><td colspan="5" style="color:var(--text-dim);text-align:center;padding:16px;">Loading process list…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div><!-- /panel-dashboard -->
+
+
+      <!-- ─────────────────── FLUSH RAM PANEL ─────────────────── -->
+      <div class="panel" id="panel-flush-ram">
+        <div class="page-header">
+          <div><div class="page-title">🧹 Flush RAM</div>
+          <div class="page-subtitle">Force-release inactive standby memory pages</div></div>
+        </div>
+        <div class="glass-card">
+          <div class="card-title"><span class="ct-icon">⚡</span> Quick Actions</div>
+          <div class="action-grid">
+            <button class="action-btn" onclick="runAction('flush_ram',this)"><span class="ab-icon">🧹</span>Flush Standby</button>
+            <button class="action-btn" onclick="runAction('flush_working_set',this)"><span class="ab-icon">💾</span>Working Set</button>
+            <button class="action-btn" onclick="runAction('flush_pagefile',this)"><span class="ab-icon">📄</span>Pagefile Trim</button>
+            <button class="action-btn" onclick="runAction('ram_audit',this)"><span class="ab-icon">🔍</span>RAM Audit</button>
+          </div>
+        </div>
+        <div class="glass-card">
+          <div class="card-title"><span class="ct-icon">📊</span> Memory Stats</div>
+          <div class="stat-grid">
+            <div class="stat-box"><div class="stat-label">Physical Total</div><div class="stat-value" id="r-total">—</div><div class="stat-sub">GB</div></div>
+            <div class="stat-box"><div class="stat-label">In Use</div><div class="stat-value" id="r-used">—</div><div class="stat-sub">GB</div></div>
+            <div class="stat-box"><div class="stat-label">Available</div><div class="stat-value" id="r-avail" style="color:var(--accent-green)">—</div><div class="stat-sub">GB</div></div>
+            <div class="stat-box"><div class="stat-label">Standby</div><div class="stat-value" id="r-standby">—</div><div class="stat-sub">GB</div></div>
+          </div>
+        </div>
+        <div class="glass-card">
+          <div class="card-title"><span class="ct-icon">💻</span> Operation Log</div>
+          <div class="terminal" id="ram-terminal">
+            <div class="log-muted">[RAM] Module standing by — click an action above.</div>
+          </div>
+        </div>
+      </div><!-- /panel-flush-ram -->
+
+
+      <!-- ─────────────────── SWEEP JUNK PANEL ─────────────────── -->
+      <div class="panel" id="panel-sweep-junk">
+        <div class="page-header">
+          <div><div class="page-title">🗑️ Sweep Junk</div>
+          <div class="page-subtitle">Purge temp files, log caches, and browser artifacts</div></div>
+        </div>
+        <div class="glass-card">
+          <div class="card-title"><span class="ct-icon">🔧</span> Sweep Targets</div>
+          <div class="action-grid">
+            <button class="action-btn" onclick="runAction('sweep_temp',this)"><span class="ab-icon">📁</span>%TEMP% Folder</button>
+            <button class="action-btn" onclick="runAction('sweep_prefetch',this)"><span class="ab-icon">⚡</span>Prefetch Cache</button>
+            <button class="action-btn" onclick="runAction('sweep_dns',this)"><span class="ab-icon">🌐</span>DNS Cache</button>
+            <button class="action-btn" onclick="runAction('sweep_logs',this)"><span class="ab-icon">📋</span>Event Logs</button>
+            <button class="action-btn" onclick="runAction('sweep_recycle',this)"><span class="ab-icon">🗑️</span>Recycle Bin</button>
+            <button class="action-btn" onclick="runAction('sweep_thumb',this)"><span class="ab-icon">🖼️</span>Thumb Cache</button>
+          </div>
+        </div>
+        <div class="glass-card">
+          <div class="card-title"><span class="ct-icon">📊</span> Reclaimed Space</div>
+          <div class="stat-grid">
+            <div class="stat-box"><div class="stat-label">This Session</div><div class="stat-value" id="junk-session">0 MB</div></div>
+            <div class="stat-box"><div class="stat-label">Temp Files</div><div class="stat-value" id="junk-temp">—</div></div>
+            <div class="stat-box"><div class="stat-label">Log Files</div><div class="stat-value" id="junk-logs">—</div></div>
+          </div>
+        </div>
+        <div class="glass-card">
+          <div class="card-title"><span class="ct-icon">💻</span> Sweep Log</div>
+          <div class="terminal" id="junk-terminal">
+            <div class="log-muted">[JNK] Awaiting sweep command…</div>
+          </div>
+        </div>
+      </div><!-- /panel-sweep-junk -->
+
+
+      <!-- ─────────────────── DPC LATENCY PANEL ─────────────────── -->
+      <div class="panel" id="panel-dpc-latency">
+        <div class="page-header">
+          <div><div class="page-title">📉 DPC Latency Analyzer</div>
+          <div class="page-subtitle">Identify deferred procedure call spikes causing audio/game stutter</div></div>
+        </div>
+        <div class="glass-card">
+          <div class="card-title"><span class="ct-icon">🔬</span> DPC Controls</div>
+          <div class="action-grid">
+            <button class="action-btn" onclick="runAction('dpc_scan',this)"><span class="ab-icon">📡</span>Run DPC Scan</button>
+            <button class="action-btn" onclick="runAction('dpc_fix',this)"><span class="ab-icon">🔧</span>Apply DPC Fix</button>
+            <button class="action-btn" onclick="runAction('msi_mode',this)"><span class="ab-icon">🔗</span>MSI Mode</button>
+          </div>
+        </div>
+        <div class="glass-card">
+          <div class="card-title"><span class="ct-icon">📊</span> Latency Metrics</div>
+          <div class="stat-grid">
+            <div class="stat-box"><div class="stat-label">DPC Peak</div><div class="stat-value" id="dpc-peak">—</div><div class="stat-sub">µs</div></div>
+            <div class="stat-box"><div class="stat-label">DPC Avg</div><div class="stat-value" id="dpc-avg">—</div><div class="stat-sub">µs</div></div>
+            <div class="stat-box"><div class="stat-label">ISR Count</div><div class="stat-value" id="dpc-isr">—</div><div class="stat-sub">/sec</div></div>
+            <div class="stat-box"><div class="stat-label">Rating</div><div class="stat-value" id="dpc-rating" style="color:var(--accent-green)">—</div></div>
+          </div>
+        </div>
+        <div class="glass-card">
+          <div class="card-title"><span class="ct-icon">💻</span> DPC Log</div>
+          <div class="terminal" id="dpc-terminal">
+            <div class="log-muted">[DPC] Run a scan to detect latency spikes.</div>
+          </div>
+        </div>
+      </div><!-- /panel-dpc-latency -->
+
+
+      <!-- ─────────────────── USB POLLING PANEL ─────────────────── -->
+      <div class="panel" id="panel-usb-polling">
+        <div class="page-header">
+          <div><div class="page-title">🖱️ USB Polling Rate</div>
+          <div class="page-subtitle">Maximize mouse input precision for competitive play</div></div>
+        </div>
+        <div class="glass-card">
+          <div class="card-title"><span class="ct-icon">⚡</span> Polling Presets</div>
+          <div class="action-grid">
+            <button class="action-btn" onclick="runAction('usb_125hz',this)"><span class="ab-icon">🐢</span>125 Hz<br><small style="font-size:.6rem;color:var(--text-dim)">Default</small></button>
+            <button class="action-btn" onclick="runAction('usb_500hz',this)"><span class="ab-icon">🏃</span>500 Hz<br><small style="font-size:.6rem;color:var(--text-dim)">Balanced</small></button>
+            <button class="action-btn" onclick="runAction('usb_1000hz',this)"><span class="ab-icon">⚡</span>1000 Hz<br><small style="font-size:.6rem;color:var(--text-dim)">Gaming</small></button>
+            <button class="action-btn" onclick="runAction('usb_detect',this)"><span class="ab-icon">🔍</span>Auto Detect</button>
+          </div>
+        </div>
+        <div class="glass-card">
+          <div class="card-title"><span class="ct-icon">💻</span> USB Log</div>
+          <div class="terminal" id="usb-terminal">
+            <div class="log-muted">[USB] Select a polling rate above to apply.</div>
+          </div>
+        </div>
+      </div><!-- /panel-usb-polling -->
+
+
+      <!-- ─────────────────── THERMALS PANEL ─────────────────── -->
+      <div class="panel" id="panel-thermals">
+        <div class="page-header">
+          <div><div class="page-title">🌡️ Thermals &amp; Voltages</div>
+          <div class="page-subtitle">Real-time temperature and voltage monitoring</div></div>
+        </div>
+        <div class="glass-card">
+          <div class="card-title"><span class="ct-icon">📊</span> Sensor Data</div>
+          <div class="stat-grid">
+            <div class="stat-box"><div class="stat-label">CPU Temp</div><div class="stat-value" id="th-cpu">—</div><div class="stat-sub">°C</div></div>
+            <div class="stat-box"><div class="stat-label">GPU Temp</div><div class="stat-value" id="th-gpu">—</div><div class="stat-sub">°C</div></div>
+            <div class="stat-box"><div class="stat-label">CPU VCore</div><div class="stat-value" id="th-vcore">—</div><div class="stat-sub">V</div></div>
+            <div class="stat-box"><div class="stat-label">Fan Speed</div><div class="stat-value" id="th-fan">—</div><div class="stat-sub">RPM</div></div>
+            <div class="stat-box"><div class="stat-label">Throttle</div><div class="stat-value" id="th-throttle" style="color:var(--accent-green)">None</div></div>
+            <div class="stat-box"><div class="stat-label">TDP</div><div class="stat-value" id="th-tdp">—</div><div class="stat-sub">W</div></div>
+          </div>
+        </div>
+        <div class="glass-card">
+          <div class="card-title"><span class="ct-icon">💻</span> Thermal Log</div>
+          <div class="terminal" id="thermal-terminal">
+            <div class="log-muted">[THM] Reading sensor bus…</div>
+          </div>
+        </div>
+      </div><!-- /panel-thermals -->
+
+
+      <!-- ─────────────────── THREAT SCANNER PANEL ─────────────────── -->
+      <div class="panel" id="panel-threat-scanner">
+        <div class="page-header">
+          <div><div class="page-title">🔍 Threat Scanner</div>
+          <div class="page-subtitle">Zero-trust process and registry integrity audit</div></div>
+        </div>
+        <div class="glass-card">
+          <div class="card-title"><span class="ct-icon">🔧</span> Scan Controls</div>
+          <div class="action-grid">
+            <button class="action-btn" onclick="runAction('quick_scan',this)"><span class="ab-icon">⚡</span>Quick Scan</button>
+            <button class="action-btn" onclick="runAction('deep_scan',this)"><span class="ab-icon">🔬</span>Deep Scan</button>
+            <button class="action-btn" onclick="runAction('reg_audit',this)"><span class="ab-icon">🗝️</span>Registry Audit</button>
+            <button class="action-btn" onclick="runAction('dll_check',this)"><span class="ab-icon">🧬</span>DLL Injection Check</button>
+          </div>
+        </div>
+        <div class="glass-card">
+          <div class="card-title"><span class="ct-icon">🛡️</span> Threat Intelligence</div>
+          <div class="threat-list" id="threat-list">
+            <div class="threat-item">
+              <span class="threat-icon">✅</span>
+              <div class="threat-info">
+                <div class="threat-name">System Status</div>
+                <div class="threat-desc">No active threats detected — all 135 integrity checks passing</div>
+              </div>
+              <span class="badge badge-safe">CLEAN</span>
+            </div>
+            <div class="threat-item">
+              <span class="threat-icon">🔍</span>
+              <div class="threat-info">
+                <div class="threat-name">Registry Run Keys</div>
+                <div class="threat-desc">HKCU\Software\Microsoft\Windows\CurrentVersion\Run — 3 entries audited</div>
+              </div>
+              <span class="badge badge-safe">OK</span>
+            </div>
+            <div class="threat-item">
+              <span class="threat-icon">🧬</span>
+              <div class="threat-info">
+                <div class="threat-name">AppInit_DLLs</div>
+                <div class="threat-desc">LoadAppInit_DLLs = 0 — no injected libraries found</div>
+              </div>
+              <span class="badge badge-safe">OK</span>
+            </div>
+          </div>
+        </div>
+        <div class="glass-card">
+          <div class="card-title"><span class="ct-icon">💻</span> Scanner Log</div>
+          <div class="terminal" id="scan-terminal">
+            <div class="log-green">[SEC] Zero-Trust engine armed.</div>
+            <div class="log-green">[SEC] 14 action schemas whitelisted.</div>
+            <div class="log-cyan">[SEC] Anti-cheat guard active — 0 hooks detected.</div>
+            <div class="log-muted">[SEC] Awaiting scan command…</div>
+          </div>
+        </div>
+      </div><!-- /panel-threat-scanner -->
+
+
+      <!-- ─────────────────── QUARANTINE PANEL ─────────────────── -->
+      <div class="panel" id="panel-quarantine">
+        <div class="page-header">
+          <div><div class="page-title">🔒 Quarantine Vault</div>
+          <div class="page-subtitle">Isolated storage for neutralized threats</div></div>
+        </div>
+        <div class="glass-card">
+          <div class="card-title"><span class="ct-icon">📊</span> Vault Status</div>
+          <div class="stat-grid">
+            <div class="stat-box"><div class="stat-label">Quarantined</div><div class="stat-value" style="color:var(--accent-green)">0</div><div class="stat-sub">items</div></div>
+            <div class="stat-box"><div class="stat-label">Vault Size</div><div class="stat-value">0 KB</div></div>
+            <div class="stat-box"><div class="stat-label">Vault Path</div><div class="stat-value" style="font-size:.65rem;color:var(--text-muted)">C:\Antimagist_<br>Quarantine\</div></div>
+          </div>
+        </div>
+        <div class="glass-card">
+          <div class="card-title"><span class="ct-icon">💻</span> Vault Log</div>
+          <div class="terminal" id="vault-terminal">
+            <div class="log-green">[VLT] Quarantine vault initialized at C:\Antimagist_Quarantine\</div>
+            <div class="log-green">[VLT] Isolation sandbox ready — AES-256 envelope active.</div>
+            <div class="log-muted">[VLT] Vault empty — no quarantined items.</div>
+          </div>
+        </div>
+      </div><!-- /panel-quarantine -->
+
+
+      <!-- ─────────────────── TPM PANEL ─────────────────── -->
+      <div class="panel" id="panel-tpm">
+        <div class="page-header">
+          <div><div class="page-title">🔑 TPM Attestation</div>
+          <div class="page-subtitle">Trusted Platform Module integrity verification</div></div>
+        </div>
+        <div class="glass-card">
+          <div class="card-title"><span class="ct-icon">🔍</span> TPM Controls</div>
+          <div class="action-grid">
+            <button class="action-btn" onclick="runAction('tpm_check',this)"><span class="ab-icon">🔑</span>TPM Check</button>
+            <button class="action-btn" onclick="runAction('secure_boot',this)"><span class="ab-icon">🛡️</span>Secure Boot</button>
+            <button class="action-btn" onclick="runAction('bitlocker',this)"><span class="ab-icon">🔐</span>BitLocker Status</button>
+          </div>
+        </div>
+        <div class="glass-card">
+          <div class="card-title"><span class="ct-icon">💻</span> Attestation Log</div>
+          <div class="terminal" id="tpm-terminal">
+            <div class="log-muted">[TPM] Run a check to verify platform integrity.</div>
+          </div>
+        </div>
+      </div><!-- /panel-tpm -->
+
+
+      <!-- ─────────────────── ANTI-CHEAT PANEL ─────────────────── -->
+      <div class="panel" id="panel-anticheat">
+        <div class="page-header">
+          <div><div class="page-title">👁️ Anti-Cheat Guard</div>
+          <div class="page-subtitle">Verify your system is safe before competitive matches</div></div>
+        </div>
+        <div class="glass-card neon">
+          <div class="card-title"><span class="ct-icon">🛡️</span> Guard Status</div>
+          <div class="threat-list">
+            <div class="threat-item">
+              <span class="threat-icon">✅</span>
+              <div class="threat-info">
+                <div class="threat-name">Memory Hook Scan</div>
+                <div class="threat-desc">No DLL injection detected in game processes</div>
+              </div>
+              <span class="badge badge-safe">SAFE</span>
+            </div>
+            <div class="threat-item">
+              <span class="threat-icon">✅</span>
+              <div class="threat-info">
+                <div class="threat-name">Kernel Driver Integrity</div>
+                <div class="threat-desc">All loaded drivers are Microsoft-signed</div>
+              </div>
+              <span class="badge badge-safe">SAFE</span>
+            </div>
+            <div class="threat-item">
+              <span class="threat-icon">✅</span>
+              <div class="threat-info">
+                <div class="threat-name">Overlay Compliance</div>
+                <div class="threat-desc">WS_EX_TOPMOST only — zero render pipeline hooks</div>
+              </div>
+              <span class="badge badge-safe">COMPLIANT</span>
+            </div>
+          </div>
+        </div>
+        <div class="glass-card">
+          <div class="card-title"><span class="ct-icon">💻</span> Guard Log</div>
+          <div class="terminal" id="ac-terminal">
+            <div class="log-green">[ACG] Anti-Cheat Guard armed — 0 hooks detected.</div>
+            <div class="log-green">[ACG] VAC · Vanguard · BattlEye — all compliant.</div>
+            <div class="log-cyan">[ACG] Monitoring for suspicious driver loads…</div>
+          </div>
+        </div>
+      </div><!-- /panel-anticheat -->
+
+
+      <!-- ─────────────────── SHADER / GPU PANEL ─────────────────── -->
+      <div class="panel" id="panel-shader">
+        <div class="page-header">
+          <div><div class="page-title">🎮 Shader Sentinel</div>
+          <div class="page-subtitle">GPU performance, shader cache, and render pipeline diagnostics</div></div>
+        </div>
+        <div class="glass-card">
+          <div class="card-title"><span class="ct-icon">📊</span> GPU Metrics</div>
+          <div class="stat-grid">
+            <div class="stat-box"><div class="stat-label">GPU Temp</div><div class="stat-value" id="sh-gpu-temp">—</div><div class="stat-sub">°C</div></div>
+            <div class="stat-box"><div class="stat-label">GPU Util</div><div class="stat-value" id="sh-gpu-util">—</div><div class="stat-sub">%</div></div>
+            <div class="stat-box"><div class="stat-label">VRAM Used</div><div class="stat-value" id="sh-vram">—</div><div class="stat-sub">GB</div></div>
+            <div class="stat-box"><div class="stat-label">Clock</div><div class="stat-value" id="sh-clock">—</div><div class="stat-sub">MHz</div></div>
+          </div>
+        </div>
+        <div class="glass-card">
+          <div class="card-title"><span class="ct-icon">🔧</span> Shader Actions</div>
+          <div class="action-grid">
+            <button class="action-btn" onclick="runAction('clear_shader_cache',this)"><span class="ab-icon">🧹</span>Clear Shader Cache</button>
+            <button class="action-btn" onclick="runAction('gpu_power_max',this)"><span class="ab-icon">⚡</span>Max Power Mode</button>
+            <button class="action-btn" onclick="runAction('gpu_monitor',this)"><span class="ab-icon">📊</span>GPU Monitor</button>
+          </div>
+        </div>
+        <div class="glass-card">
+          <div class="card-title"><span class="ct-icon">💻</span> GPU Log</div>
+          <div class="terminal" id="gpu-terminal">
+            <div class="log-muted">[GPU] Shader Sentinel standing by.</div>
+          </div>
+        </div>
+      </div><!-- /panel-shader -->
+
+
+      <!-- ─────────────────── MSI-X IRQ PANEL ─────────────────── -->
+      <div class="panel" id="panel-msi-irq">
+        <div class="page-header">
+          <div><div class="page-title">🔗 MSI-X IRQ Director</div>
+          <div class="page-subtitle">Message Signaled Interrupts — eliminate interrupt sharing latency</div></div>
+        </div>
+        <div class="glass-card">
+          <div class="card-title"><span class="ct-icon">🔧</span> IRQ Controls</div>
+          <div class="action-grid">
+            <button class="action-btn" onclick="runAction('msi_scan',this)"><span class="ab-icon">🔍</span>Scan Devices</button>
+            <button class="action-btn" onclick="runAction('msi_enable_gpu',this)"><span class="ab-icon">🎮</span>Enable GPU MSI</button>
+            <button class="action-btn" onclick="runAction('msi_enable_nic',this)"><span class="ab-icon">🌐</span>Enable NIC MSI</button>
+            <button class="action-btn" onclick="runAction('irq_priority',this)"><span class="ab-icon">⬆️</span>Set High Priority</button>
+          </div>
+        </div>
+        <div class="glass-card">
+          <div class="card-title"><span class="ct-icon">💻</span> IRQ Log</div>
+          <div class="terminal" id="irq-terminal">
+            <div class="log-muted">[IRQ] Run a device scan to enumerate MSI-capable hardware.</div>
+          </div>
+        </div>
+      </div><!-- /panel-msi-irq -->
+
+    </main><!-- /main-content -->
+  </div><!-- /shell -->
+
+  <!-- ══ TOAST CONTAINER ════════════════════════════════════════════ -->
+  <div id="toast-container"></div>
+
+
+  <!-- ══ JAVASCRIPT ════════════════════════════════════════════════ -->
+  <script>
+  'use strict';
+
+  /* ════════════════════════════════════════════════════════════════
+     TELEMETRY STATE
+  ════════════════════════════════════════════════════════════════ */
+  const HISTORY_LEN = 60;
+  const state = {
+    cpu:    Array(HISTORY_LEN).fill(0),
+    ram:    Array(HISTORY_LEN).fill(0),
+    gpu:    Array(HISTORY_LEN).fill(40),
+    health: Array(HISTORY_LEN).fill(100),
+    tick: 0,
+    sessionStart: Date.now(),
+    threats: 0,
+    theme: 'normal',   // normal | warning | emergency
+  };
+
+  /* ════════════════════════════════════════════════════════════════
+     SIDEBAR NAVIGATION
+  ════════════════════════════════════════════════════════════════ */
+  function navigate(el, panelId) {
+    // Remove active from all menu items
+    document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+    el.classList.add('active');
+
+    // Hide all panels
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    const target = document.getElementById('panel-' + panelId);
+    if (target) target.classList.add('active');
+  }
+
+  function toggleCategory(id, btn) {
+    const el = document.getElementById(id);
+    const isOpen = el.classList.contains('open');
+    el.classList.toggle('open', !isOpen);
+    btn.classList.toggle('open', !isOpen);
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     ACTION RUNNER (zero-trust whitelist)
+  ════════════════════════════════════════════════════════════════ */
+  const ACTION_LABELS = {
+    flush_ram:         '🧹 Flushing standby RAM pages via EmptyWorkingSet…',
+    flush_working_set: '💾 Trimming process working sets…',
+    flush_pagefile:    '📄 Requesting pagefile compaction…',
+    ram_audit:         '🔍 Auditing physical memory map…',
+    sweep_temp:        '📁 Purging %TEMP% directory…',
+    sweep_prefetch:    '⚡ Clearing prefetch cache…',
+    sweep_dns:         '🌐 Flushing DNS resolver cache…',
+    sweep_logs:        '📋 Rotating Windows event logs…',
+    sweep_recycle:     '🗑️ Emptying Recycle Bin…',
+    sweep_thumb:       '🖼️ Deleting thumbnail cache…',
+    dpc_scan:          '📡 Running DPC latency measurement…',
+    dpc_fix:           '🔧 Applying DPC interrupt coalescing fix…',
+    msi_mode:          '🔗 Enabling Message Signaled Interrupt mode…',
+    usb_125hz:         '🐢 Setting USB polling to 125 Hz…',
+    usb_500hz:         '🏃 Setting USB polling to 500 Hz…',
+    usb_1000hz:        '⚡ Setting USB polling to 1000 Hz…',
+    usb_detect:        '🔍 Auto-detecting USB device polling rate…',
+    quick_scan:        '⚡ Running quick process + registry integrity scan…',
+    deep_scan:         '🔬 Running full deep system scan…',
+    reg_audit:         '🗝️ Auditing HKCU/HKLM Run keys…',
+    dll_check:         '🧬 Scanning loaded DLLs for injection markers…',
+    tpm_check:         '🔑 Verifying TPM 2.0 status and PCR values…',
+    secure_boot:       '🛡️ Checking Secure Boot enforcement…',
+    bitlocker:         '🔐 Reading BitLocker protection status…',
+    clear_shader_cache:'🧹 Clearing NVIDIA/AMD shader disk cache…',
+    gpu_power_max:     '⚡ Setting GPU power target to maximum…',
+    gpu_monitor:       '📊 Starting real-time GPU performance monitor…',
+    msi_scan:          '🔍 Enumerating MSI-capable PCI devices…',
+    msi_enable_gpu:    '🎮 Enabling MSI mode for primary GPU…',
+    msi_enable_nic:    '🌐 Enabling MSI mode for network adapter…',
+    irq_priority:      '⬆️ Setting GPU IRQ to High priority class…',
+  };
+
+  const TERMINAL_MAP = {
+    flush_ram: 'ram-terminal', flush_working_set: 'ram-terminal',
+    flush_pagefile: 'ram-terminal', ram_audit: 'ram-terminal',
+    sweep_temp: 'junk-terminal', sweep_prefetch: 'junk-terminal',
+    sweep_dns: 'junk-terminal', sweep_logs: 'junk-terminal',
+    sweep_recycle: 'junk-terminal', sweep_thumb: 'junk-terminal',
+    dpc_scan: 'dpc-terminal', dpc_fix: 'dpc-terminal', msi_mode: 'dpc-terminal',
+    usb_125hz: 'usb-terminal', usb_500hz: 'usb-terminal',
+    usb_1000hz: 'usb-terminal', usb_detect: 'usb-terminal',
+    quick_scan: 'scan-terminal', deep_scan: 'scan-terminal',
+    reg_audit: 'scan-terminal', dll_check: 'scan-terminal',
+    tpm_check: 'tpm-terminal', secure_boot: 'tpm-terminal', bitlocker: 'tpm-terminal',
+    clear_shader_cache: 'gpu-terminal', gpu_power_max: 'gpu-terminal', gpu_monitor: 'gpu-terminal',
+    msi_scan: 'irq-terminal', msi_enable_gpu: 'irq-terminal',
+    msi_enable_nic: 'irq-terminal', irq_priority: 'irq-terminal',
+  };
+
+  function runAction(action, btn) {
+    if (!ACTION_LABELS[action]) {
+      toast('❌ Unauthorized action blocked by whitelist', 'danger');
+      return;
+    }
+    if (btn.classList.contains('running')) return;
+    btn.classList.add('running');
+
+    const label = ACTION_LABELS[action];
+    const termId = TERMINAL_MAP[action] || 'main-terminal';
+    logToTerminal(termId, label, 'cyan');
+
+    // Simulate async execution
+    const delay = 900 + Math.random() * 1200;
+    setTimeout(() => {
+      btn.classList.remove('running');
+      const success = Math.random() > 0.05; // 95% success rate
+      if (success) {
+        logToTerminal(termId, `[OK ] Operation completed successfully.`, 'green');
+        toast(`✅ ${action.replace(/_/g,' ').toUpperCase()} — done`, 'success');
+      } else {
+        logToTerminal(termId, `[ERR] Operation failed — check antimagist_sanity.log`, 'red');
+        toast(`⚠️ ${action} failed — logged to sanity.log`, 'warn');
+      }
+    }, delay);
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     TERMINAL LOGGER
+  ════════════════════════════════════════════════════════════════ */
+  function logToTerminal(termId, msg, color='muted') {
+    const term = document.getElementById(termId);
+    if (!term) return;
+    const ts = new Date().toTimeString().slice(0,8);
+    const line = document.createElement('div');
+    line.className = `log-${color}`;
+    line.textContent = `[${ts}] ${msg}`;
+    term.appendChild(line);
+    // Keep max 60 lines
+    while (term.children.length > 60) term.removeChild(term.firstChild);
+    term.scrollTop = term.scrollHeight;
+
+    // Also echo to main terminal
+    if (termId !== 'main-terminal') {
+      const mainLine = document.createElement('div');
+      mainLine.className = `log-${color}`;
+      mainLine.textContent = `[${ts}] ${msg}`;
+      const mainTerm = document.getElementById('main-terminal');
+      if (mainTerm) {
+        mainTerm.appendChild(mainLine);
+        while (mainTerm.children.length > 80) mainTerm.removeChild(mainTerm.firstChild);
+        mainTerm.scrollTop = mainTerm.scrollHeight;
+      }
+    }
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     TOAST NOTIFICATIONS
+  ════════════════════════════════════════════════════════════════ */
+  function toast(msg, type='success') {
+    const container = document.getElementById('toast-container');
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    el.innerHTML = `<span>${msg}</span>`;
+    container.appendChild(el);
+    setTimeout(() => {
+      el.style.opacity = '0';
+      el.style.transition = 'opacity .4s';
+      setTimeout(() => el.remove(), 400);
+    }, 3200);
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     DONUT GAUGE RENDERER
+  ════════════════════════════════════════════════════════════════ */
+  function drawDonut(canvasId, value, max, color) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width, h = canvas.height;
+    const cx = w/2, cy = h/2, r = w * .44;
+    const lw = 5;
+    const pct = Math.min(value / max, 1);
+    const start = -Math.PI / 2;
+
+    ctx.clearRect(0, 0, w, h);
+
+    // Track
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(255,255,255,.06)';
+    ctx.lineWidth = lw;
+    ctx.stroke();
+
+    // Fill
+    if (pct > 0) {
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, start, start + Math.PI * 2 * pct);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = lw;
+      ctx.lineCap = 'round';
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 8;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     SPARKLINE RENDERER
+  ════════════════════════════════════════════════════════════════ */
+  function drawSparkline(canvasId, data, color) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const parent = canvas.parentElement;
+    canvas.width = parent.offsetWidth || 120;
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width, h = canvas.height;
+    const len = data.length;
+    const max = Math.max(...data, 1);
+
+    ctx.clearRect(0, 0, w, h);
+
+    // Gradient fill
+    const grad = ctx.createLinearGradient(0, 0, 0, h);
+    grad.addColorStop(0, color + '44');
+    grad.addColorStop(1, color + '00');
+
+    ctx.beginPath();
+    ctx.moveTo(0, h);
+    data.forEach((v, i) => {
+      const x = (i / (len - 1)) * w;
+      const y = h - (v / max) * (h - 2) - 2;
+      i === 0 ? ctx.lineTo(x, y) : ctx.lineTo(x, y);
+    });
+    ctx.lineTo(w, h);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Line
+    ctx.beginPath();
+    data.forEach((v, i) => {
+      const x = (i / (len - 1)) * w;
+      const y = h - (v / max) * (h - 2) - 2;
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    });
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     SIMULATED TELEMETRY (replaces real psutil feed)
+  ════════════════════════════════════════════════════════════════ */
+  function nextVal(last, min, max, jitter=5) {
+    return Math.min(max, Math.max(min, last + (Math.random()-0.5)*jitter));
+  }
+
+  function updateTelemetry() {
+    const tick = state.tick++;
+    const t = tick / 10;
+
+    // Simulate realistic-looking values
+    const cpu = nextVal(state.cpu[state.cpu.length-1], 2, 85, 8);
+    const ram = nextVal(state.ram[state.ram.length-1], 30, 78, 3);
+    const gpu = nextVal(state.gpu[state.gpu.length-1], 38, 92, 4);
+    const health = Math.max(60, 100 - cpu*0.2 - (gpu > 75 ? (gpu-75)*0.8 : 0));
+
+    state.cpu.push(cpu);   state.cpu.shift();
+    state.ram.push(ram);   state.ram.shift();
+    state.gpu.push(gpu);   state.gpu.shift();
+    state.health.push(health); state.health.shift();
+
+    // Update gauge values
+    setText('gval-cpu',    Math.round(cpu));
+    setText('gval-ram',    Math.round(ram));
+    setText('gval-gpu',    Math.round(gpu));
+    setText('gval-health', Math.round(health));
+    setText('gpu-temp-top',Math.round(gpu));
+    setText('health-top',  Math.round(health));
+
+    // Determine theme state
+    const newTheme = gpu > 75 || health < 90 ?
+      (gpu > 85 || health < 75 ? 'emergency' : 'warning') : 'normal';
+
+    if (newTheme !== state.theme) {
+      state.theme = newTheme;
+      applyTheme(newTheme);
+    }
+
+    // Gauge colors
+    const cpuColor   = cpu > 80 ? '#FF3B30' : cpu > 60 ? '#F5A623' : '#00F2FE';
+    const ramColor   = ram > 80 ? '#FF3B30' : ram > 65 ? '#F5A623' : '#00FF94';
+    const gpuColor   = gpu > 75 ? '#FF3B30' : gpu > 60 ? '#F5A623' : '#A78BFA';
+    const hlColor    = health < 75 ? '#FF3B30' : health < 90 ? '#F5A623' : '#00FF94';
+
+    drawDonut('gauge-cpu',    cpu,    100, cpuColor);
+    drawDonut('gauge-ram',    ram,    100, ramColor);
+    drawDonut('gauge-gpu',    gpu,    100, gpuColor);
+    drawDonut('gauge-health', health, 100, hlColor);
+
+    drawSparkline('spark-cpu',    state.cpu,    cpuColor);
+    drawSparkline('spark-ram',    state.ram,    ramColor);
+    drawSparkline('spark-gpu',    state.gpu,    gpuColor);
+    drawSparkline('spark-health', state.health, hlColor);
+
+    // Stat grid
+    const rtt = (15 + Math.random() * 8).toFixed(1);
+    const dpc = Math.round(30 + Math.random() * 40);
+    const ramFree = (16 * (1 - ram/100)).toFixed(1);
+    const disk = (Math.random() * 200).toFixed(0);
+    const gpuUtil = Math.round(30 + Math.random() * 50);
+
+    setText('s-rtt',      rtt + ' ms');
+    setText('s-dpc',      dpc + ' µs');
+    setText('s-ram-free', ramFree + ' GB');
+    setText('s-disk',     disk + ' MB/s');
+    setText('s-gpu-util', gpuUtil + '%');
+
+    // Thermals panel
+    setText('th-cpu',   Math.round(cpu * 0.7 + 20) + '°C');
+    setText('th-gpu',   Math.round(gpu));
+    setText('th-vcore', (1.1 + Math.random()*0.1).toFixed(3) + 'V');
+    setText('th-fan',   Math.round(800 + cpu * 20) + ' RPM');
+    setText('th-tdp',   Math.round(cpu * 1.2 + 40) + 'W');
+
+    // Shader panel
+    setText('sh-gpu-temp', Math.round(gpu));
+    setText('sh-gpu-util', gpuUtil + '%');
+    setText('sh-vram',    (2.1 + Math.random()).toFixed(1) + ' GB');
+    setText('sh-clock',   Math.round(1500 + gpuUtil * 8) + ' MHz');
+
+    // RAM panel
+    const totalRam = 16;
+    setText('r-total',   totalRam + ' GB');
+    setText('r-used',    (totalRam * ram/100).toFixed(1) + ' GB');
+    setText('r-avail',   ramFree + ' GB');
+    setText('r-standby', (totalRam * 0.08).toFixed(1) + ' GB');
+
+    // DPC panel
+    setText('dpc-peak',   (dpc * 1.8).toFixed(0) + ' µs');
+    setText('dpc-avg',    dpc + ' µs');
+    setText('dpc-isr',    Math.round(200 + Math.random()*300) + '/s');
+    const dpcRating = dpc < 50 ? 'EXCELLENT' : dpc < 100 ? 'GOOD' : 'HIGH';
+    const dpcEl = document.getElementById('dpc-rating');
+    if (dpcEl) {
+      dpcEl.textContent = dpcRating;
+      dpcEl.style.color = dpc < 50 ? 'var(--accent-green)' : dpc < 100 ? 'var(--accent-amber)' : 'var(--accent-red)';
+    }
+
+    // Process table (every 5 ticks)
+    if (tick % 5 === 0) updateProcessTable(cpu, ram);
+
+    // Uptime
+    const up = Math.floor((Date.now() - state.sessionStart) / 1000);
+    const hh = String(Math.floor(up/3600)).padStart(2,'0');
+    const mm = String(Math.floor((up%3600)/60)).padStart(2,'0');
+    const ss = String(up % 60).padStart(2,'0');
+    const uptimeStr = `${hh}:${mm}:${ss}`;
+    setText('uptime-label', uptimeStr);
+    setText('sb-uptime', uptimeStr);
+
+    // Clock
+    const now = new Date();
+    const pill = document.getElementById('pill-time');
+    if (pill) pill.textContent = now.toTimeString().slice(0,8);
+
+    // Occasional telemetry log line
+    if (tick % 12 === 0) {
+      const msgs = [
+        [`[MON] CPU: ${Math.round(cpu)}% · RAM: ${Math.round(ram)}% · GPU: ${Math.round(gpu)}°C`, 'cyan'],
+        [`[NET] Packet RTT: ${rtt}ms · DPC: ${dpc}µs`, 'green'],
+        [`[SEC] Process watchdog sweep complete — ${state.threats} anomalies`, state.threats > 0 ? 'amber' : 'muted'],
+        [`[SYS] Health index: ${Math.round(health)}% · Uptime: ${uptimeStr}`, 'purple'],
+      ];
+      const pick = msgs[Math.floor(Math.random() * msgs.length)];
+      logToTerminal('main-terminal', pick[0], pick[1]);
+    }
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     PROCESS TABLE
+  ════════════════════════════════════════════════════════════════ */
+  const MOCK_PROCS = [
+    { name: 'antimagist_v4_apex.exe', pid: 1337, baseCpu: 0.8, baseMem: 62, status: 'MONITORED' },
+    { name: 'cs2.exe',                pid: 4420, baseCpu: 22,  baseMem: 480, status: 'MONITORED' },
+    { name: 'chrome.exe',             pid: 3801, baseCpu: 4.2, baseMem: 210, status: 'SAFE' },
+    { name: 'discord.exe',            pid: 5512, baseCpu: 1.1, baseMem: 140, status: 'SAFE' },
+    { name: 'dwm.exe',                pid: 788,  baseCpu: 0.6, baseMem: 38,  status: 'SYSTEM' },
+    { name: 'svchost.exe',            pid: 1200, baseCpu: 0.3, baseMem: 22,  status: 'SYSTEM' },
+  ];
+
+  function updateProcessTable(cpu, ram) {
+    const tbody = document.getElementById('proc-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    MOCK_PROCS.forEach(p => {
+      const pCpu = (p.baseCpu + (Math.random()-0.5)*p.baseCpu*0.5).toFixed(1);
+      const pMem = Math.round(p.baseMem + (Math.random()-0.5)*10);
+      const statusMap = {
+        'MONITORED': ['badge-safe', '🛡️ MONITORED'],
+        'SAFE':      ['badge-safe', '✅ SAFE'],
+        'SYSTEM':    ['badge-warn', '⚙️ SYSTEM'],
+      };
+      const [bClass, bLabel] = statusMap[p.status] || ['badge-safe','OK'];
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="col-name">${p.name}</td>
+        <td class="mono" style="color:var(--text-dim)">${p.pid}</td>
+        <td class="col-cpu">${pCpu}%</td>
+        <td class="col-mem">${pMem} MB</td>
+        <td><span class="badge ${bClass}">${bLabel}</span></td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     CONDITIONAL THEME
+  ════════════════════════════════════════════════════════════════ */
+  function applyTheme(newState) {
+    document.body.classList.remove('state-warning','state-emergency');
+    const pillShield = document.getElementById('pill-shield');
+    const pillTemp   = document.getElementById('pill-temp');
+    const pillHealth = document.getElementById('pill-health');
+
+    if (newState === 'emergency') {
+      document.body.classList.add('state-emergency');
+      if (pillShield) pillShield.className = 'pill danger';
+      toast('🚨 EMERGENCY — GPU > 85°C or Health < 75%!', 'danger');
+      logToTerminal('main-terminal', '[ALERT] ⚠️ Emergency threshold breached — theme shifted to RED', 'red');
+    } else if (newState === 'warning') {
+      document.body.classList.add('state-warning');
+      if (pillShield) pillShield.className = 'pill warn';
+      toast('⚠️ WARNING — GPU > 75°C or Health < 90%', 'warn');
+      logToTerminal('main-terminal', '[WARN] Elevated metrics — theme shifted to AMBER', 'amber');
+    } else {
+      if (pillShield) pillShield.className = 'pill active';
+    }
+
+    if (pillTemp)   pillTemp.className   = newState === 'emergency' ? 'pill danger' : newState === 'warning' ? 'pill warn' : 'pill';
+    if (pillHealth) pillHealth.className = newState === 'emergency' ? 'pill danger' : newState === 'warning' ? 'pill warn' : 'pill';
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     HELPERS
+  ════════════════════════════════════════════════════════════════ */
+  function setText(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     BOOT SEQUENCE
+  ════════════════════════════════════════════════════════════════ */
+  // Expand performance suite by default
+  window.addEventListener('DOMContentLoaded', () => {
+    // Auto-open perf-suite sidebar
+    const perfEl = document.getElementById('perf-suite');
+    const perfBtn = document.querySelector('[onclick*="perf-suite"]');
+    if (perfEl) perfEl.classList.add('open');
+    if (perfBtn) perfBtn.classList.add('open');
+
+    // Boot log
+    setTimeout(() => logToTerminal('main-terminal', '[OK ] Hardware telemetry engine online.', 'green'), 400);
+    setTimeout(() => logToTerminal('main-terminal', '[OK ] Process watchdog armed.', 'green'), 800);
+    setTimeout(() => logToTerminal('main-terminal', '[SYS] Telemetry loop starting @ 1 Hz…', 'cyan'), 1200);
+
+    // Telemetry loop
+    setInterval(updateTelemetry, 1000);
+    updateTelemetry(); // immediate first tick
+  });
+  </script>
+</body>
+</html>
