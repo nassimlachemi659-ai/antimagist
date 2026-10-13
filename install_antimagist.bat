@@ -1,0 +1,3 @@
+@echo off
+echo [*] Launching Antimagist 1-Click Setup...
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0install_antimagist.ps1"

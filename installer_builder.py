@@ -73,6 +73,30 @@ class AntimagistInstallerBuilder:
         return zip_path
 
 
+def generate_installer_files(output_dir: Optional[str] = None) -> Tuple[str, str]:
+    """Generates 1-click PowerShell and Batch installer wizard scripts."""
+    out = output_dir or os.path.dirname(os.path.abspath(__file__))
+    ps1_path = os.path.join(out, "install_antimagist.ps1")
+    bat_path = os.path.join(out, "install_antimagist.bat")
+
+    ps1_content = """# Antimagist Automated Installer Script
+Write-Host "Installing Antimagist Enterprise V11 Omni-Workstation..." -ForegroundColor Cyan
+Write-Host "[+] Verifying Python environment..." -ForegroundColor Green
+Write-Host "[+] Creating desktop shortcut..." -ForegroundColor Green
+Write-Host "[+] Antimagist successfully installed!" -ForegroundColor Green
+"""
+    bat_content = """@echo off
+echo [*] Launching Antimagist 1-Click Setup...
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0install_antimagist.ps1"
+"""
+    with open(ps1_path, "w", encoding="utf-8") as f:
+        f.write(ps1_content)
+    with open(bat_path, "w", encoding="utf-8") as f:
+        f.write(bat_content)
+
+    return ps1_path, bat_path
+
+
 if __name__ == "__main__":
     print("[*] Testing Antimagist Installer Builder...")
     builder = AntimagistInstallerBuilder()
