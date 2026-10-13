@@ -92,6 +92,8 @@ from battery_whisper import BatteryWhisperEngine
 from studio_master import StudioMasterEngine
 from privacy_scrubber import PrivacyScrubberEngine
 from storage_accelerator import StorageAcceleratorEngine
+from ultra_game_sentinel import AntimagistUltraGameSentinel
+from web_bridge_daemon import AntimagistWebBridgeDaemon
 
 # Ensure UTF-8 console output
 if hasattr(sys.stdout, "reconfigure"):
@@ -147,6 +149,8 @@ class AntimagistV4ApexApp(AntimagistV3App):
         self.studio_master = StudioMasterEngine()
         self.privacy_scrubber = PrivacyScrubberEngine()
         self.storage_accelerator = StorageAcceleratorEngine()
+        self.ultra_game_sentinel = AntimagistUltraGameSentinel()
+        self.web_bridge = AntimagistWebBridgeDaemon(port=8765)
 
         # Call base constructor
         super().__init__()
@@ -166,9 +170,14 @@ class AntimagistV4ApexApp(AntimagistV3App):
             bandwidth_meter=self.bandwidth_meter,
             gpu_sentinel=self.gpu_sentinel,
             voice_engine=self.voice,
-            port=8765
+            port=8768
         )
         self.mobile_companion.start_server()
+
+        # 3b. Start Ultra Game Sentinel & Web Bridge Daemon (Port 8765)
+        self.web_bridge = AntimagistWebBridgeDaemon(port=8765)
+        self.web_bridge.start_bridge(start_game_sentinel=False)
+        self.ultra_game_sentinel.start_sentinel()
 
         # 4. Initialize Gaming & Interactive Modules
         self.hud_overlay = AntimagistHUDOverlay(

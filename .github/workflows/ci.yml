@@ -1,4 +1,4 @@
-name: Antimagist CI Verification Suite
+name: Antimagist CI Verification & Web Deployment Suite
 
 on:
   push:
@@ -6,22 +6,17 @@ on:
   pull_request:
     branches: [ "main" ]
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Global environment — CI mock flags prevent real hardware/driver calls on
-# GitHub cloud runners.  VIRUSTOTAL_API_KEY falls back to a dummy token so
-# scanner unit-tests never crash when the secret is absent.
-# ──────────────────────────────────────────────────────────────────────────────
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
 env:
   CI: "true"
   PYTHONUNBUFFERED: "1"
-
-  # VirusTotal — user-defined secret name (from submitted workflow) + legacy alias
   VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY || 'ci_mock_virustotal_token_valid_hash_key' }}
   VT_API_KEY:         ${{ secrets.VT_API_KEY         || 'ci_mock_virustotal_token_valid_hash_key' }}
-
-  # Hardware / driver mock flags (unified: ANTIMAGIST_CI_MOCK from user's draft
-  # + ANTIMAGIST_CI_MOCK_HARDWARE / ANTIMAGIST_MOCK_DRIVERS used internally)
-  ANTIMAGIST_CI_MOCK:          "true"   # user-submitted flag (now honoured)
+  ANTIMAGIST_CI_MOCK:          "true"
   ANTIMAGIST_CI_MOCK_HARDWARE: "1"
   ANTIMAGIST_MOCK_DRIVERS:     "1"
   ANTIMAGIST_HEADLESS:         "1"
@@ -29,87 +24,78 @@ env:
 
 jobs:
   # ============================================================================
-  # JOB 1 — Security & Driver Regression Tests (Python core)
-  # Mirrors the user's "Execute Security & Driver Regression Tests" step but
-  # correctly targets the Python codebase (no Node.js project exists).
+  # JOB 1 — Master Python Verification, Regression, & Binary Build
   # ============================================================================
   verify-antimagist:
     name: "🛡️ Master Verification & Regression Suite"
     runs-on: windows-latest
 
     steps:
-      # ── 1. Checkout ──────────────────────────────────────────────────────────
       - name: Checkout Source Code
         uses: actions/checkout@v4
 
-      # ── 2. Python runtime ────────────────────────────────────────────────────
       - name: Set up Python 3.12 Environment
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
           cache: 'pip'
 
-      # ── 3. Dependencies ──────────────────────────────────────────────────────
       - name: Install Architecture Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install customtkinter pystray pillow psutil requests qrcode pywin32 keyboard
 
-      # ── 4. Windows privileges + hardware sensor mocks ────────────────────────
-      #    Equivalent of the user's "Set Execution Policy and Mock Sensors" step,
-      #    rewritten to target the Python CI environment.
       - name: Set Execution Policy and Mock Sensors
         shell: powershell
         run: |
           Set-ExecutionPolicy Bypass -Scope Process -Force
-          Write-Host "[CI] ExecutionPolicy → Bypass (Process scope)"
+          Write-Host "[CI] ExecutionPolicy -> Bypass"
 
-          # Provision quarantine directory so scanner tests never fail on mkdir
           if (-not (Test-Path "C:\Antimagist_Quarantine")) {
             New-Item -ItemType Directory -Path "C:\Antimagist_Quarantine" -Force | Out-Null
             Write-Host "[CI] C:\Antimagist_Quarantine provisioned."
           }
 
-          # Propagate mock flags into subsequent steps via GITHUB_ENV
           "ANTIMAGIST_CI_MOCK=true"          | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           "ANTIMAGIST_CI_MOCK_HARDWARE=1"    | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           "ANTIMAGIST_MOCK_DRIVERS=1"        | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           "ANTIMAGIST_HEADLESS=1"            | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           "VIRUSTOTAL_API_KEY=$env:VIRUSTOTAL_API_KEY" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          Write-Host "[CI] Low-level driver stubs and hardware telemetry sensor mocks initialized."
+          Write-Host "[CI] Telemetry mocks initialized."
 
-      # ── 5. Security & Driver Regression Tests ────────────────────────────────
-      #    Equivalent of the user's "Execute Security & Driver Regression Tests"
-      #    step — runs all Python test suites with --mock-hardware semantics
-      #    already enforced by the env vars above (no CLI flag needed).
       - name: Execute Security & Driver Regression Tests
         shell: powershell
         run: |
-          Write-Host "[CI] ── Phase 1/5: V12 Architectural Overhaul Suite ──"
+          Write-Host "[CI] -- Phase 1/6: V12 Architectural Overhaul Suite --"
           python test_v12_architectural_overhaul.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-          Write-Host "[CI] ── Phase 2/5: V2 Hardening Suite ──"
+          Write-Host "[CI] -- Phase 2/6: V2 Hardening Suite --"
           python test_v2_hardening.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-          Write-Host "[CI] ── Phase 3/5: Core V2 Sanity Audit (22-phase) ──"
+          Write-Host "[CI] -- Phase 3/6: Core V2 Sanity Audit (22-phase) --"
           python antimagist_core_v2.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-          Write-Host "[CI] ── Phase 4/5: Master V7 Suite (40 tests) ──"
+          Write-Host "[CI] -- Phase 4/6: Master V7 Suite (40 tests) --"
           python test_master_v7_suite.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-          Write-Host "[CI] ── Phase 5/5: Master V11 Suite (56 tests) ──"
+          Write-Host "[CI] -- Phase 5/6: Master V10 Suite (95 tests) --"
+          python test_master_v10_suite.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+          Write-Host "[CI] -- Phase 6/6: Master V11 Suite (106 tests) --"
           python test_master_v11_suite.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-          Write-Host "[CI] ✅ All 135 tests passed."
+          Write-Host "[CI] -- Phase 7/7: Ultra Game Sentinel & Web Bridge Test --"
+          python test_v2_ultra_smart.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-      # ── 6. Compile / package binary (V2-Core) ────────────────────────────────
-      #    Equivalent of the user's "Compile Antimagist Binary (V2-Core)" step,
-      #    using PyInstaller (the actual build tool for this Python project).
+          Write-Host "[CI] ✅ All regression suites passed."
+
       - name: Compile Antimagist Binary (V2-Core)
         shell: powershell
         run: |
@@ -118,13 +104,36 @@ jobs:
             Write-Host "[CI] Building from spec file: Antimagist_V4_Apex.spec"
             pyinstaller Antimagist_V4_Apex.spec --noconfirm
           } elseif (Test-Path "antimagist_v4_apex.py") {
-            Write-Host "[CI] No spec found — building from source: antimagist_v4_apex.py"
             pyinstaller antimagist_v4_apex.py --onefile --noconsole --noconfirm `
               --name "Antimagist_V2_Core" `
               --add-data "antimagist.ico;." `
               --hidden-import "pystray._win32" `
               --hidden-import "PIL._tkinter_finder"
           }
-          Write-Host "[CI] ✅ Binary compiled successfully."
-        continue-on-error: true   # build step is best-effort on cloud runners
-                                  # (no GPU / system tray → some stubs may warn)
+          Write-Host "[CI] ✅ Binary build completed."
+        continue-on-error: true
+
+  # ============================================================================
+  # JOB 2 — GitHub Pages Web Deployment (website/ folder)
+  # ============================================================================
+  deploy-pages:
+    name: "🌐 Deploy Web Dashboard to GitHub Pages"
+    runs-on: ubuntu-latest
+    needs: [verify-antimagist]
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'website'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

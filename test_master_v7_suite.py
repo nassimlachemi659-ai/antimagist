@@ -396,8 +396,10 @@ class TestAntimagistV7Titan(unittest.TestCase):
     def test_33_lan_sync_discovery(self):
         """Verifies V7+ Engine 4: LAN Esports Team & Tournament Synchronizer."""
         from lan_sync import AntimagistLANSync
-        sync = AntimagistLANSync(port=8791) # Isolated test port
-        sync.start_listener()
+        import random
+        test_port = random.randint(18800, 28800)
+        sync = AntimagistLANSync(port=test_port)
+        sync.start_listener(wait_ready=True)
 
         packet = sync.create_tournament_profile(
             team_name="Cloud9 Scrims",

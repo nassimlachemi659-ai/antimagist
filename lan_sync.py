@@ -40,6 +40,7 @@ class AntimagistLANSync:
         self.discovered_profiles: List[Dict[str, Any]] = []
         self.lock = threading.Lock()
         self.on_profile_received: Optional[Callable[[Dict[str, Any]], None]] = None
+        self.ready_event = threading.Event()
 
     def create_tournament_profile(
         self,
@@ -77,14 +78,17 @@ class AntimagistLANSync:
         except Exception as ex:
             return False, f"LAN broadcast error: {ex}"
 
-    def start_listener(self):
+    def start_listener(self, wait_ready: bool = True):
         """Starts background listener to capture peer tournament profile broadcasts."""
         if self.running:
             return
 
         self.running = True
+        self.ready_event.clear()
         self.listener_thread = threading.Thread(target=self._listen_loop, daemon=True)
         self.listener_thread.start()
+        if wait_ready:
+            self.ready_event.wait(timeout=1.5)
 
     def stop_listener(self):
         """Stops background LAN broadcast listener."""
@@ -96,8 +100,10 @@ class AntimagistLANSync:
             sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             sock.bind(("", self.port))
-            sock.settimeout(1.0)
+            sock.settimeout(0.5)
+            self.ready_event.set()
         except Exception:
+            self.ready_event.set()
             return
 
         while self.running:
