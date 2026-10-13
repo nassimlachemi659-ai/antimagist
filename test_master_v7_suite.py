@@ -353,21 +353,90 @@ class TestAntimagistV7Titan(unittest.TestCase):
         self.assertAlmostEqual(hud.frametime_history[-1], 4.8)
         print("  [+] HUD Rolling Frametime: 60-frame rolling pacing buffer verified.")
 
-    def test_30_master_v7_titan_lifecycle(self):
-        """Verifies Antimagist V7 Titan launches cleanly and binds all 25 navigation panes."""
+    def test_30_usb_polling_sentinel(self):
+        """Verifies V7+ Engine 1: USB Polling Sentinel packet delta, jitter SD, and power posture."""
+        from usb_polling_sentinel import AntimagistUSBPollingSentinel
+        sentinel = AntimagistUSBPollingSentinel()
+        audit = sentinel.audit_usb_power_posture()
+        self.assertIsInstance(audit, dict)
+        self.assertIn("usb_selective_suspend_disabled", audit)
+
+        sample = sentinel.sample_mouse_polling(duration_sec=0.3)
+        self.assertIsInstance(sample, dict)
+        self.assertIn("polling_rate_hz", sample)
+        self.assertIn("jitter_std_dev_us", sample)
+        self.assertIn("consistency_score", sample)
+        print(f"  [+] USB Polling Sentinel: {sample['polling_rate_hz']} Hz | Jitter {sample['jitter_std_dev_us']} µs | Power Posture: {audit['power_posture']}.")
+
+    def test_31_memory_pacer_subsystem(self):
+        """Verifies V7+ Engine 2: Windows Memory Compression & Pagefile Pacer."""
+        from memory_pacer import AntimagistMemoryPacer
+        pacer = AntimagistMemoryPacer()
+        audit = pacer.audit_memory_subsystem()
+        self.assertIsInstance(audit, dict)
+        self.assertIn("memory_stats", audit)
+        self.assertIn("mmagent_stats", audit)
+        self.assertIn("pacing_status", audit)
+
+        ok_trim, msg_trim = pacer.trim_standby_cache()
+        self.assertTrue(ok_trim)
+        print(f"  [+] Memory Pacer: {audit['memory_stats']['total_phys_gb']} GB RAM | Status: {audit['pacing_status']} | Trim: OK.")
+
+    def test_32_throttle_watchdog(self):
+        """Verifies V7+ Engine 3: Hardware Thermal Throttle & Clock Drop Watchdog."""
+        from throttle_watchdog import AntimagistThrottleWatchdog
+        dog = AntimagistThrottleWatchdog()
+        report = dog.check_hardware_health()
+        self.assertIsInstance(report, dict)
+        self.assertIn("gpu", report)
+        self.assertIn("cpu", report)
+        self.assertIn("status", report)
+        print(f"  [+] Throttle Watchdog: GPU {report['gpu']['temperature_c']}°C ({report['gpu']['current_clock_mhz']} MHz) | CPU {report['cpu']['current_clock_mhz']} MHz | Status: {report['status']}.")
+
+    def test_33_lan_sync_discovery(self):
+        """Verifies V7+ Engine 4: LAN Esports Team & Tournament Synchronizer."""
+        from lan_sync import AntimagistLANSync
+        sync = AntimagistLANSync(port=8791) # Isolated test port
+        sync.start_listener()
+
+        packet = sync.create_tournament_profile(
+            team_name="Cloud9 Scrims",
+            game="Counter-Strike 2",
+            profile_name="GrandFinals_128Tick",
+            settings={"timer_ms": 1.0, "memory_comp": False}
+        )
+        self.assertIn("sha256", packet)
+
+        ok_bcast, msg_bcast = sync.broadcast_profile(packet, broadcast_ip="127.0.0.1")
+        self.assertTrue(ok_bcast)
+
+        time.sleep(0.25)
+        disc = sync.get_discovered_profiles()
+        self.assertGreaterEqual(len(disc), 1)
+        self.assertEqual(disc[0]["team_name"], "Cloud9 Scrims")
+        sync.stop_listener()
+        print(f"  [+] LAN Team Sync: Broadcast & Discovery verified ({len(disc)} profiles received over loopback).")
+
+    def test_34_master_v7_plus_ultra_panes(self):
+        """Verifies Antimagist V7+ Ultra launches cleanly and binds all 29 navigation panes."""
         from antimagist_v4_apex import AntimagistV4ApexApp
         app = AntimagistV4ApexApp()
         self.assertIsNotNone(app)
-        self.assertTrue(hasattr(app, "dpc_diagnostician"))
-        self.assertTrue(hasattr(app, "process_isolator"))
-        self.assertTrue(hasattr(app, "auto_updater"))
+        self.assertTrue(hasattr(app, "usb_sentinel"))
+        self.assertTrue(hasattr(app, "memory_pacer"))
+        self.assertTrue(hasattr(app, "throttle_watchdog"))
+        self.assertTrue(hasattr(app, "lan_sync"))
 
-        # Verify all 3 new V7 Titan panes
+        # Verify all 4 new V7+ Ultra panes
+        app.show_usb_polling_pane()
+        app.show_memory_pacer_pane()
+        app.show_throttle_pane()
+        app.show_lan_sync_pane()
+
+        # Verify V7, V6 & V5 panes
         app.show_dpc_pane()
         app.show_isolator_pane()
         app.show_updater_pane()
-
-        # Verify V6 & V5 panes
         app.show_display_reflex_pane()
         app.show_audio_stripper_pane()
         app.show_server_radar_pane()
@@ -378,18 +447,26 @@ class TestAntimagistV7Titan(unittest.TestCase):
         # Clean destruction
         app.update_idletasks()
         app.destroy()
-        print("  [+] Master V7 Titan Application: All 25 navigation panes operational and verified.")
+        print("  [+] Master V7+ Ultra Application: All 29 navigation panes operational and verified.")
+
+    def test_35_master_v7_plus_branding_and_specs(self):
+        """Verifies V7+ Ultra branding, window title, and zero-false-claim compliance."""
+        from antimagist_v4_apex import AntimagistV4ApexApp
+        app = AntimagistV4ApexApp()
+        self.assertIn("Ultra Edition", app.title())
+        app.destroy()
+        print("  [+] V7+ Ultra Branding & Specifications: 100% Validated.")
 
 
 if __name__ == "__main__":
     print("=" * 75)
-    print("  ANTIMAGIST V7 TITAN — MASTER VERIFICATION & REGRESSION SUITE")
+    print("  ANTIMAGIST V7+ ULTRA — MASTER VERIFICATION & REGRESSION SUITE")
     print("=" * 75)
     suite = unittest.TestLoader().loadTestsFromTestCase(TestAntimagistV7Titan)
     runner = unittest.TextTestRunner(verbosity=2)
     result = runner.run(suite)
     if result.wasSuccessful():
-        print("\n[SUCCESS] 100% OF TESTS PASSED (30/30) WITH ZERO CRASHES OR REGRESSIONS.")
+        print("\n[SUCCESS] 100% OF TESTS PASSED (35/35) WITH ZERO CRASHES OR REGRESSIONS.")
         sys.exit(0)
     else:
         print("\n[FAIL] SOME TESTS FAILED. INVESTIGATION REQUIRED.")

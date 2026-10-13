@@ -65,6 +65,10 @@ from mod_guard import AntimagistModGuard
 from dpc_diagnostician import AntimagistDPCDiagnostician
 from process_isolator import AntimagistProcessIsolator
 from auto_updater import AntimagistAutoUpdater
+from usb_polling_sentinel import AntimagistUSBPollingSentinel
+from memory_pacer import AntimagistMemoryPacer
+from throttle_watchdog import AntimagistThrottleWatchdog
+from lan_sync import AntimagistLANSync
 
 # Ensure UTF-8 console output
 if hasattr(sys.stdout, "reconfigure"):
@@ -75,10 +79,10 @@ if hasattr(sys.stdout, "reconfigure"):
 
 
 class AntimagistV4ApexApp(AntimagistV3App):
-    """Antimagist Enterprise Security Version 7 (Titan Edition)."""
+    """Antimagist Enterprise Security Version 7+ (Ultra Edition)."""
 
     def __init__(self):
-        # 1. Initialize Core Subsystems (V4 through V7)
+        # 1. Initialize Core Subsystems (V4 through V7+)
         self.voice = AntimagistVoiceCopilot(enabled=True)
         self.sfx = AntimagistSoundFX(enabled=True)
         self.core_director = AntimagistCoreDirector()
@@ -98,12 +102,16 @@ class AntimagistV4ApexApp(AntimagistV3App):
         self.dpc_diagnostician = AntimagistDPCDiagnostician()
         self.process_isolator = AntimagistProcessIsolator()
         self.auto_updater = AntimagistAutoUpdater()
+        self.usb_sentinel = AntimagistUSBPollingSentinel()
+        self.memory_pacer = AntimagistMemoryPacer()
+        self.throttle_watchdog = AntimagistThrottleWatchdog()
+        self.lan_sync = AntimagistLANSync()
 
         # Call base constructor
         super().__init__()
 
         # Update window title
-        self.title("Antimagist — Enterprise Security V7 Titan Edition")
+        self.title("Antimagist — Enterprise Security V7+ Ultra Edition")
 
         # 2. Initialize Discord Rich Presence Client
         self.discord_rpc = AntimagistDiscordRPC()
@@ -388,6 +396,10 @@ class AntimagistV4ApexApp(AntimagistV3App):
             ("🌐 Server Radar",      "radar",      self.show_server_radar_pane),
             ("⏱️ DPC Latency",       "dpc",        self.show_dpc_pane),
             ("🧠 Process Isolator",  "isolator",   self.show_isolator_pane),
+            ("🖱️ USB Polling",      "usb",        self.show_usb_polling_pane),
+            ("🧠 Memory Pacer",      "mempacer",   self.show_memory_pacer_pane),
+            ("🔥 Throttle Watchdog", "throttle",   self.show_throttle_pane),
+            ("📡 LAN Team Sync",     "lansync",    self.show_lan_sync_pane),
             ("🖼️ Benchmark Card",    "card",       self.show_benchmark_card_pane),
             ("🛡️ Mod Guard",         "modguard",   self.show_mod_guard_pane),
             ("🔄 Auto-Updater",      "updater",    self.show_updater_pane),
@@ -1984,6 +1996,401 @@ class AntimagistV4ApexApp(AntimagistV3App):
         threading.Thread(target=worker, daemon=True).start()
 
     # ========================================================================
+    # V7+ ENGINE 1: USB POLLING RATE & FLICK SENTINEL
+    # ========================================================================
+    def show_usb_polling_pane(self):
+        self._highlight_nav("usb")
+        self.clear_container()
+
+        pane = ctk.CTkFrame(self.container, fg_color="transparent")
+        pane.grid(row=0, column=0, sticky="nsew", padx=30, pady=20)
+        pane.grid_columnconfigure((0, 1), weight=1)
+        pane.grid_rowconfigure(1, weight=1)
+
+        head = ctk.CTkFrame(pane, fg_color="transparent")
+        head.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 15))
+        ctk.CTkLabel(head, text="USB Polling Rate & 1000Hz-8000Hz Flick Sentinel", font=("Segoe UI", 24, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w")
+        ctk.CTkLabel(head, text="Real microsecond packet delta measurement, interval jitter scoring, and xHCI selective suspend elimination", font=("Segoe UI", 12), text_color=COLOR_TEXT_MUTED).pack(anchor="w")
+
+        # Left Card: Live Sampling & USB Power Posture
+        left_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        left_card.grid(row=1, column=0, sticky="nsew", padx=(0, 10))
+
+        audit = self.usb_sentinel.audit_usb_power_posture()
+        sample = self.usb_sentinel.last_sample_result or self.usb_sentinel.sample_mouse_polling(duration_sec=0.4)
+
+        ctk.CTkLabel(left_card, text="Mouse Polling & USB Latency Diagnostics", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        f_stat = ctk.CTkFrame(left_card, fg_color="#0A0C14", corner_radius=10, border_color=COLOR_BORDER, border_width=1)
+        f_stat.pack(fill="x", padx=16, pady=(0, 14))
+
+        pills = [
+            ("Measured Polling Rate", f"{sample['polling_rate_hz']} Hz", COLOR_EMERALD),
+            ("Esports Tier", sample["tier"], COLOR_CYAN),
+            ("Average Packet Delta", f"{sample['avg_interval_ms']} ms", COLOR_TEXT_PRIMARY),
+            ("Interval Jitter Std Dev", f"{sample['jitter_std_dev_us']} µs", COLOR_AMBER if sample['jitter_std_dev_us'] > 60 else COLOR_EMERALD),
+            ("Delivery Consistency", f"{sample['consistency_score']}%", COLOR_EMERALD),
+            ("USB Power Posture", audit["power_posture"], COLOR_EMERALD if audit["usb_selective_suspend_disabled"] else COLOR_AMBER)
+        ]
+        for title, val, col in pills:
+            r = ctk.CTkFrame(f_stat, fg_color="transparent")
+            r.pack(fill="x", padx=10, pady=4)
+            ctk.CTkLabel(r, text=title, font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+            ctk.CTkLabel(r, text=val, font=("Consolas", 10, "bold"), text_color=col).pack(side="right")
+
+        ctk.CTkButton(
+            left_card, text="🖱️ Sample Live Mouse Polling (Move Mouse Continuously)", font=("Segoe UI", 13, "bold"),
+            fg_color="#00FF9D", hover_color="#00D480", text_color="#000000",
+            height=44, corner_radius=10, command=self._sample_usb_polling_now
+        ).pack(fill="x", padx=16, pady=6)
+
+        ctk.CTkButton(
+            left_card, text="⚡ Disable USB Selective Suspend (Lock xHCI Awake)", font=("Segoe UI", 12, "bold"),
+            fg_color="#00F0FF", hover_color="#00B4D8", text_color="#000000",
+            height=36, corner_radius=8, command=self._optimize_usb_power
+        ).pack(fill="x", padx=16, pady=4)
+
+        ctk.CTkButton(
+            left_card, text="🔄 Restore Default USB Power Savings", font=("Segoe UI", 11),
+            fg_color="#1E293B", hover_color="#334155", text_color=COLOR_TEXT_MUTED,
+            height=32, corner_radius=8, command=self._restore_usb_power
+        ).pack(fill="x", padx=16, pady=(4, 16))
+
+        # Right Card: Esports Polling Rate Technical Guide
+        right_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        right_card.grid(row=1, column=1, sticky="nsew", padx=(10, 0))
+
+        ctk.CTkLabel(right_card, text="Competitive Mouse Architecture & Flick Sentinel", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        scroll_usb = ctk.CTkScrollableFrame(right_card, fg_color="transparent")
+        scroll_usb.pack(fill="both", expand=True, padx=12, pady=(0, 12))
+
+        guides = [
+            ("⚡ 1000Hz vs 4000Hz vs 8000Hz Demystified", "1000Hz mouse delivers a packet every 1.00 ms. 4000Hz delivers every 0.25 ms. 8000Hz delivers every 0.125 ms. While 8000Hz reduces input delay by ~0.87ms, it generates 8x interrupt requests per second, requiring high single-core CPU headroom and isolated P-Cores to prevent frametime spikes."),
+            ("🛑 USB Selective Suspend & Sleep Penalty", "Windows default power profiles enable USB Selective Suspend, allowing the xHCI USB host controller to enter low-power sleep states during idle moments. When rapidly starting a flick shot, waking the controller can introduce a 2ms - 15ms packet delay. Disabling selective suspend keeps the bus permanently hot."),
+            ("🎯 Jitter Standard Deviation & Consistency", "Even on 1000Hz mice, poorly tuned Windows timer resolution or conflicting DPC drivers can cause polling jitter where packets bundle together. Antimagist microsecond QPC analysis verifies true packet pacing."),
+            ("🛡️ Anti-Cheat & Tournament Compliance", "Antimagist USB Polling Sentinel operates strictly in user-mode via Win32 hardware timers and OS power configurations. It does not inject into mouse firmware or modify hardware drivers.")
+        ]
+        for title, desc in guides:
+            bx = ctk.CTkFrame(scroll_usb, fg_color="#0A0C14", corner_radius=8, border_color=COLOR_BORDER, border_width=1)
+            bx.pack(fill="x", pady=4)
+            ctk.CTkLabel(bx, text=title, font=("Segoe UI", 11, "bold"), text_color=COLOR_CYAN).pack(anchor="w", padx=10, pady=(6, 2))
+            ctk.CTkLabel(bx, text=desc, font=("Segoe UI", 10), text_color=COLOR_TEXT_MUTED, wraplength=420, justify="left").pack(anchor="w", padx=10, pady=(0, 6))
+
+    def _sample_usb_polling_now(self):
+        self.sfx.play_click()
+        self.show_toast_msg("Sampling mouse motion for 0.6s... Move cursor continuously!")
+        def worker():
+            self.usb_sentinel.sample_mouse_polling(duration_sec=0.6)
+            self.after(0, self.show_usb_polling_pane)
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _optimize_usb_power(self):
+        self.sfx.play_warp_boost()
+        ok, msg = self.usb_sentinel.optimize_usb_latency()
+        self.show_toast_msg(msg)
+        self.show_usb_polling_pane()
+
+    def _restore_usb_power(self):
+        self.sfx.play_click()
+        ok, msg = self.usb_sentinel.restore_usb_defaults()
+        self.show_toast_msg(msg)
+        self.show_usb_polling_pane()
+
+    # ========================================================================
+    # V7+ ENGINE 2: MEMORY COMPRESSION & PAGEFILE PACER
+    # ========================================================================
+    def show_memory_pacer_pane(self):
+        self._highlight_nav("mempacer")
+        self.clear_container()
+
+        pane = ctk.CTkFrame(self.container, fg_color="transparent")
+        pane.grid(row=0, column=0, sticky="nsew", padx=30, pady=20)
+        pane.grid_columnconfigure((0, 1), weight=1)
+        pane.grid_rowconfigure(1, weight=1)
+
+        head = ctk.CTkFrame(pane, fg_color="transparent")
+        head.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 15))
+        ctk.CTkLabel(head, text="Windows Memory Compression & Pagefile Pacer", font=("Segoe UI", 24, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w")
+        ctk.CTkLabel(head, text="Eliminate CPU cache thrashing from background memory decompression and optimize Windows MMAgent", font=("Segoe UI", 12), text_color=COLOR_TEXT_MUTED).pack(anchor="w")
+
+        # Left Card: RAM Status & MMAgent Toggles
+        left_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        left_card.grid(row=1, column=0, sticky="nsew", padx=(0, 10))
+
+        audit = self.memory_pacer.cached_audit or self.memory_pacer.audit_memory_subsystem()
+        mem = audit["memory_stats"]
+        mm = audit["mmagent_stats"]
+
+        ctk.CTkLabel(left_card, text="RAM Telemetry & MMAgent Subsystem", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        f_stat = ctk.CTkFrame(left_card, fg_color="#0A0C14", corner_radius=10, border_color=COLOR_BORDER, border_width=1)
+        f_stat.pack(fill="x", padx=16, pady=(0, 14))
+
+        mc_str = "ENABLED (Decompression Risk)" if mm["memory_compression_enabled"] else "DISABLED (Pure Low-Latency)"
+        mc_col = COLOR_AMBER if mm["memory_compression_enabled"] else COLOR_EMERALD
+
+        pills = [
+            ("Physical RAM Capacity", f"{mem['used_phys_gb']} GB / {mem['total_phys_gb']} GB ({mem['memory_load_pct']}%)", COLOR_CYAN),
+            ("Available Free RAM", f"{mem['avail_phys_gb']} GB", COLOR_EMERALD),
+            ("Pagefile Pool", f"{mem['avail_pagefile_gb']} GB Avail / {mem['total_pagefile_gb']} GB Total", COLOR_TEXT_PRIMARY),
+            ("Kernel Memory Compression", mc_str, mc_col),
+            ("Page Combining (De-dupe)", "ENABLED" if mm["page_combining_enabled"] else "DISABLED", COLOR_CYAN),
+            ("Pacing Recommendation", audit["pacing_status"], COLOR_EMERALD)
+        ]
+        for title, val, col in pills:
+            r = ctk.CTkFrame(f_stat, fg_color="transparent")
+            r.pack(fill="x", padx=10, pady=4)
+            ctk.CTkLabel(r, text=title, font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+            ctk.CTkLabel(r, text=val, font=("Consolas", 10, "bold"), text_color=col).pack(side="right")
+
+        ctk.CTkButton(
+            left_card, text="⚡ Disable Memory Compression (Low Latency Mode)", font=("Segoe UI", 12, "bold"),
+            fg_color="#00FF9D", hover_color="#00D480", text_color="#000000",
+            height=40, corner_radius=10, command=lambda: self._toggle_mem_comp(False)
+        ).pack(fill="x", padx=16, pady=4)
+
+        ctk.CTkButton(
+            left_card, text="🔄 Enable Memory Compression (Default Mode)", font=("Segoe UI", 11),
+            fg_color="#1E293B", hover_color="#334155", text_color=COLOR_TEXT_PRIMARY,
+            height=34, corner_radius=8, command=lambda: self._toggle_mem_comp(True)
+        ).pack(fill="x", padx=16, pady=4)
+
+        ctk.CTkButton(
+            left_card, text="🧹 Trim Standby Memory & Stabilize Working Sets", font=("Segoe UI", 12, "bold"),
+            fg_color="#00F0FF", hover_color="#00B4D8", text_color="#000000",
+            height=36, corner_radius=8, command=self._trim_standby_now
+        ).pack(fill="x", padx=16, pady=(4, 16))
+
+        # Right Card: Architecture Deep-Dive
+        right_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        right_card.grid(row=1, column=1, sticky="nsew", padx=(10, 0))
+
+        ctk.CTkLabel(right_card, text="Windows MMAgent Architecture & Truthfulness", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        scroll_mem = ctk.CTkScrollableFrame(right_card, fg_color="transparent")
+        scroll_mem.pack(fill="both", expand=True, padx=12, pady=(0, 12))
+
+        m_guides = [
+            ("🧠 What Is Windows Memory Compression?", "Windows 10/11 introduced kernel memory compression (handled by the 'System' process). When RAM gets full, Windows compresses inactive pages in RAM instead of writing them to disk. This is a blessing for 8GB laptops, but for 16GB, 32GB, and 64GB gaming rigs, uncompressing pages on-demand steals CPU cycles and causes micro-stutter in open-world titles."),
+            ("⚖️ The Technical Truth: When to Disable?", "If you have >= 16 GB of physical RAM, disabling Memory Compression ensures that zero CPU interrupts are spent decompressing memory buffers during gaming. If you have under 16 GB of RAM, you should leave it ENABLED to avoid slower disk paging."),
+            ("📑 Page Combining Overhead", "Page Combining scans physical memory to de-duplicate identical memory pages across processes. In high-performance esports environments, this continuous hash-scanning is unnecessary overhead."),
+            ("🛡️ Standby Cache Pacing", "Windows keeps cached files in standby RAM. Antimagist safely trims unneeded working sets without killing processes or inducing out-of-memory faults.")
+        ]
+        for title, desc in m_guides:
+            bx = ctk.CTkFrame(scroll_mem, fg_color="#0A0C14", corner_radius=8, border_color=COLOR_BORDER, border_width=1)
+            bx.pack(fill="x", pady=4)
+            ctk.CTkLabel(bx, text=title, font=("Segoe UI", 11, "bold"), text_color=COLOR_CYAN).pack(anchor="w", padx=10, pady=(6, 2))
+            ctk.CTkLabel(bx, text=desc, font=("Segoe UI", 10), text_color=COLOR_TEXT_MUTED, wraplength=420, justify="left").pack(anchor="w", padx=10, pady=(0, 6))
+
+    def _toggle_mem_comp(self, enable: bool):
+        self.sfx.play_click()
+        ok, msg = self.memory_pacer.set_memory_compression(enable)
+        self.show_toast_msg(msg)
+        self.memory_pacer.audit_memory_subsystem()
+        self.show_memory_pacer_pane()
+
+    def _trim_standby_now(self):
+        self.sfx.play_success()
+        ok, msg = self.memory_pacer.trim_standby_cache()
+        self.show_toast_msg(msg)
+        self.memory_pacer.audit_memory_subsystem()
+        self.show_memory_pacer_pane()
+
+    # ========================================================================
+    # V7+ ENGINE 3: LIVE HARDWARE THERMAL THROTTLE & CLOCK DROP WATCHDOG
+    # ========================================================================
+    def show_throttle_pane(self):
+        self._highlight_nav("throttle")
+        self.clear_container()
+
+        pane = ctk.CTkFrame(self.container, fg_color="transparent")
+        pane.grid(row=0, column=0, sticky="nsew", padx=30, pady=20)
+        pane.grid_columnconfigure((0, 1), weight=1)
+        pane.grid_rowconfigure(1, weight=1)
+
+        head = ctk.CTkFrame(pane, fg_color="transparent")
+        head.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 15))
+        ctk.CTkLabel(head, text="Hardware Thermal Throttle & Clock Drop Watchdog", font=("Segoe UI", 24, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w")
+        ctk.CTkLabel(head, text="Live GPU/CPU boost clock tracking, thermal tripwire alerts, and stutter root-cause analysis", font=("Segoe UI", 12), text_color=COLOR_TEXT_MUTED).pack(anchor="w")
+
+        # Left Card: Live Hardware Clocks & Thermals
+        left_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        left_card.grid(row=1, column=0, sticky="nsew", padx=(0, 10))
+
+        report = self.throttle_watchdog.check_hardware_health()
+        gpu = report["gpu"]
+        cpu = report["cpu"]
+
+        ctk.CTkLabel(left_card, text="Live Hardware Sensor Metrics", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        f_stat = ctk.CTkFrame(left_card, fg_color="#0A0C14", corner_radius=10, border_color=COLOR_BORDER, border_width=1)
+        f_stat.pack(fill="x", padx=16, pady=(0, 14))
+
+        status_col = COLOR_EMERALD if report["status"] == "HEALTHY_PEAK_PERFORMANCE" else COLOR_CRIMSON
+
+        pills = [
+            ("Thermal Status", report["status"], status_col),
+            ("GPU Core Temperature", f"{gpu['temperature_c']} °C", COLOR_EMERALD if gpu['temperature_c'] < 80 else COLOR_CRIMSON),
+            ("GPU Graphics Clock", f"{gpu['current_clock_mhz']} MHz / {gpu['max_clock_mhz']} MHz", COLOR_CYAN),
+            ("GPU Core Load", f"{gpu['utilization_pct']} %", COLOR_TEXT_PRIMARY),
+            ("CPU Clock Speed", f"{cpu['current_clock_mhz']} MHz / {cpu['max_clock_mhz']} MHz", COLOR_CYAN),
+            ("CPU Load", f"{cpu['load_pct']} %", COLOR_TEXT_PRIMARY),
+            ("Active Throttle Alerts", f"{len(report['alerts'])} Tripwires", COLOR_EMERALD if not report['alerts'] else COLOR_CRIMSON)
+        ]
+        for title, val, col in pills:
+            r = ctk.CTkFrame(f_stat, fg_color="transparent")
+            r.pack(fill="x", padx=10, pady=4)
+            ctk.CTkLabel(r, text=title, font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+            ctk.CTkLabel(r, text=val, font=("Consolas", 10, "bold"), text_color=col).pack(side="right")
+
+        ctk.CTkButton(
+            left_card, text="🔄 Refresh Hardware Telemetry & Audit", font=("Segoe UI", 13, "bold"),
+            fg_color="#00FF9D", hover_color="#00D480", text_color="#000000",
+            height=44, corner_radius=10, command=self._refresh_throttle_pane
+        ).pack(fill="x", padx=16, pady=6)
+
+        ctk.CTkButton(
+            left_card, text="🗑️ Clear Throttle Event History", font=("Segoe UI", 11),
+            fg_color="#1E293B", hover_color="#334155", text_color=COLOR_TEXT_MUTED,
+            height=34, corner_radius=8, command=self._clear_throttle_events
+        ).pack(fill="x", padx=16, pady=(6, 16))
+
+        # Right Card: Recorded Throttle Events
+        right_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        right_card.grid(row=1, column=1, sticky="nsew", padx=(10, 0))
+
+        events = self.throttle_watchdog.throttle_events
+        ctk.CTkLabel(right_card, text=f"Thermal & Clock Throttle Event Log ({len(events)})", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        scroll_th = ctk.CTkScrollableFrame(right_card, fg_color="transparent")
+        scroll_th.pack(fill="both", expand=True, padx=12, pady=(0, 12))
+
+        if not events:
+            ctk.CTkLabel(scroll_th, text="No thermal throttling or clock drop events detected.\nYour hardware cooling is performing optimally!", font=("Segoe UI", 11), text_color=COLOR_TEXT_MUTED, justify="center").pack(pady=40)
+        else:
+            for ev in reversed(events):
+                bx = ctk.CTkFrame(scroll_th, fg_color="#0A0C14", corner_radius=8, border_color=COLOR_BORDER, border_width=1)
+                bx.pack(fill="x", pady=3)
+                hdr = ctk.CTkFrame(bx, fg_color="transparent")
+                hdr.pack(fill="x", padx=10, pady=(6, 2))
+                ctk.CTkLabel(hdr, text=f"⚠️ {ev['timestamp']} — {ev['source']} Throttle", font=("Segoe UI", 11, "bold"), text_color=COLOR_AMBER).pack(side="left")
+                ctk.CTkLabel(hdr, text=f"{ev['temperature_c']}°C | {ev['clock_mhz']} MHz", font=("Consolas", 10, "bold"), text_color=COLOR_CRIMSON).pack(side="right")
+
+    def _refresh_throttle_pane(self):
+        self.sfx.play_click()
+        self.show_throttle_pane()
+
+    def _clear_throttle_events(self):
+        self.sfx.play_click()
+        self.throttle_watchdog.clear_events()
+        self.show_throttle_pane()
+
+    # ========================================================================
+    # V7+ ENGINE 4: LAN ESPORTS TEAM & TOURNAMENT SYNCHRONIZER
+    # ========================================================================
+    def show_lan_sync_pane(self):
+        self._highlight_nav("lansync")
+        self.clear_container()
+
+        pane = ctk.CTkFrame(self.container, fg_color="transparent")
+        pane.grid(row=0, column=0, sticky="nsew", padx=30, pady=20)
+        pane.grid_columnconfigure((0, 1), weight=1)
+        pane.grid_rowconfigure(1, weight=1)
+
+        head = ctk.CTkFrame(pane, fg_color="transparent")
+        head.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 15))
+        ctk.CTkLabel(head, text="LAN Esports Team & Tournament Synchronizer", font=("Segoe UI", 24, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w")
+        ctk.CTkLabel(head, text="Offline UDP broadcast sync for tournament configs, verified SHA-256 profiles, and radar rules across team PCs", font=("Segoe UI", 12), text_color=COLOR_TEXT_MUTED).pack(anchor="w")
+
+        # Left Card: Broadcast Profile Form
+        left_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        left_card.grid(row=1, column=0, sticky="nsew", padx=(0, 10))
+
+        ctk.CTkLabel(left_card, text="Broadcast Tournament Profile (Team Captain / IGL)", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        f_form = ctk.CTkFrame(left_card, fg_color="#0A0C14", corner_radius=10, border_color=COLOR_BORDER, border_width=1)
+        f_form.pack(fill="x", padx=16, pady=(0, 14))
+
+        ctk.CTkLabel(f_form, text="Team Name:", font=("Segoe UI", 10, "bold"), text_color=COLOR_TEXT_MUTED).pack(anchor="w", padx=12, pady=(8, 2))
+        self.ent_lan_team = ctk.CTkEntry(f_form, placeholder_text="e.g. Apex Wolves", fg_color="#1E293B", border_color=COLOR_BORDER)
+        self.ent_lan_team.pack(fill="x", padx=12, pady=(0, 6))
+        self.ent_lan_team.insert(0, "Antimagist Esports")
+
+        ctk.CTkLabel(f_form, text="Game Title:", font=("Segoe UI", 10, "bold"), text_color=COLOR_TEXT_MUTED).pack(anchor="w", padx=12, pady=(4, 2))
+        self.ent_lan_game = ctk.CTkEntry(f_form, placeholder_text="e.g. Counter-Strike 2", fg_color="#1E293B", border_color=COLOR_BORDER)
+        self.ent_lan_game.pack(fill="x", padx=12, pady=(0, 6))
+        self.ent_lan_game.insert(0, "Counter-Strike 2")
+
+        ctk.CTkLabel(f_form, text="Tournament Profile Preset:", font=("Segoe UI", 10, "bold"), text_color=COLOR_TEXT_MUTED).pack(anchor="w", padx=12, pady=(4, 2))
+        self.ent_lan_profile = ctk.CTkEntry(f_form, placeholder_text="e.g. GrandFinals_LowLatency", fg_color="#1E293B", border_color=COLOR_BORDER)
+        self.ent_lan_profile.pack(fill="x", padx=12, pady=(0, 10))
+        self.ent_lan_profile.insert(0, "Tournament_1000Hz_MaxFPS")
+
+        ctk.CTkButton(
+            left_card, text="📡 Broadcast Profile to LAN (Port 8789)", font=("Segoe UI", 13, "bold"),
+            fg_color="#00FF9D", hover_color="#00D480", text_color="#000000",
+            height=44, corner_radius=10, command=self._broadcast_lan_profile
+        ).pack(fill="x", padx=16, pady=6)
+
+        listener_btn_text = "🛑 Stop LAN Listener" if self.lan_sync.running else "🎧 Start Background LAN Listener"
+        listener_col = "#334155" if self.lan_sync.running else "#00F0FF"
+        ctk.CTkButton(
+            left_card, text=listener_btn_text, font=("Segoe UI", 11, "bold"),
+            fg_color=listener_col, hover_color="#38BDF8", text_color="#000000" if not self.lan_sync.running else "#FFFFFF",
+            height=34, corner_radius=8, command=self._toggle_lan_listener
+        ).pack(fill="x", padx=16, pady=(6, 16))
+
+        # Right Card: Discovered Peer Profiles
+        right_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        right_card.grid(row=1, column=1, sticky="nsew", padx=(10, 0))
+
+        discovered = self.lan_sync.get_discovered_profiles()
+        ctk.CTkLabel(right_card, text=f"Discovered Peer Tournament Profiles ({len(discovered)})", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        scroll_lan = ctk.CTkScrollableFrame(right_card, fg_color="transparent")
+        scroll_lan.pack(fill="both", expand=True, padx=12, pady=(0, 12))
+
+        if not discovered:
+            ctk.CTkLabel(scroll_lan, text="No LAN team profiles received yet.\nStart the listener or have your Team Captain broadcast a preset!", font=("Segoe UI", 11), text_color=COLOR_TEXT_MUTED, justify="center").pack(pady=40)
+        else:
+            for prof in reversed(discovered):
+                bx = ctk.CTkFrame(scroll_lan, fg_color="#0A0C14", corner_radius=8, border_color=COLOR_BORDER, border_width=1)
+                bx.pack(fill="x", pady=4)
+                hdr = ctk.CTkFrame(bx, fg_color="transparent")
+                hdr.pack(fill="x", padx=10, pady=(6, 2))
+                ctk.CTkLabel(hdr, text=f"🏆 {prof['team_name']} — {prof['profile_name']}", font=("Segoe UI", 11, "bold"), text_color=COLOR_CYAN).pack(side="left")
+                ctk.CTkLabel(hdr, text=f"IP: {prof.get('sender_ip', 'LAN')}", font=("Consolas", 10), text_color=COLOR_TEXT_MUTED).pack(side="right")
+                ctk.CTkLabel(bx, text=f"Game: {prof['game']} | SHA256: {prof.get('sha256', '')[:16]}... [VERIFIED]", font=("Consolas", 9), text_color=COLOR_EMERALD).pack(anchor="w", padx=10, pady=(0, 6))
+
+    def _broadcast_lan_profile(self):
+        self.sfx.play_warp_boost()
+        team = self.ent_lan_team.get().strip() or "Antimagist Team"
+        game = self.ent_lan_game.get().strip() or "FPS Game"
+        pname = self.ent_lan_profile.get().strip() or "Standard_Esports"
+
+        settings = {
+            "timer_resolution_ms": 1.0,
+            "memory_compression": False,
+            "usb_polling_hz": 1000,
+            "directflip_mpo_disabled": True,
+            "hags_enabled": True
+        }
+        packet = self.lan_sync.create_tournament_profile(team, game, pname, settings)
+        ok, msg = self.lan_sync.broadcast_profile(packet)
+        self.show_toast_msg(msg)
+
+    def _toggle_lan_listener(self):
+        self.sfx.play_click()
+        if self.lan_sync.running:
+            self.lan_sync.stop_listener()
+            self.show_toast_msg("LAN broadcast listener stopped.")
+        else:
+            self.lan_sync.start_listener()
+            self.show_toast_msg("LAN broadcast listener active on Port 8789.")
+        self.show_lan_sync_pane()
+
+    # ========================================================================
     # TELEMETRY LOOP WITH REAL-TIME GPU & DISCORD STATUS POLLING
     # ========================================================================
     def _poll_telemetry_loop(self):
@@ -2008,7 +2415,7 @@ class AntimagistV4ApexApp(AntimagistV3App):
                 # Periodic Discord Presence refresh (every ~15s)
                 if hasattr(self, "discord_rpc") and self.discord_rpc.is_connected:
                     self.discord_rpc.update_presence(
-                        details="Protected by Antimagist V7 Titan",
+                        details="Protected by Antimagist V7+ Ultra",
                         state=f"{gm['gpu_name'][:12]} ({gm['temperature_c']}°C) | Protected"
                     )
             except Exception:
@@ -2046,7 +2453,7 @@ class AntimagistV4ApexApp(AntimagistV3App):
         self.voice.alert_ping_optimized()
 
     def destroy(self):
-        """Clean shutdown of V5 services."""
+        """Clean shutdown of V7+ services."""
         try:
             self.game_watchdog.stop_watchdog()
         except Exception:
@@ -2065,6 +2472,10 @@ class AntimagistV4ApexApp(AntimagistV3App):
             pass
         try:
             self.voice_listener.close_dialog()
+        except Exception:
+            pass
+        try:
+            self.lan_sync.stop_listener()
         except Exception:
             pass
         super().destroy()

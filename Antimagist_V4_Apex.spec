@@ -11,7 +11,8 @@ a = Analysis(
         'win32com.client', 'winreg', 'keyboard', 'winsound', 'ctypes',
         'display_reflex', 'audio_stripper', 'server_radar', 'benchmark_card', 'mod_guard',
         'esports_profiles', 'frametime_sentinel', 'discord_webhook',
-        'dpc_diagnostician', 'process_isolator', 'auto_updater'
+        'dpc_diagnostician', 'process_isolator', 'auto_updater',
+        'usb_polling_sentinel', 'memory_pacer', 'throttle_watchdog', 'lan_sync'
     ],
     hookspath=[],
     hooksconfig={},

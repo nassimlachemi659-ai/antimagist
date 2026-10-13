@@ -1,7 +1,7 @@
-# 🛡️ Antimagist Enterprise Security V7 (Titan Edition)
+# 🛡️ Antimagist Enterprise Security V7+ (Ultra Edition)
 
 [![CI](https://github.com/nassimlachemi659-ai/antimagist/actions/workflows/ci.yml/badge.svg)](https://github.com/nassimlachemi659-ai/antimagist/actions)
-[![Latest Release](https://img.shields.io/badge/Release-v7.0.0--Titan-orange?style=for-the-badge&logo=github)](https://github.com/nassimlachemi659-ai/antimagist/releases)
+[![Latest Release](https://img.shields.io/badge/Release-v7.1.0--Ultra-orange?style=for-the-badge&logo=github)](https://github.com/nassimlachemi659-ai/antimagist/releases)
 [![Platform: Windows 10 & 11](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-blue?style=for-the-badge&logo=windows)](https://microsoft.com/windows)
 [![Python: 3.12](https://img.shields.io/badge/Python-3.12-yellow?style=for-the-badge&logo=python)](https://python.org)
 [![Anti-Cheat: 100% Safe](https://img.shields.io/badge/Anti--Cheat-100%25%20Safe%20(Zero%20Hooks)-success?style=for-the-badge)](https://github.com)
@@ -13,30 +13,37 @@
 
 ---
 
-## ⚡ What's New in V7 Titan: The Next Competitive Frontier
+## ⚡ What's New in V7+ Ultra: The 4 Elite Engines
 
-Antimagist V7 Titan introduces game-changing, zero-bloat alternatives to commercial gaming utilities:
+Antimagist V7+ Ultra expands the competitive suite with 4 advanced latency and tournament engines:
 
-### 1. ⏱️ Hardware DPC & ISR Driver Latency Diagnostician (`dpc_diagnostician.py`)
-- **Native LatencyMon Alternative:** Built-in driver execution latency and interrupt diagnostician without needing heavy third-party software.
-- **QPC Microsecond Jitter Audit:** Measures high-resolution `QueryPerformanceCounter` jitter across thousands of rapid samples to detect hardware interrupt preemption spikes.
-- **Windows Timer Resolution Inspection:** Uses native `ntdll.NtQueryTimerResolution` to audit system timer frequency (verifying 0.5ms - 1.0ms high-tick rate vs 15.6ms Windows default).
-- **Driver Culprit Detection:** Audits active in-memory kernel drivers (`nvlddmkm.sys`, `ndis.sys`, `dxgkrnl.sys`, `stornvme.sys`, `rt640x64.sys`) and provides actionable tuning advice (e.g. disable Energy Efficient Ethernet, set NVIDIA Power Management to Maximum Performance).
+### 1. 🖱️ USB Polling Rate & 1000Hz–8000Hz Flick Sentinel (`usb_polling_sentinel.py`)
+- **Microsecond Packet Delta Measurement:** Queries native Win32 `QueryPerformanceCounter` alongside raw mouse motion packets to compute real-time polling rates (125Hz, 500Hz, 1000Hz, 2000Hz, 4000Hz, 8000Hz).
+- **Interval Jitter Standard Deviation & Delivery Consistency:** Measures microsecond packet variance to identify timing jitter and packet clumping during rapid tournament flick shots.
+- **xHCI Selective Suspend Elimination:** Safely audits and disables Windows USB Selective Suspend in active AC/DC power schemes via `powercfg`, locking the USB host controller awake to prevent 2ms - 15ms wake delays.
 
-### 2. 🧠 Intelligent Process Isolator & Core Allocator (`process_isolator.py`)
-- **Open-Source Process Lasso Alternative:** Dynamically manages background processes during tournament play.
-- **P-Core Game Locking:** Locks the active game and anti-cheat processes to dedicated physical Performance Cores with `HIGH_PRIORITY_CLASS`.
-- **Background App Parking:** Identifies running background bloat (Chrome, Discord, Spotify, SteamWebHelper, OneDrive), demotes them to `BELOW_NORMAL_PRIORITY_CLASS`, and isolates them to secondary cores.
-- **Seamless Rollback:** Automatically restores all original affinities and priority classes when the match concludes or upon user command.
+### 2. 🧠 Windows Memory Compression & Pagefile Pacer (`memory_pacer.py`)
+- **MMAgent Architectural Audit:** Inspects Windows Memory Management Agent (`MMAgent`) configuration, active pagefile sizing, and RAM capacity via Win32 `GlobalMemoryStatusEx`.
+- **Zero Decompression Thrashing (>= 16 GB RAM):** Offers 1-click safe toggles for Windows kernel Memory Compression and Page Combining (`Disable-MMAgent -mc`, `Disable-MMAgent -PageCombining`). Disabling compression on high-RAM rigs eliminates background decompression micro-stutters during heavy games like Warzone, Tarkov, and Rust.
+- **Standby Working Set Pacer:** Safely trims inactive process working sets to stabilize free physical memory pools without inducing out-of-memory errors.
 
-### 3. 📊 Rolling Frametime Canvas Graph & Pacing Meter (`hud_overlay.py`)
-- **Real-Time Visual Pacing:** Features a 60-frame rolling frametime graph rendered right inside the transparent in-game HUD overlay (<kbd>Ctrl+Shift+O</kbd>).
-- **Micro-Stutter Detection:** Color-coded pacing bars (Green < 7ms, Amber 7-14ms, Red > 14ms) display instantaneous frame pacing consistency.
-- **1-Tap Hotkey Actions:** Directly trigger `[⚡ FLUSH RAM]` and `[🎯 ISOLATE P-CORES]` without leaving your game.
+### 3. 🔥 Hardware Thermal Throttle & Clock Drop Watchdog (`throttle_watchdog.py`)
+- **Real-Time GPU Boost & Thermals:** Samples GPU core temperatures, graphics clocks, and load via NVIDIA NVML / `nvidia-smi` and universal driver queries.
+- **CPU Frequency Preemption Watchdog:** Queries high-resolution hardware counters to verify active boost clocks and detect throttling under heavy (> 80%) load.
+- **Thermal Tripwire Alerts & Correlation Log:** Automatically trips warnings and logs throttle events (> 83°C GPU / > 90°C CPU or > 150 MHz drop) to correlate with in-game 1% low frame stutter.
 
-### 4. 🔄 GitHub Releases Automated Updater (`auto_updater.py`)
-- **Asynchronous Update Checking:** Queries the official GitHub repository releases API to notify you when updates are released.
-- **1-Click Download:** Provides direct 1-click links to the latest portable release packages.
+### 4. 📡 LAN Esports Team & Tournament Synchronizer (`lan_sync.py`)
+- **100% Offline Subnet Sync:** Lightweight UDP peer discovery over port 8789 designed for tournament scrims, bootcamps, and air-gapped LAN events (zero cloud dependencies).
+- **Cryptographic SHA-256 Verification:** Team captains and IGLs can broadcast tournament configs, timer resolutions, and server radar preferences with cryptographic integrity signatures to all team PCs in 1 click.
+
+---
+
+## ⏱️ V7 Titan Pillars (Included in V7+)
+
+1. **⏱️ Hardware DPC & ISR Driver Latency Diagnostician (`dpc_diagnostician.py`):** LatencyMon alternative measuring microsecond QPC interrupt jitter and auditing active drivers (`nvlddmkm.sys`, `ndis.sys`, `stornvme.sys`).
+2. **🧠 Intelligent Process Isolator & Core Allocator (`process_isolator.py`):** Process Lasso alternative parking background bloat (Chrome, Discord, Spotify) to secondary cores while locking active game to physical P-Cores.
+3. **📊 Rolling Frametime Canvas Graph (`hud_overlay.py`):** 60-frame rolling frametime graph and pacing meter inside the in-game HUD overlay (<kbd>Ctrl+Shift+O</kbd>).
+4. **🔄 GitHub Releases Automated Updater (`auto_updater.py`):** Direct semantic version checking via GitHub releases API.
 
 ---
 
@@ -82,7 +89,7 @@ We want to hear your real-world benchmarks, system feedback, and feature suggest
 ## 🚀 Quick Start & Installation
 
 ### Option 1: 1-Click Setup (Recommended)
-1. Download `Antimagist-v7.0.0-Titan.zip` from [Releases](https://github.com/nassimlachemi659-ai/antimagist/releases).
+1. Download `Antimagist-v7.1.0-Ultra.zip` from [Releases](https://github.com/nassimlachemi659-ai/antimagist/releases).
 2. Extract and run `Install_Antimagist_V7.bat`.
 3. Automatically installs to `%LocalAppData%\Antimagist` (no UAC / Administrator prompt needed).
 4. Launches from your **Desktop** or **Start Menu** shortcut.
@@ -102,21 +109,21 @@ python antimagist_v4_apex.py
 
 ---
 
-## 🧪 Master Verification & Regression Suite (30/30 Tests)
+## 🧪 Master Verification & Regression Suite (35/35 Tests)
 
-Antimagist includes a master automated test suite verifying all 30 core subsystems:
+Antimagist includes a master automated test suite verifying all 35 core subsystems and engines:
 
 ```bash
 python test_master_v7_suite.py
 ```
 ```
 ===========================================================================
-  ANTIMAGIST V7 TITAN — MASTER VERIFICATION & REGRESSION SUITE
+  ANTIMAGIST V7+ ULTRA — MASTER VERIFICATION & REGRESSION SUITE
 ===========================================================================
-Ran 30 tests in 8.400s
+Ran 35 tests in 14.917s
 
 OK
-[SUCCESS] 100% OF TESTS PASSED (30/30) WITH ZERO CRASHES OR REGRESSIONS.
+[SUCCESS] 100% OF TESTS PASSED (35/35) WITH ZERO CRASHES OR REGRESSIONS.
 ```
 
 ---
