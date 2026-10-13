@@ -38,7 +38,9 @@ from antimagist_v3_ultra import (
     AntimagistV3App,
     COLOR_BG_DARK, COLOR_SIDEBAR, COLOR_CARD, COLOR_CARD_HOVER,
     COLOR_BORDER, COLOR_CYAN, COLOR_EMERALD, COLOR_AMBER,
-    COLOR_CRIMSON, COLOR_TEXT_PRIMARY, COLOR_TEXT_MUTED, COLOR_TEXT_SUBTLE
+    COLOR_CRIMSON, COLOR_TEXT_PRIMARY, COLOR_TEXT_MUTED, COLOR_TEXT_SUBTLE,
+    COLOR_GLASS_BG, COLOR_GLASS_BORDER, COLOR_GLASS_BORDER_DIM,
+    COLOR_NEON_CYAN, COLOR_NEON_AMBER, COLOR_NEON_RED
 )
 COLOR_WARNING = COLOR_AMBER
 COLOR_DANGER = COLOR_CRIMSON
@@ -419,76 +421,177 @@ class AntimagistV4ApexApp(AntimagistV3App):
     # ========================================================================
     # SIDEBAR V5 MASTER NAVIGATION (14 PANES)
     # ========================================================================
+    # ========================================================================
+    # SIDEBAR V5 MASTER NAVIGATION (NESTED ACCORDION CATEGORIES - 46 PANES)
+    # ========================================================================
     def _build_body_layout(self):
         super()._build_body_layout()
 
-        # Clear standard sidebar items and reconstruct with V5 items
+        # Clear standard sidebar items and reconstruct with nested categories
         for btn in self.nav_buttons.values():
-            btn.destroy()
+            try: btn.destroy()
+            except Exception: pass
         self.nav_buttons.clear()
 
-        v5_nav_items = [
-            ("📊 Dashboard",        "dash",       self.show_dashboard_pane),
-            ("🎮 Esports Vault",    "esports",    self.show_esports_pane),
-            ("🖥️ Display Reflex",    "reflex",     self.show_display_reflex_pane),
-            ("🎧 Audio Stripper",    "audio",      self.show_audio_stripper_pane),
-            ("🌐 Server Radar",      "radar",      self.show_server_radar_pane),
-            ("⏱️ DPC Latency",       "dpc",        self.show_dpc_pane),
-            ("🧠 Process Isolator",  "isolator",   self.show_isolator_pane),
-            ("🖱️ USB Polling",      "usb",        self.show_usb_polling_pane),
-            ("🧠 Memory Pacer",      "mempacer",   self.show_memory_pacer_pane),
-            ("🔥 Throttle Watchdog", "throttle",   self.show_throttle_pane),
-            ("📡 LAN Team Sync",     "lansync",    self.show_lan_sync_pane),
-            ("⚡ MSI-X IRQ Director", "msi",       self.show_msi_pane),
-            ("🎮 Shader Sentinel",    "shader",    self.show_shader_pane),
-            ("🛡️ Anti-Cheat Guard",   "acguard",   self.show_anticheat_pane),
-            ("🎛️ Profile Switcher",   "switcher",  self.show_profile_switcher_pane),
-            ("📼 Match Recorder",    "recorder",   self.show_match_recorder_pane),
-            ("🪟 Win11 AI Stripper", "recall",     self.show_recall_stripper_pane),
-            ("🚀 Bufferbloat & QoS", "bufferbloat",self.show_bufferbloat_pane),
-            ("🔒 Tournament Lock",   "tourneylock",self.show_tournament_lock_pane),
-            ("⚡ Stutter Interceptor", "interceptor", self.show_predictive_interceptor_pane),
-            ("🏎️ Packet Racer",      "packetracer", self.show_packet_racer_pane),
-            ("🛡️ TPM Attestation",   "tpm_attest",  self.show_tpm_attestation_pane),
-            ("🧊 Ghost OS Cryo",      "ghost_cryo",  self.show_ghost_cryo_pane),
-            ("💻 DevOps Turbo",       "devops",      self.show_devops_pane),
-            ("🔋 Battery Whisper",    "battery",     self.show_battery_pane),
-            ("🎵 Studio DAW & Video", "studio",      self.show_studio_pane),
-            ("🕵️ Privacy Scrubber",   "privacy",     self.show_privacy_pane),
-            ("💽 Storage Reclaimer",  "storage",     self.show_storage_pane),
-            ("🖼️ Benchmark Card",    "card",       self.show_benchmark_card_pane),
-            ("🛡️ Mod Guard",         "modguard",   self.show_mod_guard_pane),
-            ("🔄 Auto-Updater",      "updater",    self.show_updater_pane),
-            ("🎯 CS2 Tuner",         "cs2",        self.show_cs2_pane),
-            ("⚡ Latency Stripper",  "stripper",   self.show_stripper_pane),
-            ("📈 Match History",     "analytics",  self.show_analytics_pane),
-            ("💬 Community Review",  "review",     self.show_review_pane),
-            ("🔍 Threat Radar",      "scanner",    self.show_scanner_pane),
-            ("🧪 Detonation Room",   "detonate",   self.show_detonation_pane),
-            ("📱 Mobile HUD",        "mobile",     self.show_mobile_pane),
-            ("👁️ Active Shield",     "shield",     self.show_shield_pane),
-            ("🌐 Network Guard",     "net",        self.show_network_pane),
-            ("🚀 Startup Apps",      "startup",    self.show_startup_pane),
-            ("🎮 Gamer Mode",        "gamer",      self.show_gamer_pane),
-            ("🔗 URL Radar",         "url",        self.show_url_pane),
-            ("⚡ PC Optimizer",      "opt",        self.show_optimizer_pane),
-            ("🤖 Sentient AI",       "ai",         self.show_ai_agent_pane),
-            ("⚙️ Settings",          "settings",   self.show_settings_pane),
-        ]
+        # Structured Drop-Down Nested Categories (46 Total Panes)
+        self.sidebar_categories = {
+            "Performance Suite": {
+                "icon": "⚡",
+                "accent": "#00F2FE",
+                "items": [
+                    ("📊 Dashboard",        "dash",       self.show_dashboard_pane),
+                    ("⚡ PC Optimizer",      "opt",        self.show_optimizer_pane),
+                    ("⚡ Latency Stripper",  "stripper",   self.show_stripper_pane),
+                    ("🎮 Esports Vault",    "esports",    self.show_esports_pane),
+                    ("🖥️ Display Reflex",    "reflex",     self.show_display_reflex_pane),
+                    ("🎮 Gamer Mode",        "gamer",      self.show_gamer_pane),
+                    ("🚀 Startup Apps",      "startup",    self.show_startup_pane),
+                    ("🎯 CS2 Tuner",         "cs2",        self.show_cs2_pane),
+                    ("🎛️ Profile Switcher",   "switcher",  self.show_profile_switcher_pane),
+                    ("⚡ MSI-X IRQ Director", "msi",       self.show_msi_pane),
+                    ("🎮 Shader Sentinel",    "shader",    self.show_shader_pane),
+                    ("⚡ Stutter Interceptor", "interceptor", self.show_predictive_interceptor_pane),
+                    ("🏎️ Packet Racer",      "packetracer", self.show_packet_racer_pane),
+                    ("💻 DevOps Turbo",       "devops",      self.show_devops_pane),
+                    ("🔋 Battery Whisper",    "battery",     self.show_battery_pane),
+                    ("🎵 Studio DAW & Video", "studio",      self.show_studio_pane),
+                    ("💽 Storage Reclaimer",  "storage",     self.show_storage_pane),
+                    ("🧠 Memory Pacer",      "mempacer",   self.show_memory_pacer_pane),
+                ]
+            },
+            "Hardware Diagnostics": {
+                "icon": "📊",
+                "accent": "#00FF9D",
+                "items": [
+                    ("⏱️ DPC Latency",       "dpc",        self.show_dpc_pane),
+                    ("🖱️ USB Polling",      "usb",        self.show_usb_polling_pane),
+                    ("🔥 Throttle Watchdog", "throttle",   self.show_throttle_pane),
+                    ("🎧 Audio Stripper",    "audio",      self.show_audio_stripper_pane),
+                    ("🌐 Server Radar",      "radar",      self.show_server_radar_pane),
+                    ("📡 LAN Team Sync",     "lansync",    self.show_lan_sync_pane),
+                    ("🚀 Bufferbloat & QoS", "bufferbloat",self.show_bufferbloat_pane),
+                    ("🌐 Network Guard",     "net",        self.show_network_pane),
+                    ("📱 Mobile HUD",        "mobile",     self.show_mobile_pane),
+                    ("🖼️ Benchmark Card",    "card",       self.show_benchmark_card_pane),
+                    ("📈 Match History",     "analytics",  self.show_analytics_pane),
+                    ("📼 Match Recorder",    "recorder",   self.show_match_recorder_pane),
+                ]
+            },
+            "Kernel Security": {
+                "icon": "🛡️",
+                "accent": "#8B5CF6",
+                "items": [
+                    ("👁️ Active Shield",     "shield",     self.show_shield_pane),
+                    ("🔍 Threat Radar",      "scanner",    self.show_scanner_pane),
+                    ("🛡️ Anti-Cheat Guard",   "acguard",   self.show_anticheat_pane),
+                    ("🔒 Tournament Lock",   "tourneylock",self.show_tournament_lock_pane),
+                    ("🛡️ TPM Attestation",   "tpm_attest",  self.show_tpm_attestation_pane),
+                    ("🧊 Ghost OS Cryo",      "ghost_cryo",  self.show_ghost_cryo_pane),
+                    ("🪟 Win11 AI Stripper", "recall",     self.show_recall_stripper_pane),
+                    ("🕵️ Privacy Scrubber",   "privacy",     self.show_privacy_pane),
+                    ("🛡️ Mod Guard",         "modguard",   self.show_mod_guard_pane),
+                    ("🧪 Detonation Room",   "detonate",   self.show_detonation_pane),
+                    ("🔗 URL Radar",         "url",        self.show_url_pane),
+                    ("🧠 Process Isolator",  "isolator",   self.show_isolator_pane),
+                    ("🤖 Sentient AI",       "ai",         self.show_ai_agent_pane),
+                    ("🔄 Auto-Updater",      "updater",    self.show_updater_pane),
+                    ("💬 Community Review",  "review",     self.show_review_pane),
+                    ("⚙️ Settings",          "settings",   self.show_settings_pane),
+                ]
+            }
+        }
 
-        for text, key, cmd in v5_nav_items:
-            def make_cmd(orig_cmd=cmd):
-                self.sfx.play_click()
-                orig_cmd()
+        self.category_frames = {}
+        self.category_headers = {}
+        self.category_expanded = {}
+        self.item_to_category = {}
 
-            btn = ctk.CTkButton(
-                self.sidebar, text=text, font=("Segoe UI", 11, "bold"),
-                fg_color="transparent", text_color=COLOR_TEXT_SUBTLE,
-                hover_color=COLOR_CARD, anchor="w",
-                height=30, corner_radius=8, command=make_cmd
+        # Scrollable Navigation Container inside Sidebar to prevent clipping across ultra-wide / multi-monitor scaling
+        self.sidebar_scroll = ctk.CTkScrollableFrame(
+            self.sidebar, fg_color="transparent",
+            scrollbar_button_color="#1E2438", scrollbar_button_hover_color=COLOR_CYAN
+        )
+        self.sidebar_scroll.pack(fill="both", expand=True, padx=4, pady=(6, 4))
+
+        for cat_name, cat_data in self.sidebar_categories.items():
+            icon = cat_data["icon"]
+            items = cat_data["items"]
+            count = len(items)
+
+            # Drop-Down Accordion Header
+            header_btn = ctk.CTkButton(
+                self.sidebar_scroll,
+                text=f"▼ {icon} {cat_name} ({count})",
+                font=("Segoe UI", 11, "bold"),
+                fg_color="#101524",
+                text_color=cat_data["accent"],
+                hover_color="#1A2138",
+                border_color="#1C253C",
+                border_width=1,
+                corner_radius=8,
+                height=32,
+                anchor="w",
+                command=lambda cn=cat_name: self._toggle_category(cn)
             )
-            btn.pack(fill="x", padx=10, pady=1)
-            self.nav_buttons[key] = btn
+            header_btn.pack(fill="x", padx=6, pady=(6, 2))
+            self.category_headers[cat_name] = header_btn
+            self.category_expanded[cat_name] = True
+
+            # Nested Items Frame
+            cat_frame = ctk.CTkFrame(self.sidebar_scroll, fg_color="transparent")
+            cat_frame.pack(fill="x", padx=4, pady=(1, 4))
+            self.category_frames[cat_name] = cat_frame
+
+            for text, key, cmd in items:
+                self.item_to_category[key] = cat_name
+                def make_cmd(orig_cmd=cmd):
+                    self.sfx.play_click()
+                    orig_cmd()
+
+                btn = ctk.CTkButton(
+                    cat_frame, text=f"  {text}", font=("Segoe UI", 11),
+                    fg_color="transparent", text_color=COLOR_TEXT_SUBTLE,
+                    hover_color=COLOR_CARD_HOVER, anchor="w",
+                    height=28, corner_radius=6, command=make_cmd
+                )
+                btn.pack(fill="x", padx=4, pady=1)
+                self.nav_buttons[key] = btn
+
+    def _toggle_category(self, cat_name: str):
+        try:
+            self.sfx.play_click()
+        except Exception:
+            pass
+        is_exp = self.category_expanded.get(cat_name, True)
+        cat_frame = self.category_frames.get(cat_name)
+        hdr = self.category_headers.get(cat_name)
+        cat_data = self.sidebar_categories.get(cat_name, {})
+        icon = cat_data.get("icon", "•")
+        count = len(cat_data.get("items", []))
+
+        if is_exp:
+            if cat_frame:
+                cat_frame.pack_forget()
+            self.category_expanded[cat_name] = False
+            if hdr:
+                hdr.configure(text=f"▶ {icon} {cat_name} ({count})", fg_color="transparent")
+        else:
+            if cat_frame:
+                cat_frame.pack(fill="x", padx=4, pady=(1, 4))
+            self.category_expanded[cat_name] = True
+            if hdr:
+                hdr.configure(text=f"▼ {icon} {cat_name} ({count})", fg_color="#101524")
+
+    def _expand_category(self, cat_name: str):
+        if not self.category_expanded.get(cat_name, True):
+            self._toggle_category(cat_name)
+
+    def _highlight_nav(self, active_key: str):
+        # Auto-expand parent category if collapsed
+        cat_name = getattr(self, "item_to_category", {}).get(active_key)
+        if cat_name and hasattr(self, "_expand_category"):
+            self._expand_category(cat_name)
+        super()._highlight_nav(active_key)
 
     # ========================================================================
     # 1. NEW V5 PANE: ESPORTS LATENCY STRIPPER (show_stripper_pane)

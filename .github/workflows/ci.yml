@@ -13,6 +13,8 @@ env:
   VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY || 'ci_mock_virustotal_token_valid_hash_key' }}
   ANTIMAGIST_SAFE_MODE: "1"
   ANTIMAGIST_HEADLESS: "1"
+  ANTIMAGIST_CI_MOCK_HARDWARE: "1"
+  ANTIMAGIST_MOCK_DRIVERS: "1"
 
 jobs:
   verify-antimagist:
@@ -34,7 +36,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install customtkinter pystray pillow psutil requests qrcode pywin32 keyboard
 
-      - name: Configure Windows Execution Privileges & Hardware Sensor Fallbacks
+      - name: Configure Windows Execution Privileges & Hardware Sensor Mocks
         shell: powershell
         run: |
           Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
@@ -43,10 +45,15 @@ jobs:
             New-Item -ItemType Directory -Path "C:\Antimagist_Quarantine" -Force | Out-Null
             Write-Host "[CI] C:\Antimagist_Quarantine directory provisioned."
           }
+          "ANTIMAGIST_CI_MOCK_HARDWARE=1" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "ANTIMAGIST_MOCK_DRIVERS=1" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "ANTIMAGIST_HEADLESS=1" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "[CI] Low-level driver stubs and hardware telemetry sensor mocks initialized."
 
       - name: Execute Antimagist Master Verification Suite
         shell: powershell
         run: |
+          python test_v12_architectural_overhaul.py
           python test_v2_hardening.py
           python antimagist_core_v2.py
           python test_master_v7_suite.py

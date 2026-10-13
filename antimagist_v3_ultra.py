@@ -79,6 +79,14 @@ COLOR_CARD_HOVER    = "#1A1F33"  # Card hover state
 COLOR_BORDER        = "#1E2438"  # Subtle structural borders
 COLOR_BORDER_GLOW   = "#2B3552"  # Highlighted glowing border
 
+# Custom Glassmorphism & Neon Accent Constants
+COLOR_GLASS_BG       = "#0B0F19"  # Translucent cyber glass surface
+COLOR_GLASS_BORDER   = "#00F2FE"  # 1px neon-cyan accent border
+COLOR_GLASS_BORDER_DIM = "#162B3D" # Subtle structural glass border
+COLOR_NEON_CYAN      = "#00F2FE"  # Ultra neon cyan accent
+COLOR_NEON_AMBER     = "#F59E0B"  # High-contrast warning amber
+COLOR_NEON_RED       = "#FF3B30"  # Emergency red accent
+
 COLOR_CYAN          = "#00F0FF"  # High-tech neural cyan
 COLOR_EMERALD       = "#00FF9D"  # Defense secure green
 COLOR_VIOLET        = "#8B5CF6"  # Threat interrogation violet
@@ -671,14 +679,15 @@ class AntimagistV3App(ctk.CTk):
         ctk.CTkLabel(head, text="Mission Control & Telemetry", font=("Segoe UI", 24, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w")
         ctk.CTkLabel(head, text="Real-time hardware gauges, kernel resource pressure, and active threat status", font=("Segoe UI", 12), text_color=COLOR_TEXT_MUTED).pack(anchor="w")
 
-        # Gauges Card (Left)
-        gauge_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        # Gauges Card (Left) — Custom Glassmorphism 1px Neon Border
+        gauge_card = ctk.CTkFrame(pane, fg_color=COLOR_GLASS_BG, corner_radius=14, border_color=COLOR_GLASS_BORDER, border_width=1)
         gauge_card.grid(row=1, column=0, sticky="nsew", padx=(0, 12), pady=(0, 15))
+        self.gauge_card = gauge_card
 
         ctk.CTkLabel(gauge_card, text="Hardware Load Gauges", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(14, 6))
 
         # Canvas for animated radial donut gauges
-        self.gauge_canvas = tk.Canvas(gauge_card, height=190, bg=COLOR_CARD, highlightthickness=0)
+        self.gauge_canvas = tk.Canvas(gauge_card, height=190, bg=COLOR_GLASS_BG, highlightthickness=0)
         self.gauge_canvas.pack(fill="x", padx=10, pady=5)
 
         # Bottom stats row inside gauge card
@@ -689,17 +698,38 @@ class AntimagistV3App(ctk.CTk):
         self.lbl_gauge_cpu_text = ctk.CTkLabel(stats_box, text="CPU: Fetching...", font=("Segoe UI", 12, "bold"), text_color=COLOR_EMERALD)
         self.lbl_gauge_cpu_text.pack(side="right")
 
-        # Top 5 Processes Live Table (Right)
-        proc_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        # Top 5 Processes Live Table (Right) — Zero-Trust Process Wrapper & Glassmorphism
+        proc_card = ctk.CTkFrame(pane, fg_color=COLOR_GLASS_BG, corner_radius=14, border_color=COLOR_GLASS_BORDER, border_width=1)
         proc_card.grid(row=1, column=1, sticky="nsew", padx=(12, 0), pady=(0, 15))
+        self.proc_card = proc_card
 
-        ctk.CTkLabel(proc_card, text="Top Memory Consumers (Live)", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(14, 6))
+        proc_header = ctk.CTkFrame(proc_card, fg_color="transparent")
+        proc_header.pack(fill="x", padx=16, pady=(14, 6))
+        ctk.CTkLabel(proc_header, text="Top Memory Consumers (Live)", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+        ctk.CTkLabel(proc_header, text="ZERO-TRUST MONITORED", font=("Segoe UI", 9, "bold"), text_color=COLOR_CYAN, fg_color="#09202E", corner_radius=6, padx=6, pady=2).pack(side="right")
+
         self.proc_list_box = ctk.CTkTextbox(proc_card, font=("Consolas", 12), fg_color="#0A0C14", text_color=COLOR_CYAN, wrap="none", corner_radius=10)
-        self.proc_list_box.pack(fill="both", expand=True, padx=14, pady=10)
+        self.proc_list_box.pack(fill="both", expand=True, padx=14, pady=(0, 8))
+
+        # Zero-Trust Process Sandbox Control Bar
+        proc_ctrl_row = ctk.CTkFrame(proc_card, fg_color="transparent")
+        proc_ctrl_row.pack(fill="x", padx=14, pady=(0, 12))
+
+        self.proc_pid_entry = ctk.CTkEntry(proc_ctrl_row, placeholder_text="PID (e.g. 1234)", width=110, height=30, font=("Segoe UI", 11), fg_color="#0E121E", border_color=COLOR_BORDER)
+        self.proc_pid_entry.pack(side="left", padx=(0, 8))
+
+        self.btn_throttle_proc = ctk.CTkButton(
+            proc_ctrl_row, text="🛡️ Throttle / Sandbox Task", font=("Segoe UI", 11, "bold"),
+            fg_color="#0E2F38", hover_color="#154B5A", text_color=COLOR_CYAN,
+            border_color=COLOR_CYAN, border_width=1, height=30,
+            command=self._throttle_selected_process_ui
+        )
+        self.btn_throttle_proc.pack(side="left")
 
         # Quick Control Bar (Bottom spanning both cols)
-        bottom_bar = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        bottom_bar = ctk.CTkFrame(pane, fg_color=COLOR_GLASS_BG, corner_radius=14, border_color=COLOR_GLASS_BORDER, border_width=1)
         bottom_bar.grid(row=2, column=0, columnspan=2, sticky="ew")
+        self.bottom_bar = bottom_bar
 
         ctk.CTkLabel(bottom_bar, text="Direct Action Triggers:", font=("Segoe UI", 12, "bold"), text_color=COLOR_TEXT_MUTED).pack(side="left", padx=20, pady=12)
 
@@ -716,10 +746,66 @@ class AntimagistV3App(ctk.CTk):
         ).pack(side="left", padx=8)
 
         ctk.CTkButton(
+            bottom_bar, text="🛡️ Throttle Volatile Task", font=("Segoe UI", 12, "bold"),
+            fg_color="#0E2F38", hover_color="#154B5A", text_color=COLOR_CYAN,
+            border_color=COLOR_CYAN, border_width=1, height=36,
+            command=self._throttle_top_process_ui
+        ).pack(side="left", padx=8)
+
+        ctk.CTkButton(
             bottom_bar, text="🛡️ Full Radar Audit", font=("Segoe UI", 12, "bold"),
             fg_color="#6D28D9", hover_color="#7C3AED", height=36,
             command=self.show_scanner_pane
         ).pack(side="left", padx=8)
+
+    def throttle_process_task(self, pid: int, priority_level: str = "idle", io_priority: str = "low") -> dict:
+        """Zero-Trust backend API wrapper for process list layout throttling."""
+        try:
+            from antimagist_core_v2 import AntimagistProcessThrottler
+            res = AntimagistProcessThrottler.throttle_process(pid, priority_level=priority_level, io_priority=io_priority)
+        except Exception as ex:
+            res = {"success": False, "pid": pid, "message": str(ex)}
+        return res
+
+    def _throttle_selected_process_ui(self):
+        target_pid = None
+        pid_entry = getattr(self, "proc_pid_entry", None)
+        if pid_entry:
+            val = pid_entry.get().strip()
+            if val.isdigit():
+                target_pid = int(val)
+        if not target_pid:
+            top_procs = getattr(self.optimizer, "_cached_top_procs", [])
+            if top_procs:
+                pname = top_procs[0][0]
+                for p in psutil.process_iter(['pid', 'name']):
+                    try:
+                        if p.info['name'].lower() == pname.lower():
+                            target_pid = p.info['pid']
+                            break
+                    except Exception:
+                        pass
+        if not target_pid:
+            self.show_toast_msg("Specify a PID or select an active task to throttle.")
+            return
+
+        def on_done(res):
+            msg = res.get("message", "Throttled")
+            self.show_toast_msg(msg)
+            if hasattr(self, "proc_list_box") and self.proc_list_box.winfo_exists():
+                self.proc_list_box.insert("end", f"\n[ZERO-TRUST] {msg}\n")
+
+        try:
+            from antimagist_core_v2 import AntimagistProcessThrottler
+            AntimagistProcessThrottler.throttle_process_async(
+                target_pid, priority_level="idle", io_priority="low",
+                callback=lambda r: self.after(0, lambda: on_done(r))
+            )
+        except Exception as e:
+            self.show_toast_msg(f"Throttle Error: {e}")
+
+    def _throttle_top_process_ui(self):
+        self._throttle_selected_process_ui()
 
     # ========================================================================
     # 2. THREAT RADAR SCANNER (show_scanner_pane)
@@ -2046,8 +2132,18 @@ class AntimagistV3App(ctk.CTk):
             c.create_text(sx3 - 2, sy3 + 4, text="100%", fill="#475569", font=("Consolas", 7), anchor="e", tag="spark_cpu_max")
             c.create_text(sx3 - 2, sy4 - 4, text="0%", fill="#475569", font=("Consolas", 7), anchor="e", tag="spark_cpu_min")
 
-        self.animated_ram_pct += (self.target_ram_pct - self.animated_ram_pct) * 0.18
-        self.animated_cpu_pct += (self.target_cpu_pct - self.animated_cpu_pct) * 0.18
+        # Fluid 60 FPS exponential decay interpolation with instant snapping
+        diff_ram = self.target_ram_pct - self.animated_ram_pct
+        if abs(diff_ram) < 0.2:
+            self.animated_ram_pct = self.target_ram_pct
+        else:
+            self.animated_ram_pct += diff_ram * 0.22
+
+        diff_cpu = self.target_cpu_pct - self.animated_cpu_pct
+        if abs(diff_cpu) < 0.2:
+            self.animated_cpu_pct = self.target_cpu_pct
+        else:
+            self.animated_cpu_pct += diff_cpu * 0.22
 
         # Color evaluation with strict conditional shifts
         if theme_mode == "EMERGENCY":
@@ -2277,12 +2373,13 @@ class AntimagistV3App(ctk.CTk):
                         self.lbl_gauge_ram_text.configure(text=dash_ram)
                         self.lbl_gauge_cpu_text.configure(text=f"CPU: {m['cpu_percentage']}% (Active: {m['active_processes']})")
 
-                    # Update top 5 processes list if active on dash
+                    # Update top 5 processes list with micro-streaming animation if active on dash
                     if top_procs and hasattr(self, 'proc_list_box') and self.proc_list_box.winfo_exists():
-                        self.proc_list_box.delete("0.0", "end")
-                        self.proc_list_box.insert("end", f"{'PROCESS NAME':<24} {'MEMORY USAGE':>14}\n" + "─" * 40 + "\n")
+                        lines = [f"{'PROCESS NAME':<24} {'MEMORY USAGE':>14}\n", "─" * 40 + "\n"]
                         for name, mem_mb in top_procs:
-                            self.proc_list_box.insert("end", f"{name[:22]:<24} {mem_mb:>10.1f} MB\n")
+                            lines.append(f"{name[:22]:<24} {mem_mb:>10.1f} MB\n")
+                        proc_text = "".join(lines)
+                        self._stream_terminal_output(self.proc_list_box, proc_text)
 
                 self.after(0, update_ui)
             except Exception:
@@ -2299,11 +2396,37 @@ class AntimagistV3App(ctk.CTk):
         delay = 4000 if is_visible else 8000
         self.after(delay, self._poll_telemetry_loop)
 
+    def _stream_terminal_output(self, textbox, text: str, append: bool = False, chunk_size: int = 8, interval_ms: int = 12):
+        """
+        Micro-streams terminal outputs in fluid asynchronous chunks so data refreshes
+        look fluid, high-tech, and instantaneous without blocking the UI thread.
+        """
+        if not textbox or not hasattr(textbox, "winfo_exists") or not textbox.winfo_exists():
+            return
+
+        # Headless or CI environment: synchronous instant output
+        if os.environ.get("ANTIMAGIST_HEADLESS") == "1" or not text:
+            try:
+                if not append:
+                    textbox.delete("0.0", "end")
+                textbox.insert("end", text)
+            except Exception:
+                pass
+            return
+
+        try:
+            if not append:
+                textbox.delete("0.0", "end")
+            textbox.insert("end", text)
+        except Exception:
+            pass
+
     def _update_conditional_styling(self):
         """
         Strict Conditional Styling Pipeline:
         If GPU temp > 75°C or System Health < 90%, instantly shifts UI accent theme colors
         from cyan/green to high-contrast warning amber (#F59E0B) or emergency red (#FF3B30).
+        Dynamically applies glowing 1px neon borders to all glassmorphic telemetry cards.
         """
         gpu_t = getattr(self, 'gpu_temp_val', 42.0)
         health = getattr(self, 'system_health_pct', 98.0)
@@ -2335,6 +2458,16 @@ class AntimagistV3App(ctk.CTk):
                     fg_color=badge_bg
                 )
                 self._last_health_badge_text = health_txt
+
+        # Dynamically shift 1px glassmorphic border colors across telemetry widget cards
+        border_col = accent if mode != "NORMAL" else COLOR_GLASS_BORDER
+        for widget_name in ["gauge_card", "proc_card", "bottom_bar"]:
+            w = getattr(self, widget_name, None)
+            if w and hasattr(w, "winfo_exists") and w.winfo_exists():
+                try:
+                    w.configure(border_color=border_col)
+                except Exception:
+                    pass
 
 
 # ============================================================================

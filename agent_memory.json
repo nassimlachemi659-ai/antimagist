@@ -107,6 +107,42 @@
       "success": false,
       "reason": "CRITICAL FIREWALL BLOCK: 'recursive rmdir' — Prohibited destructive command.",
       "timestamp": "2026-10-12T18:58:04"
+    },
+    {
+      "timestamp": "2026-10-12T19:11:56",
+      "tool": "scan_file",
+      "success": false,
+      "detail": "❌ VirusTotal Authentication Error (401 Unauthorized/Forbidden)."
+    },
+    {
+      "tool": "execute_powershell",
+      "success": false,
+      "reason": "CRITICAL FIREWALL BLOCK: 'recursive rmdir' — Prohibited destructive command.",
+      "timestamp": "2026-10-12T19:11:56"
+    },
+    {
+      "tool": "execute_powershell",
+      "success": false,
+      "reason": "CRITICAL FIREWALL BLOCK: 'recursive rmdir' — Prohibited destructive command.",
+      "timestamp": "2026-10-12T19:11:56"
+    },
+    {
+      "tool": "execute_powershell",
+      "success": false,
+      "reason": "CRITICAL FIREWALL BLOCK: 'recursive rmdir' — Prohibited destructive command.",
+      "timestamp": "2026-10-12T19:11:56"
+    },
+    {
+      "timestamp": "2026-10-12T19:16:41",
+      "tool": "throttle_process",
+      "success": true,
+      "detail": "Successfully throttled 'python.exe' (PID: 12040) -> CPU: normal, I/O: normal, Affinity: None."
+    },
+    {
+      "timestamp": "2026-10-12T19:17:33",
+      "tool": "throttle_process",
+      "success": true,
+      "detail": "Successfully throttled 'python.exe' (PID: 16360) -> CPU: normal, I/O: normal, Affinity: None."
     }
   ],
   "circuit_breaker_events": [
@@ -124,6 +160,12 @@
     },
     {
       "timestamp": "2026-10-12T18:58:04",
+      "status": "HALTED",
+      "reason": "3-Strike Infinite Loop Barrier triggered. Runtime halted.",
+      "last_tool": "get_live_metrics"
+    },
+    {
+      "timestamp": "2026-10-12T19:11:56",
       "status": "HALTED",
       "reason": "3-Strike Infinite Loop Barrier triggered. Runtime halted.",
       "last_tool": "get_live_metrics"

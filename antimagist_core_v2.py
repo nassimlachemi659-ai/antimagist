@@ -32,6 +32,11 @@ from collections import deque
 from enum import Enum, auto
 from typing import Callable, Optional, Any
 
+try:
+    import winreg
+except ImportError:
+    winreg = None
+
 # Ensure UTF-8 console output for Windows CLI
 if hasattr(sys.stdout, "reconfigure"):
     try:
@@ -167,6 +172,18 @@ class AntimagistStrictValidator:
         "chat_response": {
             "allowed_keys": {"user_message", "session_id"},
             "type_specs": {"user_message": str, "session_id": str}
+        },
+        "throttle_process": {
+            "allowed_keys": {"pid", "priority_level", "io_priority", "memory_clamp_mb", "cpu_affinity"},
+            "type_specs": {"pid": int, "priority_level": str, "io_priority": str},
+            "allowed_values": {
+                "priority_level": {"idle", "below_normal", "normal", "high"},
+                "io_priority": {"low", "very_low", "normal"}
+            }
+        },
+        "audit_system_integrity": {
+            "allowed_keys": {"scope", "deep_scan"},
+            "type_specs": {"scope": str, "deep_scan": bool}
         }
     }
 
@@ -183,6 +200,9 @@ class AntimagistStrictValidator:
             "sweep junk": "sweep_junk",
             "nvme_trim": "run_nvme_trim",
             "dism_sweep": "run_deep_sweep",
+            "throttle_task": "throttle_process",
+            "sandbox_task": "throttle_process",
+            "integrity_sweep": "audit_system_integrity",
         }
         target_schema_key = alias_map.get(normalized_action, normalized_action)
 
@@ -287,6 +307,384 @@ class IsolatedExecutionLayer:
         thread.start()
         return thread
 
+
+# ============================================================================
+# 0.1 ZERO-TRUST PROCESS THROTTLER & HARDWARE PRIORITY CLAMP
+# ============================================================================
+class AntimagistProcessThrottler:
+    """
+    Zero-Trust native process throttling and sandboxing wrapper.
+    Safely throttles or sandboxes volatile, suspicious, or resource-heavy tasks
+    by clamping CPU scheduling priorities, I/O bandwidth priorities, CPU core affinity,
+    and memory working-set parameters directly through safe native API handles.
+    """
+    PROTECTED_SYSTEM_BINARIES = {
+        "csrss.exe", "smss.exe", "lsass.exe", "wininit.exe", "services.exe",
+        "svchost.exe", "winlogon.exe", "system", "registry", "idle"
+    }
+
+    PRIORITY_MAP = {
+        "idle": getattr(psutil, "IDLE_PRIORITY_CLASS", 64),
+        "below_normal": getattr(psutil, "BELOW_NORMAL_PRIORITY_CLASS", 16384),
+        "normal": getattr(psutil, "NORMAL_PRIORITY_CLASS", 32),
+        "high": getattr(psutil, "HIGH_PRIORITY_CLASS", 128),
+    }
+
+    IOPRIO_MAP = {
+        "very_low": getattr(psutil, "IOPRIO_VERYLOW", 0),
+        "low": getattr(psutil, "IOPRIO_LOW", 1),
+        "normal": getattr(psutil, "IOPRIO_NORMAL", 2),
+    }
+
+    @classmethod
+    def throttle_process(
+        cls,
+        pid: int,
+        priority_level: str = "idle",
+        io_priority: str = "low",
+        memory_clamp_mb: Optional[int] = None,
+        cpu_affinity: Optional[list[int]] = None
+    ) -> dict:
+        """
+        Applies zero-trust throttling and sandbox parameters to target process via native handles.
+        Ensures thread-safe, non-blocking execution and rigorous safety boundaries.
+        """
+        if pid <= 4:
+            err = f"ZERO-TRUST REJECT: Process ID {pid} is a protected kernel system entity."
+            AntimagistSanityLogger.log_security_event("THROTTLE_BLOCKED", "throttle_process", {"pid": pid, "reason": err})
+            return {"success": False, "pid": pid, "message": err}
+
+        try:
+            proc = psutil.Process(pid)
+            proc_name = proc.name().lower()
+            if proc_name in cls.PROTECTED_SYSTEM_BINARIES:
+                err = f"ZERO-TRUST REJECT: '{proc.name()}' is a critical OS protected process."
+                AntimagistSanityLogger.log_security_event("THROTTLE_BLOCKED", "throttle_process", {"pid": pid, "name": proc.name(), "reason": err})
+                return {"success": False, "pid": pid, "name": proc.name(), "message": err}
+
+            # 1. Hardware CPU Priority Clamping
+            applied_priority = "normal"
+            if priority_level in cls.PRIORITY_MAP:
+                target_prio = cls.PRIORITY_MAP[priority_level]
+                try:
+                    proc.nice(target_prio)
+                    applied_priority = priority_level
+                except Exception as ex_prio:
+                    AntimagistSanityLogger.log_exception("ProcessThrottler::SetPriority", ex_prio, {"pid": pid, "target": priority_level})
+
+            # 2. Storage / Disk I/O Priority Clamping
+            applied_io = "normal"
+            if io_priority in cls.IOPRIO_MAP and hasattr(proc, "ionice"):
+                target_io = cls.IOPRIO_MAP[io_priority]
+                try:
+                    proc.ionice(target_io)
+                    applied_io = io_priority
+                except Exception as ex_io:
+                    applied_io = f"unsupported ({ex_io})"
+
+            # 3. CPU Core Affinity Clamping (Restrict to core 0 or designated cores)
+            applied_affinity = None
+            try:
+                if cpu_affinity is not None and hasattr(proc, "cpu_affinity"):
+                    proc.cpu_affinity(cpu_affinity)
+                    applied_affinity = cpu_affinity
+                elif hasattr(proc, "cpu_affinity") and priority_level in ["idle", "below_normal"]:
+                    proc.cpu_affinity([0])
+                    applied_affinity = [0]
+            except Exception as ex_aff:
+                applied_affinity = f"skipped ({ex_aff})"
+
+            # 4. Memory Clamp / Working Set Flush
+            memory_reclaimed_mb = 0.0
+            try:
+                rss_before = proc.memory_info().rss / (1024 * 1024)
+                if os.name == "nt":
+                    try:
+                        import ctypes
+                        handle = ctypes.windll.kernel32.OpenProcess(0x1F0FFF, False, pid)
+                        if handle:
+                            ctypes.windll.psapi.EmptyWorkingSet(handle)
+                            ctypes.windll.kernel32.CloseHandle(handle)
+                    except Exception:
+                        pass
+                rss_after = proc.memory_info().rss / (1024 * 1024)
+                memory_reclaimed_mb = round(max(0.0, rss_before - rss_after), 1)
+            except Exception:
+                pass
+
+            details = {
+                "pid": pid,
+                "name": proc.name(),
+                "applied_priority": applied_priority,
+                "applied_io": applied_io,
+                "applied_affinity": applied_affinity,
+                "memory_reclaimed_mb": memory_reclaimed_mb,
+                "status": "THROTTLED_AND_SANDBOXED"
+            }
+            AntimagistSanityLogger.log_security_event("PROCESS_THROTTLED", "throttle_process", details)
+
+            return {
+                "success": True,
+                "pid": pid,
+                "name": proc.name(),
+                "applied_priority": applied_priority,
+                "applied_io": applied_io,
+                "applied_affinity": applied_affinity,
+                "memory_reclaimed_mb": memory_reclaimed_mb,
+                "message": f"Successfully throttled '{proc.name()}' (PID: {pid}) -> CPU: {applied_priority}, I/O: {applied_io}, Affinity: {applied_affinity}."
+            }
+
+        except psutil.NoSuchProcess:
+            return {"success": False, "pid": pid, "message": f"Process {pid} no longer active."}
+        except psutil.AccessDenied:
+            err = f"Access Denied on Process {pid}. Elevated privileges required."
+            AntimagistSanityLogger.log_security_event("THROTTLE_ACCESS_DENIED", "throttle_process", {"pid": pid})
+            return {"success": False, "pid": pid, "message": err}
+        except Exception as ex:
+            AntimagistSanityLogger.log_exception("ProcessThrottler::throttle_process", ex, {"pid": pid})
+            return {"success": False, "pid": pid, "message": str(ex)}
+
+    @classmethod
+    def throttle_process_async(
+        cls,
+        pid: int,
+        priority_level: str = "idle",
+        io_priority: str = "low",
+        callback: Optional[Callable[[dict], None]] = None
+    ) -> threading.Thread:
+        """Executes process throttling in a non-blocking background worker thread."""
+        def worker():
+            res = cls.throttle_process(pid, priority_level, io_priority)
+            if callback:
+                callback(res)
+        th = threading.Thread(target=worker, daemon=True, name=f"Antimagist-Throttle-{pid}")
+        th.start()
+        return th
+
+
+# ============================================================================
+# 0.2 LOCAL EVENT INTERCEPTOR (Registry Tampering & Dynamic Library Injections)
+# ============================================================================
+class AntimagistLocalEventInterceptor:
+    """
+    Lightweight local event interceptor that captures anomalous registry adjustments
+    (Run/RunOnce autostarts, debugger hijacking, Tamper/Defender disable attempts)
+    and dynamic library (DLL) injections.
+    Outputs structured debugging blocks to the local system log ('antimagist_sanity.log').
+    """
+    SUSPICIOUS_REG_PATTERNS = [
+        re.compile(r"\\temp\\", re.I),
+        re.compile(r"\\appdata\\local\\temp\\", re.I),
+        re.compile(r"cmd(\.exe)?\s+/c", re.I),
+        re.compile(r"powershell(\.exe)?\s+(-e|-enc|-encodedcommand|-w\s+hidden)", re.I),
+        re.compile(r"mshta(\.exe)?", re.I),
+        re.compile(r"rundll32(\.exe)?.*javascript:", re.I),
+        re.compile(r"wscript(\.exe)?", re.I),
+        re.compile(r"cscript(\.exe)?", re.I),
+    ]
+
+    SUSPICIOUS_DLL_NAMES = {
+        "hook.dll", "inject.dll", "payload.dll", "speedhack.dll",
+        "cheat.dll", "minhook.dll", "proxy.dll", "hack.dll"
+    }
+
+    @classmethod
+    def audit_registry_integrity(cls) -> list[dict]:
+        """
+        Inspects sensitive autostart and security registry keys for unauthorized
+        adjustments, persistence hooks, or defensive impairment.
+        """
+        anomalies: list[dict] = []
+        if os.name != "nt" or winreg is None:
+            return anomalies
+
+        reg_targets = [
+            (winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Run", "HKCU_Run"),
+            (winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\RunOnce", "HKCU_RunOnce"),
+            (winreg.HKEY_LOCAL_MACHINE, r"Software\Microsoft\Windows\CurrentVersion\Run", "HKLM_Run"),
+            (winreg.HKEY_LOCAL_MACHINE, r"Software\Microsoft\Windows\CurrentVersion\RunOnce", "HKLM_RunOnce"),
+            (winreg.HKEY_LOCAL_MACHINE, r"Software\Microsoft\Windows NT\CurrentVersion\Windows", "AppInit_DLLs_Key"),
+        ]
+
+        for hive, subkey_path, tag in reg_targets:
+            try:
+                with winreg.OpenKey(hive, subkey_path, 0, winreg.KEY_READ) as key:
+                    num_values = winreg.QueryInfoKey(key)[1]
+                    for i in range(num_values):
+                        val_name, val_data, val_type = winreg.EnumValue(key, i)
+                        val_str = str(val_data)
+
+                        # Check AppInit_DLLs tampering (only alert if DLLs are specified or LoadAppInit_DLLs is enabled)
+                        is_appinit_active = (val_name == "AppInit_DLLs" and val_str.strip()) or (val_name == "LoadAppInit_DLLs" and val_str in ("1", "True"))
+                        if is_appinit_active:
+                            anomaly = {
+                                "category": "REGISTRY_APPINIT_HIJACK",
+                                "key": tag,
+                                "name": val_name,
+                                "payload": val_str,
+                                "risk": "CRITICAL",
+                                "description": "AppInit_DLLs persistence detected. System-wide DLL injection vector active."
+                            }
+                            anomalies.append(anomaly)
+                            AntimagistSanityLogger.log_security_event("REGISTRY_TAMPER", "audit_registry", anomaly)
+
+                        for pat in cls.SUSPICIOUS_REG_PATTERNS:
+                            if pat.search(val_str):
+                                anomaly = {
+                                    "category": "SUSPICIOUS_AUTOSTART_ENTRY",
+                                    "key": tag,
+                                    "name": val_name,
+                                    "payload": val_str,
+                                    "risk": "HIGH",
+                                    "pattern_matched": pat.pattern,
+                                    "description": f"Suspicious execution parameter in registry autostart ({val_name})."
+                                }
+                                anomalies.append(anomaly)
+                                AntimagistSanityLogger.log_security_event("REGISTRY_SUSPICIOUS_STARTUP", "audit_registry", anomaly)
+                                break
+            except FileNotFoundError:
+                pass
+            except PermissionError:
+                pass
+            except Exception as e:
+                AntimagistSanityLogger.log_exception(f"Interceptor::AuditRegistry::{tag}", e)
+
+        return anomalies
+
+    @classmethod
+    def audit_dll_injections(cls, target_pid: Optional[int] = None) -> list[dict]:
+        """
+        Inspects memory-mapped libraries of active processes for anomalous DLL injections
+        (e.g., loaded from Temp directory, unsigned injection payloads).
+        """
+        injections: list[dict] = []
+        pids_to_check = [target_pid] if target_pid else []
+
+        if not pids_to_check:
+            try:
+                for p in psutil.process_iter(['pid', 'name']):
+                    try:
+                        if p.info['pid'] > 100 and p.info['name'].lower() not in ["system", "idle"]:
+                            pids_to_check.append(p.info['pid'])
+                            if len(pids_to_check) >= 20:
+                                break
+                    except Exception:
+                        pass
+            except Exception:
+                pass
+
+        for pid in pids_to_check:
+            try:
+                proc = psutil.Process(pid)
+                pname = proc.name()
+                if hasattr(proc, "memory_maps"):
+                    try:
+                        maps = proc.memory_maps()
+                        for m in maps:
+                            path = getattr(m, "path", "")
+                            if not path or not path.lower().endswith(".dll"):
+                                continue
+                            norm_path = path.lower()
+                            base_dll = os.path.basename(norm_path)
+
+                            is_temp = "\\temp\\" in norm_path or "\\appdata\\local\\temp\\" in norm_path
+                            is_suspicious_name = base_dll in cls.SUSPICIOUS_DLL_NAMES
+
+                            if is_temp or is_suspicious_name:
+                                finding = {
+                                    "category": "ANOMALOUS_DLL_INJECTION",
+                                    "pid": pid,
+                                    "process_name": pname,
+                                    "dll_path": path,
+                                    "dll_name": base_dll,
+                                    "reason": "Loaded from temporary directory" if is_temp else "Matched suspicious injector signature",
+                                    "risk": "HIGH"
+                                }
+                                injections.append(finding)
+                                AntimagistSanityLogger.log_security_event("DLL_INJECTION_ALERT", "audit_dll", finding)
+                    except (psutil.AccessDenied, psutil.NoSuchProcess):
+                        pass
+            except Exception:
+                pass
+
+        return injections
+
+    @classmethod
+    def run_system_integrity_sweep(cls) -> dict:
+        """
+        Executes unified local event interception sweep (Registry + DLL modules)
+        and outputs structured debugging blocks directly to antimagist_sanity.log.
+        """
+        reg_anomalies = cls.audit_registry_integrity()
+        dll_anomalies = cls.audit_dll_injections()
+        is_clean = len(reg_anomalies) == 0 and len(dll_anomalies) == 0
+
+        summary = {
+            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
+            "status": "HEALTHY_SECURE" if is_clean else "ANOMALIES_INTERCEPTED",
+            "registry_anomalies_count": len(reg_anomalies),
+            "dll_injections_count": len(dll_anomalies),
+            "registry_details": reg_anomalies,
+            "dll_details": dll_anomalies
+        }
+
+        AntimagistSanityLogger.log_security_event(
+            "INTEGRITY_SWEEP_COMPLETED",
+            "system_integrity_sweep",
+            summary
+        )
+
+        return summary
+
+
+# ============================================================================
+# 0.3 HARDWARE SENSOR MOCK & CI EXECUTION BRIDGE
+# ============================================================================
+class AntimagistHardwareMock:
+    """
+    Hardware and sensor telemetry mocking bridge for CI cloud runners and virtual environments.
+    Guarantees seamless automated regression tests without physical GPU/WMI/DirectX hardware blocks.
+    """
+    @classmethod
+    def is_ci_or_mock_mode(cls) -> bool:
+        return (
+            os.environ.get("ANTIMAGIST_CI_MOCK_HARDWARE") == "1" or
+            os.environ.get("ANTIMAGIST_MOCK_DRIVERS") == "1" or
+            (os.environ.get("CI") == "true" and os.environ.get("ANTIMAGIST_HEADLESS") == "1")
+        )
+
+    @classmethod
+    def get_mock_gpu_telemetry(cls) -> dict:
+        return {
+            "gpu_name": "NVIDIA GeForce RTX 4090 [CI Mock Driver]",
+            "temperature_c": 48.0,
+            "load_percentage": 14.5,
+            "vram_used_mb": 2048,
+            "vram_total_mb": 24576,
+            "driver_version": "551.86-CI-MOCK",
+            "is_mock": True
+        }
+
+    @classmethod
+    def get_mock_dpc_telemetry(cls) -> dict:
+        return {
+            "dpc_latency_us": 82.5,
+            "highest_isr_us": 41.2,
+            "worst_driver": "nvlddmkm.sys (Simulated)",
+            "timer_resolution_ms": 0.5,
+            "is_mock": True
+        }
+
+    @classmethod
+    def get_mock_battery_telemetry(cls) -> dict:
+        return {
+            "has_battery": True,
+            "percent": 95.0,
+            "power_plugged": True,
+            "status_str": "95% (AC Connected - Workstation Mode)",
+            "is_mock": True
+        }
+
 # Ensure quarantine directory exists with hidden layer attribute
 try:
     if not os.path.exists(QUARANTINE_DIR):
@@ -374,8 +772,11 @@ class AntimagistSecuritySandbox:
                 return False, PermissionTier.CRITICAL, reason
 
         # 2. Tier assignment
-        if func_name in ["get_live_metrics", "get_live_stats", "check_local_db"]:
+        if func_name in ["get_live_metrics", "get_live_stats", "check_local_db", "audit_system_integrity"]:
             return True, PermissionTier.READ_ONLY, "Read-only telemetry: auto-approved."
+
+        if func_name == "throttle_process":
+            return True, PermissionTier.CONFIRM, "Process throttle approved."
 
         if func_name == "execute_powershell":
             # Check if command is purely a read/query command
@@ -850,6 +1251,26 @@ class AntimagistAIEngine:
                 self._record_action(tool_name, True, proc.stdout.strip())
                 return {"success": True, "result": proc.stdout.strip()}
 
+            elif tool_name == "throttle_process":
+                pid = args.get("pid", 0)
+                prio = args.get("priority_level", "idle")
+                io_prio = args.get("io_priority", "low")
+                res = AntimagistProcessThrottler.throttle_process(pid, priority_level=prio, io_priority=io_prio)
+                if res.get("success"):
+                    self.consecutive_failures = 0
+                    self._record_action(tool_name, True, res.get("message", "Throttled"))
+                    return {"success": True, "result": res}
+                else:
+                    self.consecutive_failures += 1
+                    self._record_action(tool_name, False, res.get("message", "Throttle failed"))
+                    return {"success": False, "status": "THROTTLE_REJECTED", "message": res.get("message")}
+
+            elif tool_name == "audit_system_integrity":
+                res = AntimagistLocalEventInterceptor.run_system_integrity_sweep()
+                self.consecutive_failures = 0
+                self._record_action(tool_name, True, f"Integrity status: {res.get('status')}")
+                return {"success": True, "result": res}
+
         except Exception as ex:
             AntimagistSanityLogger.log_exception(f"AIEngine::{tool_name}", ex, {"args": args})
             self.consecutive_failures += 1
@@ -1026,6 +1447,52 @@ class MasterSanityAuditSuite:
             if os.path.exists(safe_tmp): os.remove(safe_tmp)
         except Exception:
             pass
+
+        # ── Phase 9: Zero-Trust Process Throttler & Priority Sandboxing ──
+        print("\n[PHASE 9] Testing Zero-Trust Process Throttler & Priority Sandboxing...")
+        p9_reject = AntimagistProcessThrottler.throttle_process(4, priority_level="idle") # PID 4 is System
+        p9_pass_reject = not p9_reject["success"] and "ZERO-TRUST REJECT" in p9_reject["message"]
+
+        my_pid = os.getpid()
+        p9_throttle = AntimagistProcessThrottler.throttle_process(my_pid, priority_level="below_normal", io_priority="low")
+        p9_pass_throttle = p9_throttle["success"] and p9_throttle["applied_priority"] == "below_normal"
+
+        # Restore process to normal
+        AntimagistProcessThrottler.throttle_process(my_pid, priority_level="normal", io_priority="normal")
+
+        # Async throttle test
+        evt_th = threading.Event()
+        th_res = [{}]
+        def _th_cb(res):
+            th_res[0] = res
+            evt_th.set()
+        AntimagistProcessThrottler.throttle_process_async(my_pid, priority_level="normal", callback=_th_cb)
+        evt_th.wait(timeout=3)
+        p9_pass_async = th_res[0].get("success", False)
+
+        p9_pass = p9_pass_reject and p9_pass_throttle and p9_pass_async
+        status = "PASS" if p9_pass else "FAIL"
+        print(f"  [{status}] Zero-Trust Process Throttler: System protection={p9_pass_reject} | Native throttle={p9_pass_throttle} | Async thread={p9_pass_async}")
+        self.results.append({"phase": 9, "test": "Zero-Trust Process Throttler & Sandboxing", "status": status, "detail": p9_throttle.get("message")})
+
+        # ── Phase 10: Local Event Interceptor (Registry & DLL Injections) ──
+        print("\n[PHASE 10] Testing Local Event Interceptor & Integrity Sweep...")
+        sweep_report = AntimagistLocalEventInterceptor.run_system_integrity_sweep()
+        p10_pass = isinstance(sweep_report, dict) and "status" in sweep_report and "registry_anomalies_count" in sweep_report
+        status = "PASS" if p10_pass else "FAIL"
+        print(f"  [{status}] Local Event Interceptor: Sweep status='{sweep_report.get('status')}' | Reg anomalies={sweep_report.get('registry_anomalies_count')} | DLL anomalies={sweep_report.get('dll_injections_count')}")
+        self.results.append({"phase": 10, "test": "Local Event Interceptor Integrity Sweep", "status": status, "detail": f"Status: {sweep_report.get('status')}"})
+
+        # ── Phase 11: CI Hardware Telemetry & Sensor Mock Bridge ──
+        print("\n[PHASE 11] Testing CI Hardware Telemetry & Sensor Mock Bridge...")
+        gpu_mock = AntimagistHardwareMock.get_mock_gpu_telemetry()
+        dpc_mock = AntimagistHardwareMock.get_mock_dpc_telemetry()
+        bat_mock = AntimagistHardwareMock.get_mock_battery_telemetry()
+
+        p11_pass = gpu_mock.get("is_mock") and dpc_mock.get("is_mock") and bat_mock.get("is_mock")
+        status = "PASS" if p11_pass else "FAIL"
+        print(f"  [{status}] CI Hardware Sensor Mock: GPU temp={gpu_mock.get('temperature_c')}°C | DPC={dpc_mock.get('dpc_latency_us')}µs | Battery={bat_mock.get('percent')}%")
+        self.results.append({"phase": 11, "test": "CI Hardware Telemetry Mock Bridge", "status": status, "detail": "All simulated sensors functional"})
 
         # Summary
         total_tests = len(self.results)

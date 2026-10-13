@@ -29,3 +29,54 @@ NoneType: None
 NoneType: None
 
 --------------------------------------------------------------------------------
+[2026-10-12T19:11:56] [SECURITY_EVENT] Type: ARGUMENT_WHITELIST_BREACH | Action: flush_ram | Details: {"forbidden": ["unwhitelisted_key"]}
+[2026-10-12T19:11:56] [SECURITY_EVENT] Type: INJECTION_ATTEMPT | Action: sweep_junk | Details: {"char": ";", "param": "target_scope"}
+[2026-10-12T19:11:56] [SECURITY_EVENT] Type: UNAUTHORIZED_ACTION | Action: unauthorized_shell_trigger | Details: {"args": {}}
+[2026-10-12T19:11:56] [SECURITY_EVENT] Type: OS_PROTECTION_BLOCKED | Action: quarantine | Details: {"path": "C:\\WINDOWS\\System32\\cmd.exe"}
+
+[2026-10-12T19:11:56] [CRASH_INTERCEPT] Module: SanityAuditPhase7 | Type: RuntimeError
+  Message: Simulated Driver IO Exception for Sanity Verification
+  Telemetry: RAM=20.9% | CPU=3.3%
+  Metadata: {"unit_test": true}
+  Traceback:
+NoneType: None
+
+--------------------------------------------------------------------------------
+[2026-10-12T19:11:56] [SECURITY_EVENT] Type: THROTTLE_BLOCKED | Action: throttle_process | Details: {"pid": 4, "reason": "ZERO-TRUST REJECT: Process ID 4 is a protected kernel system entity."}
+[2026-10-12T19:11:56] [SECURITY_EVENT] Type: PROCESS_THROTTLED | Action: throttle_process | Details: {"pid": 18872, "name": "python.exe", "applied_priority": "below_normal", "applied_io": "low", "applied_affinity": [0], "memory_reclaimed_mb": 36.6, "status": "THROTTLED_AND_SANDBOXED"}
+[2026-10-12T19:11:56] [SECURITY_EVENT] Type: PROCESS_THROTTLED | Action: throttle_process | Details: {"pid": 18872, "name": "python.exe", "applied_priority": "normal", "applied_io": "normal", "applied_affinity": null, "memory_reclaimed_mb": 2.5, "status": "THROTTLED_AND_SANDBOXED"}
+[2026-10-12T19:11:56] [SECURITY_EVENT] Type: PROCESS_THROTTLED | Action: throttle_process | Details: {"pid": 18872, "name": "python.exe", "applied_priority": "normal", "applied_io": "low", "applied_affinity": null, "memory_reclaimed_mb": 3.5, "status": "THROTTLED_AND_SANDBOXED"}
+[2026-10-12T19:11:56] [SECURITY_EVENT] Type: REGISTRY_TAMPER | Action: audit_registry | Details: {"category": "REGISTRY_APPINIT_HIJACK", "key": "AppInit_DLLs_Key", "name": "LoadAppInit_DLLs", "payload": "0", "risk": "CRITICAL", "description": "AppInit_DLLs persistence detected. System-wide DLL injection vector active."}
+[2026-10-12T19:11:56] [SECURITY_EVENT] Type: INTEGRITY_SWEEP_COMPLETED | Action: system_integrity_sweep | Details: {"timestamp": "2026-10-12T19:11:56", "status": "ANOMALIES_INTERCEPTED", "registry_anomalies_count": 1, "dll_injections_count": 0, "registry_details": [{"category": "REGISTRY_APPINIT_HIJACK", "key": "AppInit_DLLs_Key", "name": "LoadAppInit_DLLs", "payload": "0", "risk": "CRITICAL", "description": "AppInit_DLLs persistence detected. System-wide DLL injection vector active."}], "dll_details": []}
+[2026-10-12T19:16:41] [SECURITY_EVENT] Type: THROTTLE_BLOCKED | Action: throttle_process | Details: {"pid": 4, "reason": "ZERO-TRUST REJECT: Process ID 4 is a protected kernel system entity."}
+[2026-10-12T19:16:41] [SECURITY_EVENT] Type: PROCESS_THROTTLED | Action: throttle_process | Details: {"pid": 12040, "name": "python.exe", "applied_priority": "below_normal", "applied_io": "low", "applied_affinity": [0], "memory_reclaimed_mb": 119.8, "status": "THROTTLED_AND_SANDBOXED"}
+[2026-10-12T19:16:41] [SECURITY_EVENT] Type: PROCESS_THROTTLED | Action: throttle_process | Details: {"pid": 12040, "name": "python.exe", "applied_priority": "normal", "applied_io": "normal", "applied_affinity": null, "memory_reclaimed_mb": 2.6, "status": "THROTTLED_AND_SANDBOXED"}
+[2026-10-12T19:16:41] [SECURITY_EVENT] Type: PROCESS_THROTTLED | Action: throttle_process | Details: {"pid": 12040, "name": "python.exe", "applied_priority": "normal", "applied_io": "low", "applied_affinity": null, "memory_reclaimed_mb": 31.2, "status": "THROTTLED_AND_SANDBOXED"}
+[2026-10-12T19:16:41] [SECURITY_EVENT] Type: INTEGRITY_SWEEP_COMPLETED | Action: system_integrity_sweep | Details: {"timestamp": "2026-10-12T19:16:41", "status": "HEALTHY_SECURE", "registry_anomalies_count": 0, "dll_injections_count": 0, "registry_details": [], "dll_details": []}
+[2026-10-12T19:16:41] [SECURITY_EVENT] Type: ARGUMENT_WHITELIST_BREACH | Action: throttle_process | Details: {"forbidden": ["unauthorized_injected_param"]}
+[2026-10-12T19:16:41] [SECURITY_EVENT] Type: PROCESS_THROTTLED | Action: throttle_process | Details: {"pid": 12040, "name": "python.exe", "applied_priority": "normal", "applied_io": "normal", "applied_affinity": null, "memory_reclaimed_mb": 14.8, "status": "THROTTLED_AND_SANDBOXED"}
+[2026-10-12T19:17:33] [SECURITY_EVENT] Type: THROTTLE_BLOCKED | Action: throttle_process | Details: {"pid": 4, "reason": "ZERO-TRUST REJECT: Process ID 4 is a protected kernel system entity."}
+[2026-10-12T19:17:33] [SECURITY_EVENT] Type: PROCESS_THROTTLED | Action: throttle_process | Details: {"pid": 16360, "name": "python.exe", "applied_priority": "below_normal", "applied_io": "low", "applied_affinity": [0], "memory_reclaimed_mb": 119.8, "status": "THROTTLED_AND_SANDBOXED"}
+[2026-10-12T19:17:33] [SECURITY_EVENT] Type: PROCESS_THROTTLED | Action: throttle_process | Details: {"pid": 16360, "name": "python.exe", "applied_priority": "normal", "applied_io": "normal", "applied_affinity": null, "memory_reclaimed_mb": 2.6, "status": "THROTTLED_AND_SANDBOXED"}
+[2026-10-12T19:17:33] [SECURITY_EVENT] Type: PROCESS_THROTTLED | Action: throttle_process | Details: {"pid": 16360, "name": "python.exe", "applied_priority": "normal", "applied_io": "low", "applied_affinity": null, "memory_reclaimed_mb": 72.8, "status": "THROTTLED_AND_SANDBOXED"}
+[2026-10-12T19:17:33] [SECURITY_EVENT] Type: INTEGRITY_SWEEP_COMPLETED | Action: system_integrity_sweep | Details: {"timestamp": "2026-10-12T19:17:33", "status": "HEALTHY_SECURE", "registry_anomalies_count": 0, "dll_injections_count": 0, "registry_details": [], "dll_details": []}
+[2026-10-12T19:17:33] [SECURITY_EVENT] Type: ARGUMENT_WHITELIST_BREACH | Action: throttle_process | Details: {"forbidden": ["unauthorized_injected_param"]}
+[2026-10-12T19:17:33] [SECURITY_EVENT] Type: PROCESS_THROTTLED | Action: throttle_process | Details: {"pid": 16360, "name": "python.exe", "applied_priority": "normal", "applied_io": "normal", "applied_affinity": null, "memory_reclaimed_mb": 17.9, "status": "THROTTLED_AND_SANDBOXED"}
+[2026-10-12T19:17:39] [SECURITY_EVENT] Type: ARGUMENT_WHITELIST_BREACH | Action: flush_ram | Details: {"forbidden": ["unauthorized_flag"]}
+[2026-10-12T19:17:39] [SECURITY_EVENT] Type: UNAUTHORIZED_ACTION | Action: drop_table_users | Details: {"args": {}}
+[2026-10-12T19:17:39] [SECURITY_EVENT] Type: INJECTION_ATTEMPT | Action: sweep_junk | Details: {"char": ";", "param": "target_scope"}
+[2026-10-12T19:17:39] [SECURITY_EVENT] Type: INJECTION_ATTEMPT | Action: sweep_junk | Details: {"char": "&", "param": "target_scope"}
+[2026-10-12T19:17:39] [SECURITY_EVENT] Type: INJECTION_ATTEMPT | Action: sweep_junk | Details: {"char": "|", "param": "target_scope"}
+[2026-10-12T19:17:39] [SECURITY_EVENT] Type: INJECTION_ATTEMPT | Action: sweep_junk | Details: {"char": "`", "param": "target_scope"}
+[2026-10-12T19:17:39] [SECURITY_EVENT] Type: OS_PROTECTION_BLOCKED | Action: quarantine | Details: {"path": "C:\\Windows\\System32\\ntoskrnl.exe"}
+[2026-10-12T19:17:39] [SECURITY_EVENT] Type: OS_PROTECTION_BLOCKED | Action: quarantine | Details: {"path": "C:\\Windows\\explorer.exe"}
+[2026-10-12T19:17:39] [SECURITY_EVENT] Type: OS_PROTECTION_BLOCKED | Action: quarantine | Details: {"path": "C:\\Program Files\\Windows Defender\\MsMpEng.exe"}
+
+[2026-10-12T19:17:39] [CRASH_INTERCEPT] Module: DriverBridgeTest | Type: ConnectionResetError
+  Message: Synthetic Win32 Driver IO Fault for Sanity Test
+  Telemetry: RAM=21.2% | CPU=11.6%
+  Metadata: {"fault_subsystem": "KernelDriverBridge", "retry_count": 3}
+  Traceback:
+NoneType: None
+
+--------------------------------------------------------------------------------
