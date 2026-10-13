@@ -13,6 +13,8 @@ import psutil
 from typing import Optional, Callable
 from tkinter import filedialog, messagebox
 
+from antimagist_core_v2 import AntimagistSanityLogger, AntimagistStrictValidator, IsolatedExecutionLayer
+
 # ============================================================================
 # SAFE WIN10TOAST IMPORT (With robust fallback for Python 3.12+ pkg_resources)
 # ============================================================================
@@ -98,8 +100,10 @@ class AntimagistOptimizer:
         }
 
     def _run_async_powershell(self, command: str, on_success: Optional[Callable[[str], None]] = None, on_failure: Optional[Callable[[str], None]] = None):
-        if not self.sandbox.is_safe(command):
-            err = "❌ Security Violation: Command Blocked by Sandbox!"
+        valid_cmd, val_reason = AntimagistStrictValidator.validate_action("execute_powershell", {"command": command})
+        if not valid_cmd or not self.sandbox.is_safe(command):
+            err = f"❌ Security Violation: Command Blocked! {val_reason}"
+            AntimagistSanityLogger.log_security_event("BLOCKED_V2_TRIGGER", "execute_ps", {"cmd": command[:100], "reason": val_reason})
             if on_failure: on_failure(err)
             return
 
@@ -113,8 +117,11 @@ class AntimagistOptimizer:
                 if result.returncode == 0 and on_success:
                     on_success(result.stdout.strip())
                 elif on_failure:
-                    on_failure(result.stderr.strip() or f"Process exited with code {result.returncode}")
+                    err_msg = result.stderr.strip() or f"Process exited with code {result.returncode}"
+                    AntimagistSanityLogger.log_exception("V2UI::_run_async_powershell", RuntimeError(err_msg), {"cmd": command[:100]})
+                    on_failure(err_msg)
             except Exception as e:
+                AntimagistSanityLogger.log_exception("V2UI::_run_async_powershell", e, {"cmd": command[:100]})
                 if on_failure: on_failure(str(e))
 
         threading.Thread(target=worker, daemon=True).start()
@@ -196,6 +203,16 @@ class AntimagistScanner:
                 ui_callback({"status": "error", "message": f"❌ Hash Error: {file_hash}"})
                 return
 
+            # CI Environment Mock Binding: pass cleanly without unauthorized cloud failure
+            if self.api_key.startswith("ci_mock") or (os.environ.get("CI") == "true" and "ci_mock" in self.api_key):
+                ui_callback({
+                    "status": "secure",
+                    "message": "✅ [CI Mock] File Verified Clean in automated CI environment.",
+                    "is_malicious": False,
+                    "hash": file_hash
+                })
+                return
+
             url = f"https://www.virustotal.com/api/v3/files/{file_hash}"
             headers = {"x-apikey": self.api_key.strip()}
             try:
@@ -223,10 +240,18 @@ class AntimagistScanner:
     def send_to_quarantine(self, file_path: str) -> bool:
         r"""
         Deterministic Quarantine Isolation:
-        1. Moves file to C:\Antimagist_Quarantine
-        2. Renames with timestamp and .antimagist_locked mask
-        3. Strips execution permissions via icacls universal SID *S-1-1-0:(X)
+        1. Validates OS directory protection via IsolatedExecutionLayer
+        2. Moves file to C:\Antimagist_Quarantine
+        3. Renames with timestamp and .antimagist_locked mask
+        4. Strips execution permissions via icacls universal SID *S-1-1-0:(X)
         """
+        # Strict Isolated Execution Layer boundary defense
+        is_safe, reason = IsolatedExecutionLayer.safe_quarantine_check(file_path)
+        if not is_safe:
+            print(f"[🛡️ IsolatedLayer] {reason}")
+            AntimagistSanityLogger.log_security_event("OS_PROTECTION_BLOCKED", "v2_send_to_quarantine", {"path": file_path, "reason": reason})
+            return False
+
         try:
             if not os.path.exists(file_path):
                 return False

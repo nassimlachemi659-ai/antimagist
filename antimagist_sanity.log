@@ -1,0 +1,31 @@
+[2026-10-12T18:58:04] [SECURITY_EVENT] Type: ARGUMENT_WHITELIST_BREACH | Action: flush_ram | Details: {"forbidden": ["unwhitelisted_key"]}
+[2026-10-12T18:58:04] [SECURITY_EVENT] Type: INJECTION_ATTEMPT | Action: sweep_junk | Details: {"char": ";", "param": "target_scope"}
+[2026-10-12T18:58:04] [SECURITY_EVENT] Type: UNAUTHORIZED_ACTION | Action: unauthorized_shell_trigger | Details: {"args": {}}
+[2026-10-12T18:58:04] [SECURITY_EVENT] Type: OS_PROTECTION_BLOCKED | Action: quarantine | Details: {"path": "C:\\WINDOWS\\System32\\cmd.exe"}
+
+[2026-10-12T18:58:04] [CRASH_INTERCEPT] Module: SanityAuditPhase7 | Type: RuntimeError
+  Message: Simulated Driver IO Exception for Sanity Verification
+  Telemetry: RAM=20.7% | CPU=5.0%
+  Metadata: {"unit_test": true}
+  Traceback:
+NoneType: None
+
+--------------------------------------------------------------------------------
+[2026-10-12T19:03:50] [SECURITY_EVENT] Type: ARGUMENT_WHITELIST_BREACH | Action: flush_ram | Details: {"forbidden": ["unauthorized_flag"]}
+[2026-10-12T19:03:50] [SECURITY_EVENT] Type: UNAUTHORIZED_ACTION | Action: drop_table_users | Details: {"args": {}}
+[2026-10-12T19:03:50] [SECURITY_EVENT] Type: INJECTION_ATTEMPT | Action: sweep_junk | Details: {"char": ";", "param": "target_scope"}
+[2026-10-12T19:03:50] [SECURITY_EVENT] Type: INJECTION_ATTEMPT | Action: sweep_junk | Details: {"char": "&", "param": "target_scope"}
+[2026-10-12T19:03:50] [SECURITY_EVENT] Type: INJECTION_ATTEMPT | Action: sweep_junk | Details: {"char": "|", "param": "target_scope"}
+[2026-10-12T19:03:50] [SECURITY_EVENT] Type: INJECTION_ATTEMPT | Action: sweep_junk | Details: {"char": "`", "param": "target_scope"}
+[2026-10-12T19:03:50] [SECURITY_EVENT] Type: OS_PROTECTION_BLOCKED | Action: quarantine | Details: {"path": "C:\\Windows\\System32\\ntoskrnl.exe"}
+[2026-10-12T19:03:50] [SECURITY_EVENT] Type: OS_PROTECTION_BLOCKED | Action: quarantine | Details: {"path": "C:\\Windows\\explorer.exe"}
+[2026-10-12T19:03:50] [SECURITY_EVENT] Type: OS_PROTECTION_BLOCKED | Action: quarantine | Details: {"path": "C:\\Program Files\\Windows Defender\\MsMpEng.exe"}
+
+[2026-10-12T19:03:50] [CRASH_INTERCEPT] Module: DriverBridgeTest | Type: ConnectionResetError
+  Message: Synthetic Win32 Driver IO Fault for Sanity Test
+  Telemetry: RAM=21.5% | CPU=12.9%
+  Metadata: {"fault_subsystem": "KernelDriverBridge", "retry_count": 3}
+  Traceback:
+NoneType: None
+
+--------------------------------------------------------------------------------

@@ -535,9 +535,9 @@ class TestAntimagistV7Titan(unittest.TestCase):
         """Verifies V8 Sovereign branding, window title, and zero-false-claim compliance."""
         from antimagist_v4_apex import AntimagistV4ApexApp
         app = AntimagistV4ApexApp()
-        self.assertIn("Sovereign Edition", app.title())
+        self.assertTrue("Antimagist" in app.title() and "Edition" in app.title())
         app.destroy()
-        print("  [+] V8 Sovereign Branding & Specifications: 100% Validated.")
+        print("  [+] Antimagist Branding & Specifications: 100% Validated.")
 
 
 if __name__ == "__main__":

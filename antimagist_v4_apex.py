@@ -4029,9 +4029,17 @@ class AntimagistV4ApexApp(AntimagistV3App):
         def gpu_worker():
             try:
                 gm = self.gpu_sentinel.get_live_gpu_metrics()
+                # Feed live GPU temperature into strict conditional styling engine
+                try:
+                    self.gpu_temp_val = float(gm.get("temperature_c", 42.0))
+                except Exception:
+                    self.gpu_temp_val = 42.0
+
                 def update_gpu():
                     if not hasattr(self, 'winfo_exists') or not self.winfo_exists():
                         return
+                    # Dynamically refresh conditional styling
+                    self._update_conditional_styling()
                     if hasattr(self, 'pill_gpu') and self.pill_gpu.winfo_exists():
                         g_text = f"🎮 {gm['gpu_name'][:12]}: {gm['temperature_c']}°C"
                         if getattr(self, '_last_pill_gpu_text', None) != g_text:

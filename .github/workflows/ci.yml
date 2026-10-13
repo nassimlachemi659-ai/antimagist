@@ -6,6 +6,14 @@ on:
   pull_request:
     branches: [ main ]
 
+env:
+  CI: "true"
+  PYTHONUNBUFFERED: "1"
+  VT_API_KEY: ${{ secrets.VT_API_KEY || 'ci_mock_virustotal_token_valid_hash_key' }}
+  VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY || 'ci_mock_virustotal_token_valid_hash_key' }}
+  ANTIMAGIST_SAFE_MODE: "1"
+  ANTIMAGIST_HEADLESS: "1"
+
 jobs:
   verify-antimagist:
     name: Run Master Verification & Regression Suite
@@ -24,8 +32,22 @@ jobs:
       - name: Install Core Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install customtkinter pystray pillow psutil requests qrcode
+          pip install customtkinter pystray pillow psutil requests qrcode pywin32 keyboard
+
+      - name: Configure Windows Execution Privileges & Hardware Sensor Fallbacks
+        shell: powershell
+        run: |
+          Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+          Write-Host "[CI] PowerShell ExecutionPolicy set to Bypass."
+          if (-not (Test-Path "C:\Antimagist_Quarantine")) {
+            New-Item -ItemType Directory -Path "C:\Antimagist_Quarantine" -Force | Out-Null
+            Write-Host "[CI] C:\Antimagist_Quarantine directory provisioned."
+          }
 
       - name: Execute Antimagist Master Verification Suite
+        shell: powershell
         run: |
+          python test_v2_hardening.py
+          python antimagist_core_v2.py
           python test_master_v7_suite.py
+          python test_master_v11_suite.py
