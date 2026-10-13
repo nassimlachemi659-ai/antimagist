@@ -94,6 +94,7 @@ from privacy_scrubber import PrivacyScrubberEngine
 from storage_accelerator import StorageAcceleratorEngine
 from ultra_game_sentinel import AntimagistUltraGameSentinel
 from web_bridge_daemon import AntimagistWebBridgeDaemon
+from floating_game_bar import AntimagistFloatingGameBar
 
 # Ensure UTF-8 console output
 if hasattr(sys.stdout, "reconfigure"):
@@ -180,6 +181,11 @@ class AntimagistV4ApexApp(AntimagistV3App):
         self.ultra_game_sentinel.start_sentinel()
 
         # 4. Initialize Gaming & Interactive Modules
+        self.floating_game_bar = AntimagistFloatingGameBar(
+            parent_app=self,
+            on_flush_callback=lambda: self.optimizer.run_memory_boost(callback=lambda m: None),
+            on_turbo_callback=lambda: self.gamer_mode.activate_gamer_mode()
+        )
         self.hud_overlay = AntimagistHUDOverlay(
             parent_app=self,
             optimizer_core=self.optimizer,

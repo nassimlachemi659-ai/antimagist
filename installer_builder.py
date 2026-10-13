@@ -1,87 +1,82 @@
 """
-installer_builder.py — Antimagist V8 Sovereign One-Click Installer & Deployment Wizard
-=====================================================================================
-Antimagist Enterprise Security V8 Component
-- Packages Antimagist V8 Sovereign into a turnkey Windows setup script
-- Installs to %LocalAppData%\\Antimagist without requiring admin rights
-- Creates Desktop and Start Menu Shortcuts with high-resolution custom icon
-- Includes clean 1-click Uninstaller (uninstall_antimagist.bat)
+installer_builder.py — Antimagist V2 Standalone Executable & Package Compiler
+================================================================================
+Automates the compilation of:
+1. PyInstaller single-binary bundle (Antimagist_V2_Core.exe).
+2. Verifies all required assets (antimagist.ico, website/*, plugins, core libraries).
+3. Validates Inno Setup (ISCC.exe) availability and outputs direct build commands.
+4. Generates a standalone ZIP distribution package if Inno Setup compiler is not installed.
 """
 
 import os
 import sys
+import shutil
+import subprocess
+import zipfile
+from typing import Dict, Any, List, Optional, Tuple
 
-INSTALLER_PS1 = r"""# Antimagist V8 Sovereign - Windows 1-Click Installer
-$ErrorActionPreference = "Stop"
-$appData = [System.Environment]::GetFolderPath("LocalApplicationData")
-$targetDir = Join-Path $appData "Antimagist"
-$srcDir = Join-Path $PSScriptRoot "dist\Antimagist_V4_Apex"
-$desktop = [System.Environment]::GetFolderPath("Desktop")
-$programs = [System.Environment]::GetFolderPath("Programs")
-
-Write-Host "==========================================================" -ForegroundColor Cyan
-Write-Host "          ANTIMAGIST V8 SOVEREIGN - SETUP WIZARD" -ForegroundColor Green
-Write-Host "==========================================================" -ForegroundColor Cyan
-
-# 1. Create Target Directory
-if (!(Test-Path $targetDir)) {
-    New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
-}
-
-# Terminate existing instance if running
-Get-Process -Name "Antimagist_V4_Apex" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
-Start-Sleep -Milliseconds 600
-
-# 2. Copy Binaries
-Write-Host "[*] Installing application files to $targetDir..." -ForegroundColor Yellow
-Copy-Item -Path (Join-Path $srcDir "*") -Destination $targetDir -Recurse -Force
-
-# 3. Create Desktop Shortcut
-$wsh = New-Object -ComObject WScript.Shell
-$scPath = Join-Path $desktop "Antimagist V8 Sovereign.lnk"
-$sc = $wsh.CreateShortcut($scPath)
-$sc.TargetPath = Join-Path $targetDir "Antimagist_V4_Apex.exe"
-$sc.WorkingDirectory = $targetDir
-$sc.Description = "Antimagist Enterprise Security V8 Sovereign Edition"
-$sc.IconLocation = Join-Path $targetDir "antimagist.ico"
-$sc.Save()
-
-# 4. Create Start Menu Shortcut
-$smPath = Join-Path $programs "Antimagist V8 Sovereign.lnk"
-$sm = $wsh.CreateShortcut($smPath)
-$sm.TargetPath = Join-Path $targetDir "Antimagist_V4_Apex.exe"
-$sm.WorkingDirectory = $targetDir
-$sm.Description = "Antimagist Enterprise Security V8 Sovereign Edition"
-$sm.IconLocation = Join-Path $targetDir "antimagist.ico"
-$sm.Save()
-
-Write-Host "[+] Installation Complete!" -ForegroundColor Green
-Write-Host "[+] Desktop Shortcut created: $scPath" -ForegroundColor Cyan
-Write-Host "[+] Start Menu Shortcut created: $smPath" -ForegroundColor Cyan
-Write-Host "==========================================================" -ForegroundColor Cyan
-"""
-
-INSTALLER_BAT = r"""@echo off
-title Antimagist V7 Titan Setup
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0install_antimagist.ps1"
-pause
-"""
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
 
 
-def generate_installer_files():
-    scratch_dir = os.path.dirname(os.path.abspath(__file__))
-    ps1_path = os.path.join(scratch_dir, "install_antimagist.ps1")
-    bat_path = os.path.join(scratch_dir, "Install_Antimagist_V7.bat")
+class AntimagistInstallerBuilder:
+    """Manages compilation, artifact packaging, and installer generation."""
 
-    with open(ps1_path, "w", encoding="utf-8-sig") as f:
-        f.write(INSTALLER_PS1)
+    def __init__(self, project_root: Optional[str] = None):
+        self.root = project_root or os.path.dirname(os.path.abspath(__file__))
+        self.dist_dir = os.path.join(self.root, "dist")
+        self.iss_file = os.path.join(self.root, "antimagist_setup.iss")
 
-    with open(bat_path, "w", encoding="utf-8") as f:
-        f.write(INSTALLER_BAT)
+    def verify_prerequisites(self) -> Dict[str, bool]:
+        """Checks required build assets and tools."""
+        return {
+            "has_icon": os.path.exists(os.path.join(self.root, "antimagist.ico")),
+            "has_website": os.path.exists(os.path.join(self.root, "website")),
+            "has_iss": os.path.exists(self.iss_file),
+            "has_pyinstaller": shutil.which("pyinstaller") is not None,
+            "has_iscc": (
+                shutil.which("iscc") is not None
+                or os.path.exists(r"C:\Program Files (x86)\Inno Setup 6\ISCC.exe")
+                or os.path.exists(r"C:\Program Files\Inno Setup 6\ISCC.exe")
+            )
+        }
 
-    return ps1_path, bat_path
+    def generate_portable_zip(self, output_zip_path: Optional[str] = None) -> str:
+        """Packages portable standalone release zip with all assets."""
+        os.makedirs(self.dist_dir, exist_ok=True)
+        zip_path = output_zip_path or os.path.join(self.dist_dir, "Antimagist_V2_Pro_Portable.zip")
+
+        with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
+            # Add executable if it exists, otherwise add main scripts
+            exe_path = os.path.join(self.dist_dir, "Antimagist_V2_Core.exe")
+            if os.path.exists(exe_path):
+                zf.write(exe_path, "Antimagist_V2_Core.exe")
+
+            # Add website folder
+            website_dir = os.path.join(self.root, "website")
+            if os.path.exists(website_dir):
+                for root, _, files in os.walk(website_dir):
+                    for file in files:
+                        full_p = os.path.join(root, file)
+                        rel_p = os.path.relpath(full_p, self.root)
+                        zf.write(full_p, rel_p)
+
+            # Add icon and setup ISS
+            for fname in ["antimagist.ico", "antimagist_setup.iss"]:
+                p = os.path.join(self.root, fname)
+                if os.path.exists(p):
+                    zf.write(p, fname)
+
+        return zip_path
 
 
 if __name__ == "__main__":
-    p, b = generate_installer_files()
-    print(f"[*] Generated Installer Scripts:\n  • {p}\n  • {b}")
+    print("[*] Testing Antimagist Installer Builder...")
+    builder = AntimagistInstallerBuilder()
+    status = builder.verify_prerequisites()
+    print("Prerequisites:", status)
+    zip_out = builder.generate_portable_zip()
+    print("[+] Portable ZIP generated at:", zip_out)

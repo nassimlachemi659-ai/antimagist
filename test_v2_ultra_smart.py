@@ -155,15 +155,46 @@ class TestAntimagistUltraSmart(unittest.TestCase):
             bridge.stop_bridge()
 
     def test_06_apex_app_subsystem_bindings(self):
-        """Verifies that AntimagistV4ApexApp initializes and binds ultra_game_sentinel and web_bridge."""
+        """Verifies that AntimagistV4ApexApp initializes and binds ultra_game_sentinel, web_bridge, and floating_game_bar."""
         from antimagist_v4_apex import AntimagistV4ApexApp
         app = AntimagistV4ApexApp()
         self.assertTrue(hasattr(app, "ultra_game_sentinel"))
         self.assertTrue(hasattr(app, "web_bridge"))
+        self.assertTrue(hasattr(app, "floating_game_bar"))
         self.assertIsNotNone(app.ultra_game_sentinel)
         self.assertIsNotNone(app.web_bridge)
+        self.assertIsNotNone(app.floating_game_bar)
         app.destroy()
         print("  [+] Test 6: Apex App Subsystem Bindings verified.")
+
+    def test_07_floating_game_bar_lifecycle(self):
+        """Verifies Floating Game Bar show, metric display, and hide mechanics."""
+        import customtkinter as ctk
+        from floating_game_bar import AntimagistFloatingGameBar
+        root = ctk.CTk()
+        root.withdraw()
+        bar = AntimagistFloatingGameBar(parent_app=root)
+        bar.show()
+        self.assertTrue(bar.is_visible)
+        self.assertIsNotNone(bar.window)
+        bar.hide()
+        self.assertFalse(bar.is_visible)
+        root.destroy()
+        print("  [+] Test 7: Floating Game Bar Lifecycle verified.")
+
+    def test_08_installer_builder_package(self):
+        """Verifies Inno Setup spec existence and portable package zip compilation."""
+        from installer_builder import AntimagistInstallerBuilder
+        builder = AntimagistInstallerBuilder()
+        prereqs = builder.verify_prerequisites()
+        self.assertTrue(prereqs["has_icon"])
+        self.assertTrue(prereqs["has_website"])
+        self.assertTrue(prereqs["has_iss"])
+
+        zip_out = builder.generate_portable_zip()
+        self.assertTrue(os.path.exists(zip_out))
+        self.assertGreater(os.path.getsize(zip_out), 1000)
+        print(f"  [+] Test 8: Installer Spec & Portable Package ({os.path.getsize(zip_out)} bytes) verified.")
 
 
 if __name__ == "__main__":
