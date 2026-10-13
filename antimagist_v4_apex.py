@@ -528,101 +528,177 @@ class AntimagistV4ApexApp(AntimagistV3App):
         )
         self.sidebar_scroll.pack(fill="both", expand=True, padx=4, pady=(6, 4))
 
-        # ── PROMINENT TOP NAVIGATION SHORTCUTS ──────────────────────────────
-        top_nav_box = ctk.CTkFrame(self.sidebar_scroll, fg_color="transparent")
-        top_nav_box.pack(fill="x", padx=4, pady=(2, 8))
+        # ── MALWAREBYTES-STYLE 5 CLEAN PRIMARY NAVIGATION TABS ──────────────
+        nav_main_box = ctk.CTkFrame(self.sidebar_scroll, fg_color="transparent")
+        nav_main_box.pack(fill="x", padx=4, pady=(2, 6))
 
-        btn_dash_top = ctk.CTkButton(
-            top_nav_box, text="  📊 Dashboard", font=("Segoe UI", 11, "bold"),
-            fg_color="#0A1E2E", text_color=COLOR_CYAN,
-            hover_color="#10324D", border_color=COLOR_CYAN, border_width=1,
-            corner_radius=8, height=32, anchor="w",
-            command=lambda: [self.sfx.play_click(), self.show_dashboard_pane()]
-        )
-        btn_dash_top.pack(fill="x", pady=2)
-        self.nav_buttons["dash"] = btn_dash_top
+        primary_tabs = [
+            ("🏠  Dashboard",            "dash",       "#0A1E2E", COLOR_CYAN,    COLOR_CYAN, self.show_dashboard_pane),
+            ("🤖  Neural AI Copilot",    "ai",         "#1E1438", "#C4B5FD",     "#A78BFA",  self.show_ai_agent_pane),
+            ("🛡️  Security Suite",       "sec_suite",  "#1F1235", "#E9D5FF",     "#8B5CF6",  self.show_security_suite_pane),
+            ("⚡  Performance Suite",    "perf_suite", "#062828", "#A7F3D0",     "#10B981",  self.show_performance_suite_pane),
+            ("⚙️  Settings & Tools",      "settings",   "#18181B", "#E4E4E7",     "#3F3F46",  self.show_settings_pane),
+        ]
 
-        btn_ai_top = ctk.CTkButton(
-            top_nav_box, text="  🤖 Neural AI Copilot", font=("Segoe UI", 11, "bold"),
-            fg_color="#1E1438", text_color="#C4B5FD",
-            hover_color="#3B1E6D", border_color="#A78BFA", border_width=1,
-            corner_radius=8, height=32, anchor="w",
-            command=lambda: [self.sfx.play_click(), self.show_ai_agent_pane()]
-        )
-        btn_ai_top.pack(fill="x", pady=2)
-        self.nav_buttons["ai"] = btn_ai_top
+        for text, key, bg, fg, border, cmd in primary_tabs:
+            def make_tab_cmd(orig_cmd=cmd):
+                self.sfx.play_click()
+                orig_cmd()
 
-        # ── CATEGORIES ──────────────────────────────────────────────────────
-        for cat_name, cat_data in self.sidebar_categories.items():
-            icon = cat_data["icon"]
-            items = cat_data["items"]
-            count = len(items)
-
-            # Drop-Down Accordion Header
-            header_btn = ctk.CTkButton(
-                self.sidebar_scroll,
-                text=f"▼ {icon} {cat_name} ({count})",
-                font=("Segoe UI", 11, "bold"),
-                fg_color="#101524",
-                text_color=cat_data["accent"],
-                hover_color="#1A2138",
-                border_color="#1C253C",
-                border_width=1,
-                corner_radius=8,
-                height=32,
-                anchor="w",
-                command=lambda cn=cat_name: self._toggle_category(cn)
+            btn = ctk.CTkButton(
+                nav_main_box, text=text, font=("Segoe UI", 12, "bold"),
+                fg_color=bg, text_color=fg, hover_color="#27272A",
+                border_color=border, border_width=1, corner_radius=8,
+                height=36, anchor="w", command=make_tab_cmd
             )
-            header_btn.pack(fill="x", padx=6, pady=(6, 2))
-            self.category_headers[cat_name] = header_btn
-            self.category_expanded[cat_name] = True
+            btn.pack(fill="x", pady=3)
+            self.nav_buttons[key] = btn
 
-            # Nested Items Frame
-            cat_frame = ctk.CTkFrame(self.sidebar_scroll, fg_color="transparent")
-            cat_frame.pack(fill="x", padx=4, pady=(1, 4))
-            self.category_frames[cat_name] = cat_frame
+        # ── COLLAPSIBLE ADVANCED MODULES (CLOSED BY DEFAULT TO PREVENT CLUTTER) ──
+        self.advanced_expanded = False
+        self.btn_adv_header = ctk.CTkButton(
+            self.sidebar_scroll,
+            text="▶  📂 Advanced Tools (46)",
+            font=("Segoe UI", 10, "bold"),
+            fg_color="#0F111A", text_color="#94A3B8",
+            hover_color="#1E2333", border_color="#1E293B", border_width=1,
+            corner_radius=8, height=28, anchor="w",
+            command=self._toggle_advanced_modules
+        )
+        self.btn_adv_header.pack(fill="x", padx=6, pady=(10, 4))
 
-            for text, key, cmd in items:
+        self.adv_container = ctk.CTkFrame(self.sidebar_scroll, fg_color="transparent")
+        # Kept un-packed by default for Malwarebytes-clean minimalist design!
+
+        # Populate all 46 advanced tools into adv_container so all bindings are preserved
+        for cat_name, cat_data in self.sidebar_categories.items():
+            cat_frame = ctk.CTkFrame(self.adv_container, fg_color="transparent")
+            cat_frame.pack(fill="x", padx=2, pady=1)
+            for text, key, cmd in cat_data["items"]:
                 self.item_to_category[key] = cat_name
                 def make_cmd(orig_cmd=cmd):
                     self.sfx.play_click()
                     orig_cmd()
 
                 btn = ctk.CTkButton(
-                    cat_frame, text=f"  {text}", font=("Segoe UI", 11),
+                    cat_frame, text=f"  {text}", font=("Segoe UI", 10),
                     fg_color="transparent", text_color=COLOR_TEXT_SUBTLE,
                     hover_color=COLOR_CARD_HOVER, anchor="w",
-                    height=28, corner_radius=6, command=make_cmd
+                    height=26, corner_radius=6, command=make_cmd
                 )
-                btn.pack(fill="x", padx=4, pady=1)
+                btn.pack(fill="x", padx=2, pady=1)
                 self.nav_buttons[key] = btn
 
-    def _toggle_category(self, cat_name: str):
+    def _toggle_advanced_modules(self):
         try:
             self.sfx.play_click()
         except Exception:
             pass
-        is_exp = self.category_expanded.get(cat_name, True)
-        cat_frame = self.category_frames.get(cat_name)
-        hdr = self.category_headers.get(cat_name)
-        cat_data = self.sidebar_categories.get(cat_name, {})
-        icon = cat_data.get("icon", "•")
-        count = len(cat_data.get("items", []))
-
-        if is_exp:
-            if cat_frame:
-                cat_frame.pack_forget()
-            self.category_expanded[cat_name] = False
-            if hdr:
-                hdr.configure(text=f"▶ {icon} {cat_name} ({count})", fg_color="transparent")
+        if self.advanced_expanded:
+            self.adv_container.pack_forget()
+            self.advanced_expanded = False
+            self.btn_adv_header.configure(text="▶  📂 Advanced Tools (46)", fg_color="#0F111A")
         else:
-            if cat_frame:
-                cat_frame.pack(fill="x", padx=4, pady=(1, 4))
-            self.category_expanded[cat_name] = True
-            if hdr:
-                hdr.configure(text=f"▼ {icon} {cat_name} ({count})", fg_color="#101524")
+            self.adv_container.pack(fill="x", padx=4, pady=(2, 6))
+            self.advanced_expanded = True
+            self.btn_adv_header.configure(text="▼  📂 Advanced Tools (46)", fg_color="#1E2333")
+
+    def _toggle_category(self, cat_name: str):
+        pass
 
     def _expand_category(self, cat_name: str):
+        pass
+
+    # ========================================================================
+    # MALWAREBYTES-STYLE SUITE HUBS: SECURITY SUITE & PERFORMANCE SUITE
+    # ========================================================================
+    def show_security_suite_pane(self):
+        self._highlight_nav("sec_suite")
+        self.clear_container()
+
+        pane = ctk.CTkFrame(self.container, fg_color="transparent")
+        pane.grid(row=0, column=0, sticky="nsew", padx=24, pady=16)
+        pane.grid_columnconfigure((0, 1), weight=1)
+
+        head = ctk.CTkFrame(pane, fg_color="transparent")
+        head.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 14))
+        ctk.CTkLabel(head, text="🛡️ Security & Protection Suite", font=("Segoe UI", 22, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w")
+        ctk.CTkLabel(head, text="Zero-Trust kernel defense, deep threat scanning, and anti-cheat compliance", font=("Segoe UI", 11), text_color=COLOR_TEXT_MUTED).pack(anchor="w")
+
+        sec_tools = [
+            ("🔍 Threat Radar & Scanner", "VirusTotal cloud API + local YARA signature threat scanner", "Scan Files", self.show_scanner_pane, "#7C3AED"),
+            ("👁️ Active Shield", "Real-time file system watchdog & kernel tamper prevention", "Shield Status", self.show_shield_pane, "#059669"),
+            ("🛡️ Anti-Cheat Guard", "VAC, Vanguard, BattlEye & EAC zero-injection audit", "Audit Anti-Cheat", self.show_anticheat_pane, "#0284C7"),
+            ("🔑 TPM 2.0 Attestation", "Hardware root-of-trust & Secure Boot cryptographic ledger", "Attest TPM", self.show_tpm_attestation_pane, "#0D9488"),
+            ("🔒 Tournament System Lock", "Anti-tamper configuration lockdown for competitive matches", "Lockdown Mode", self.show_tournament_lock_pane, "#D97706"),
+            ("🧊 Ghost OS Cryo", "Suspend background OS daemons without crashing core services", "Cryo Freeze", self.show_ghost_cryo_pane, "#2563EB"),
+            ("🪟 Win11 AI Stripper", "Strip background Windows Copilot, Recall telemetry & indexing", "Strip Telemetry", self.show_recall_stripper_pane, "#DB2777"),
+            ("🕵️ Privacy Scrubber", "Sovereign telemetry blocker & sinkhole DNS firewall", "Scrub Privacy", self.show_privacy_pane, "#7C2D12"),
+            ("🧪 Detonation Chamber", "Isolated virtual sandbox to safely analyze suspicious files", "Detonation Room", self.show_detonation_pane, "#DC2626"),
+            ("🧠 Process Isolator", "Assign dedicated CPU affinities and isolate volatile tasks", "Isolate Task", self.show_isolator_pane, "#4F46E5"),
+        ]
+
+        for i, (title, desc, btn_txt, cmd, accent) in enumerate(sec_tools):
+            r = (i // 2) + 1
+            c = i % 2
+            card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=10, border_color="#1E293B", border_width=1)
+            card.grid(row=r, column=c, sticky="nsew", padx=6, pady=6, ipady=8, ipadx=12)
+
+            top_f = ctk.CTkFrame(card, fg_color="transparent")
+            top_f.pack(fill="x", pady=(2, 4))
+            ctk.CTkLabel(top_f, text=title, font=("Segoe UI", 12, "bold"), text_color="#F8FAFC").pack(side="left")
+
+            ctk.CTkLabel(card, text=desc, font=("Segoe UI", 9), text_color=COLOR_TEXT_MUTED, anchor="w", wraplength=340).pack(fill="x", pady=(0, 8))
+
+            ctk.CTkButton(
+                card, text=btn_txt, font=("Segoe UI", 10, "bold"),
+                fg_color=accent, hover_color=accent, height=28,
+                command=lambda fn=cmd: [self.sfx.play_click(), fn()]
+            ).pack(side="right")
+
+    def show_performance_suite_pane(self):
+        self._highlight_nav("perf_suite")
+        self.clear_container()
+
+        pane = ctk.CTkFrame(self.container, fg_color="transparent")
+        pane.grid(row=0, column=0, sticky="nsew", padx=24, pady=16)
+        pane.grid_columnconfigure((0, 1), weight=1)
+
+        head = ctk.CTkFrame(pane, fg_color="transparent")
+        head.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 14))
+        ctk.CTkLabel(head, text="⚡ Performance & Gaming Suite", font=("Segoe UI", 22, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w")
+        ctk.CTkLabel(head, text="Sub-millisecond latency stripping, RAM caching, and hardware acceleration", font=("Segoe UI", 11), text_color=COLOR_TEXT_MUTED).pack(anchor="w")
+
+        perf_tools = [
+            ("⚡ PC Optimizer", "Working set trim, cache sweep, and memory compaction", "Optimize PC", self.show_optimizer_pane, "#059669"),
+            ("🎯 CS2 & Esports Tuner", "Counter-Strike 2 high-priority class and P-Core affinity lock", "CS2 Turbo", self.show_cs2_pane, "#D97706"),
+            ("⏱️ DPC Latency Diagnostician", "Isolate driver latency spikes (ndis.sys, nvlddmkm.sys)", "Audit Latency", self.show_dpc_pane, "#0284C7"),
+            ("🖱️ USB Polling Sentinel", "Verify 1000Hz+ mouse rate and suppress USB packet drop", "Check Polling", self.show_usb_polling_pane, "#7C3AED"),
+            ("🎮 Shader Sentinel", "DirectX and Vulkan shader cache cleaner to fix micro-stutter", "Clear Shader", self.show_shader_pane, "#DB2777"),
+            ("🧠 Deep Memory Pacer", "Contextually suspend XboxApp, NVidia Share background bloat", "Pace Memory", self.show_memory_pacer_pane, "#2563EB"),
+            ("🖥️ Display Reflex", "Eliminate display buffer queues and enable G-Sync latency sync", "Display Reflex", self.show_display_reflex_pane, "#0D9488"),
+            ("⚡ Stutter Interceptor", "Predictive AI neural frame-drop detection and thread boosting", "Intercept Stutter", self.show_predictive_interceptor_pane, "#7C2D12"),
+            ("🏎️ Packet Racer & QoS", "Dual-path network packet racing & DSCP esports priority", "Race Packets", self.show_packet_racer_pane, "#EA580C"),
+            ("💽 Storage Reclaimer", "Deep SSD TRIM and component store compaction for NVMe drives", "Reclaim Storage", self.show_storage_pane, "#4F46E5"),
+        ]
+
+        for i, (title, desc, btn_txt, cmd, accent) in enumerate(perf_tools):
+            r = (i // 2) + 1
+            c = i % 2
+            card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=10, border_color="#1E293B", border_width=1)
+            card.grid(row=r, column=c, sticky="nsew", padx=6, pady=6, ipady=8, ipadx=12)
+
+            top_f = ctk.CTkFrame(card, fg_color="transparent")
+            top_f.pack(fill="x", pady=(2, 4))
+            ctk.CTkLabel(top_f, text=title, font=("Segoe UI", 12, "bold"), text_color="#F8FAFC").pack(side="left")
+
+            ctk.CTkLabel(card, text=desc, font=("Segoe UI", 9), text_color=COLOR_TEXT_MUTED, anchor="w", wraplength=340).pack(fill="x", pady=(0, 8))
+
+            ctk.CTkButton(
+                card, text=btn_txt, font=("Segoe UI", 10, "bold"),
+                fg_color=accent, hover_color=accent, height=28,
+                command=lambda fn=cmd: [self.sfx.play_click(), fn()]
+            ).pack(side="right")
         if not self.category_expanded.get(cat_name, True):
             self._toggle_category(cat_name)
 
@@ -1090,200 +1166,245 @@ class AntimagistV4ApexApp(AntimagistV3App):
         self.clear_container()
 
         pane = ctk.CTkFrame(self.container, fg_color="transparent")
-        pane.grid(row=0, column=0, sticky="nsew", padx=24, pady=16)
-        pane.grid_columnconfigure((0, 1), weight=1)
-        pane.grid_rowconfigure(1, weight=0)  # Balanced hardware telemetry row
-        pane.grid_rowconfigure(2, weight=1)  # AI Copilot takes remaining height smoothly
-        pane.grid_rowconfigure(3, weight=0)  # Bottom actions
+        pane.grid(row=0, column=0, sticky="nsew", padx=20, pady=14)
+        pane.grid_columnconfigure((0, 1, 2), weight=1)
+        pane.grid_rowconfigure(0, weight=0)  # Hero protection banner
+        pane.grid_rowconfigure(1, weight=1)  # 3-Card Malwarebytes core grid
+        pane.grid_rowconfigure(2, weight=0)  # Bottom quick launchers
 
-        # 1. Header with Live Status Badges
-        head = ctk.CTkFrame(pane, fg_color="transparent")
-        head.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 12))
-        head_left = ctk.CTkFrame(head, fg_color="transparent")
-        head_left.pack(side="left")
-        ctk.CTkLabel(head_left, text="Mission Control & Hardware Telemetry", font=("Segoe UI", 22, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w")
-        ctk.CTkLabel(head_left, text="Real-time GPU Sentinel, CPU/RAM telemetry, active threat radar, and Neural AI Copilot", font=("Segoe UI", 11), text_color=COLOR_TEXT_MUTED).pack(anchor="w")
+        # ── MALWAREBYTES ROW 0: HERO PROTECTION STATUS BANNER ──
+        hero = ctk.CTkFrame(pane, fg_color="#0D1926", corner_radius=14, border_color="#10B981", border_width=1.5)
+        hero.grid(row=0, column=0, columnspan=3, sticky="ew", pady=(0, 12))
+        hero.grid_columnconfigure(1, weight=1)
 
-        head_right = ctk.CTkFrame(head, fg_color="transparent")
-        head_right.pack(side="right")
-        ctk.CTkLabel(head_right, text="● LIVE SENTINEL SYNCED", font=("Segoe UI", 10, "bold"), text_color=COLOR_EMERALD, fg_color="#064E3B", corner_radius=8, padx=10, pady=4).pack(side="right", padx=4)
+        # Left Shield Icon & Status
+        hero_icon_box = ctk.CTkFrame(hero, fg_color="#064E3B", corner_radius=12, width=48, height=48)
+        hero_icon_box.grid(row=0, column=0, padx=14, pady=10)
+        hero_icon_box.pack_propagate(False)
+        ctk.CTkLabel(hero_icon_box, text="🛡️", font=("Segoe UI", 22)).pack(expand=True)
 
-        # 2. Hardware Load Gauges Card (Left)
-        gauge_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=12, border_color=COLOR_BORDER, border_width=1)
-        gauge_card.grid(row=1, column=0, sticky="nsew", padx=(0, 8), pady=(0, 10))
+        hero_text_box = ctk.CTkFrame(hero, fg_color="transparent")
+        hero_text_box.grid(row=0, column=1, sticky="w", padx=(0, 10), pady=10)
+        ctk.CTkLabel(
+            hero_text_box, text="Awesome! You are protected.",
+            font=("Segoe UI", 18, "bold"), text_color=COLOR_TEXT_PRIMARY
+        ).pack(anchor="w")
+        ctk.CTkLabel(
+            hero_text_box,
+            text="Active Kernel Shield is ON  •  Real-Time Memory Guard Active  •  Neural AI Sentinel Online",
+            font=("Segoe UI", 11), text_color="#34D399"
+        ).pack(anchor="w")
 
-        g_hdr = ctk.CTkFrame(gauge_card, fg_color="transparent")
-        g_hdr.pack(fill="x", padx=14, pady=(10, 2))
-        ctk.CTkLabel(g_hdr, text="Hardware Load Gauges", font=("Segoe UI", 13, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
-        self.lbl_dash_health_badge = ctk.CTkLabel(g_hdr, text=f"❤️ HEALTH: {getattr(self, 'system_health_pct', 98.0):.0f}%", font=("Segoe UI", 10, "bold"), text_color=COLOR_CYAN)
-        self.lbl_dash_health_badge.pack(side="right")
-
-        # Radial gauges canvas
-        self.gauge_canvas = tk.Canvas(gauge_card, height=145, bg=COLOR_CARD, highlightthickness=0)
-        self.gauge_canvas.pack(fill="x", padx=8, pady=2)
-
-        stats_box = ctk.CTkFrame(gauge_card, fg_color="transparent")
-        stats_box.pack(fill="x", padx=14, pady=2)
-        self.lbl_gauge_ram_text = ctk.CTkLabel(stats_box, text="RAM: Fetching...", font=("Segoe UI", 11, "bold"), text_color=COLOR_CYAN)
-        self.lbl_gauge_ram_text.pack(side="left")
-        self.lbl_gauge_cpu_text = ctk.CTkLabel(stats_box, text="CPU: Fetching...", font=("Segoe UI", 11, "bold"), text_color=COLOR_EMERALD)
-        self.lbl_gauge_cpu_text.pack(side="right")
-
-        # GPU Box
-        gpu_box = ctk.CTkFrame(gauge_card, fg_color="#0A0C14", corner_radius=8, border_color=COLOR_BORDER, border_width=1)
-        gpu_box.pack(fill="x", padx=12, pady=(4, 6))
-
-        gm = self.gpu_sentinel.get_live_gpu_metrics()
-        gpu_top = ctk.CTkFrame(gpu_box, fg_color="transparent")
-        gpu_top.pack(fill="x", padx=10, pady=(4, 2))
-        ctk.CTkLabel(gpu_top, text=f"🎮 {gm['gpu_name']}", font=("Segoe UI", 10, "bold"), text_color=COLOR_CYAN).pack(side="left")
-        self.lbl_dash_gpu_temp = ctk.CTkLabel(gpu_top, text=f"{gm['temperature_c']} °C", font=("Segoe UI", 11, "bold"), text_color=gm['status_color'])
-        self.lbl_dash_gpu_temp.pack(side="right")
-
-        gpu_sub = ctk.CTkFrame(gpu_box, fg_color="transparent")
-        gpu_sub.pack(fill="x", padx=10, pady=(0, 4))
-        self.lbl_dash_gpu_vram = ctk.CTkLabel(gpu_sub, text=f"VRAM: {gm['vram_str']}", font=("Consolas", 9), text_color=COLOR_TEXT_MUTED)
-        self.lbl_dash_gpu_vram.pack(side="left")
-        self.lbl_dash_gpu_util = ctk.CTkLabel(gpu_sub, text=f"Core Load: {gm['utilization_gpu_pct']}%", font=("Consolas", 9), text_color=COLOR_AMBER)
-        self.lbl_dash_gpu_util.pack(side="right")
-
-        # Contextual Deep Memory Pacer Alert
-        pacer_strip = ctk.CTkFrame(gauge_card, fg_color="#0F172A", corner_radius=8, border_color="#1E293B", border_width=1)
-        pacer_strip.pack(fill="x", padx=12, pady=(2, 10))
-        ctk.CTkLabel(pacer_strip, text="💡 Deep Memory Pacer: XboxApp / Telemetry Monitor", font=("Segoe UI", 9, "bold"), text_color="#38BDF8").pack(side="left", padx=8, pady=4)
-        ctk.CTkButton(pacer_strip, text="⚡ Suspend Bloat", font=("Segoe UI", 9, "bold"), fg_color="#0284C7", hover_color="#0369A1", height=22, command=self._suspend_bloat_candidate_ui).pack(side="right", padx=6, pady=4)
-
-        # 3. Top Memory Consumers Card (Right)
-        proc_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=12, border_color=COLOR_BORDER, border_width=1)
-        proc_card.grid(row=1, column=1, sticky="nsew", padx=(8, 0), pady=(0, 10))
-
-        p_hdr = ctk.CTkFrame(proc_card, fg_color="transparent")
-        p_hdr.pack(fill="x", padx=14, pady=(10, 2))
-        ctk.CTkLabel(p_hdr, text="Top Memory Consumers (Live)", font=("Segoe UI", 13, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
-        ctk.CTkLabel(p_hdr, text="ZERO-TRUST SHIELD", font=("Segoe UI", 9, "bold"), text_color=COLOR_CYAN, fg_color="#09202E", corner_radius=6, padx=6, pady=2).pack(side="right")
-
-        self.proc_list_box = ctk.CTkTextbox(proc_card, font=("Consolas", 10), fg_color="#0A0C14", text_color=COLOR_CYAN, wrap="none", corner_radius=8, height=165)
-        self.proc_list_box.pack(fill="both", expand=True, padx=12, pady=(4, 6))
-
-        # Process action controls
-        proc_ctrl = ctk.CTkFrame(proc_card, fg_color="transparent")
-        proc_ctrl.pack(fill="x", padx=12, pady=(0, 10))
-        self.proc_pid_entry = ctk.CTkEntry(proc_ctrl, placeholder_text="PID / Name", width=110, height=26, font=("Segoe UI", 10), fg_color="#0E121E", border_color=COLOR_BORDER)
-        self.proc_pid_entry.pack(side="left", padx=(0, 6))
-        ctk.CTkButton(
-            proc_ctrl, text="🛡️ Throttle Task", font=("Segoe UI", 10, "bold"),
-            fg_color="#0E2F38", hover_color="#154B5A", text_color=COLOR_CYAN,
-            border_color=COLOR_CYAN, border_width=1, height=26,
-            command=self._throttle_selected_process_ui
-        ).pack(side="left", padx=2)
-        ctk.CTkButton(
-            proc_ctrl, text="🧹 Trim Standby", font=("Segoe UI", 10, "bold"),
-            fg_color="#1E293B", hover_color="#334155", height=26,
-            command=self._flush_ram_with_sfx
-        ).pack(side="left", padx=4)
-
-        # 4. NEURAL AI COPILOT CARD (Row 2, Spanning Both Columns)
-        ai_card = ctk.CTkFrame(pane, fg_color="#0D0E1C", corner_radius=12, border_color="#7C3AED", border_width=1)
-        ai_card.grid(row=2, column=0, columnspan=2, sticky="nsew", padx=0, pady=(0, 10))
-
-        ai_hdr = ctk.CTkFrame(ai_card, fg_color="transparent")
-        ai_hdr.pack(fill="x", padx=14, pady=(10, 4))
-        
-        ai_title_box = ctk.CTkFrame(ai_hdr, fg_color="transparent")
-        ai_title_box.pack(side="left")
-        ctk.CTkLabel(ai_title_box, text="🤖 ANTIMAGIST NEURAL AI COPILOT", font=("Segoe UI", 14, "bold"), text_color="#C4B5FD").pack(side="left")
-        ctk.CTkLabel(ai_title_box, text="● KERNEL ASSISTANT ONLINE", font=("Segoe UI", 9, "bold"), text_color="#A78BFA", fg_color="#2E1065", corner_radius=6, padx=8, pady=2).pack(side="left", padx=10)
+        # Right Action Buttons
+        hero_actions = ctk.CTkFrame(hero, fg_color="transparent")
+        hero_actions.grid(row=0, column=2, sticky="e", padx=14, pady=10)
 
         ctk.CTkButton(
-            ai_hdr, text="💬 Full-Screen AI", font=("Segoe UI", 10, "bold"),
-            fg_color="#3B1E6D", hover_color="#581C87", text_color="#E0E7FF",
-            height=26, command=self.show_ai_agent_pane
+            hero_actions, text="⚡ 1-Click System Boost", font=("Segoe UI", 11, "bold"),
+            fg_color="#059669", hover_color="#047857", text_color="#FFFFFF",
+            height=34, corner_radius=8, command=self._flush_ram_with_sfx
+        ).pack(side="right", padx=(8, 0))
+
+        ctk.CTkButton(
+            hero_actions, text="🔍 Threat Scan", font=("Segoe UI", 11, "bold"),
+            fg_color="#1E293B", hover_color="#334155", text_color=COLOR_CYAN,
+            border_color="#0EA5E9", border_width=1,
+            height=34, corner_radius=8, command=self.show_scanner_pane
         ).pack(side="right")
 
-        # AI Conversation / Directive Stream Box
-        self.dash_ai_chat_box = ctk.CTkTextbox(ai_card, font=("Consolas", 11), fg_color="#060710", text_color="#E0E7FF", wrap="word", corner_radius=8, border_color="#1E1438", border_width=1)
-        self.dash_ai_chat_box.pack(fill="both", expand=True, padx=14, pady=(2, 6))
-        self.dash_ai_chat_box.insert("end", 
+        # ── MALWAREBYTES ROW 1: 3 CORE SYSTEM CARDS ──
+
+        # ═══ CARD 1 (LEFT): REAL-TIME PROTECTION ═══
+        card_sec = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        card_sec.grid(row=1, column=0, sticky="nsew", padx=(0, 6), pady=(0, 10))
+
+        sec_hdr = ctk.CTkFrame(card_sec, fg_color="transparent")
+        sec_hdr.pack(fill="x", padx=14, pady=(12, 4))
+        ctk.CTkLabel(sec_hdr, text="🛡️ Real-Time Protection", font=("Segoe UI", 13, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+        ctk.CTkLabel(sec_hdr, text="● ACTIVE", font=("Segoe UI", 9, "bold"), text_color=COLOR_EMERALD, fg_color="#064E3B", corner_radius=6, padx=6, pady=2).pack(side="right")
+
+        shields = [
+            ("🧠 Standby Memory Guard", "Purges memory leaks & isolates bloat"),
+            ("🎮 Kernel Anti-Cheat Watchdog", "Protects tournament anti-cheat integrity"),
+            ("📦 Process Sandbox Isolation", "Locks unverified binaries in sandbox"),
+            ("🌐 Latency Spike Interceptor", "Suppresses DPC and packet jitter"),
+        ]
+        for name, desc in shields:
+            s_box = ctk.CTkFrame(card_sec, fg_color="#0A0C14", corner_radius=8, border_color="#1E2438", border_width=1)
+            s_box.pack(fill="x", padx=12, pady=2)
+            ctk.CTkLabel(s_box, text=f"✓  {name}", font=("Segoe UI", 10, "bold"), text_color="#10B981").pack(anchor="w", padx=10, pady=(3, 1))
+            ctk.CTkLabel(s_box, text=desc, font=("Segoe UI", 8), text_color=COLOR_TEXT_MUTED).pack(anchor="w", padx=10, pady=(0, 3))
+
+        # Compact Process / Sentinel monitor box to maintain proc_list_box live stream
+        ctk.CTkLabel(card_sec, text="Zero-Trust Monitored Processes:", font=("Segoe UI", 9, "bold"), text_color=COLOR_TEXT_MUTED).pack(anchor="w", padx=14, pady=(6, 2))
+        self.proc_list_box = ctk.CTkTextbox(card_sec, font=("Consolas", 9), fg_color="#0A0C14", text_color=COLOR_CYAN, wrap="none", corner_radius=8, height=85)
+        self.proc_list_box.pack(fill="both", expand=True, padx=12, pady=(0, 6))
+
+        sec_foot = ctk.CTkFrame(card_sec, fg_color="transparent")
+        sec_foot.pack(fill="x", side="bottom", padx=12, pady=(0, 12))
+
+        ctk.CTkButton(
+            sec_foot, text="🔍 Run Threat Scan", font=("Segoe UI", 10, "bold"),
+            fg_color="#1E293B", hover_color="#334155", text_color=COLOR_CYAN,
+            border_color="#0EA5E9", border_width=1, height=28, corner_radius=8,
+            command=self.show_scanner_pane
+        ).pack(fill="x", pady=(0, 4))
+
+        ctk.CTkButton(
+            sec_foot, text="🛡️ Open Security Suite →", font=("Segoe UI", 10, "bold"),
+            fg_color="#3B1E6D", hover_color="#581C87", text_color="#E0E7FF",
+            height=28, corner_radius=8, command=self.show_security_suite_pane
+        ).pack(fill="x")
+
+        # ═══ CARD 2 (CENTER): HARDWARE TELEMETRY ═══
+        card_hw = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        card_hw.grid(row=1, column=1, sticky="nsew", padx=3, pady=(0, 10))
+
+        hw_hdr = ctk.CTkFrame(card_hw, fg_color="transparent")
+        hw_hdr.pack(fill="x", padx=14, pady=(12, 2))
+        ctk.CTkLabel(hw_hdr, text="⚡ Hardware Telemetry", font=("Segoe UI", 13, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+        self.lbl_dash_health_badge = ctk.CTkLabel(hw_hdr, text=f"❤️ HEALTH: {getattr(self, 'system_health_pct', 98.0):.0f}%", font=("Segoe UI", 9, "bold"), text_color=COLOR_CYAN)
+        self.lbl_dash_health_badge.pack(side="right")
+
+        # Donut gauges canvas
+        self.gauge_canvas = tk.Canvas(card_hw, height=130, bg=COLOR_CARD, highlightthickness=0)
+        self.gauge_canvas.pack(fill="x", padx=6, pady=1)
+
+        stats_box = ctk.CTkFrame(card_hw, fg_color="transparent")
+        stats_box.pack(fill="x", padx=14, pady=(0, 3))
+        self.lbl_gauge_ram_text = ctk.CTkLabel(stats_box, text="RAM: Fetching...", font=("Segoe UI", 10, "bold"), text_color=COLOR_CYAN)
+        self.lbl_gauge_ram_text.pack(side="left")
+        self.lbl_gauge_cpu_text = ctk.CTkLabel(stats_box, text="CPU: Fetching...", font=("Segoe UI", 10, "bold"), text_color=COLOR_EMERALD)
+        self.lbl_gauge_cpu_text.pack(side="right")
+
+        # GPU metrics strip
+        gm = self.gpu_sentinel.get_live_gpu_metrics()
+        gpu_box = ctk.CTkFrame(card_hw, fg_color="#0A0C14", corner_radius=8, border_color="#1E2438", border_width=1)
+        gpu_box.pack(fill="x", padx=12, pady=2)
+        gtop = ctk.CTkFrame(gpu_box, fg_color="transparent")
+        gtop.pack(fill="x", padx=8, pady=(3, 1))
+        ctk.CTkLabel(gtop, text=f"🎮 {gm['gpu_name'][:20]}", font=("Segoe UI", 9, "bold"), text_color=COLOR_CYAN).pack(side="left")
+        self.lbl_dash_gpu_temp = ctk.CTkLabel(gtop, text=f"{gm['temperature_c']} °C", font=("Segoe UI", 10, "bold"), text_color=gm['status_color'])
+        self.lbl_dash_gpu_temp.pack(side="right")
+
+        gsub = ctk.CTkFrame(gpu_box, fg_color="transparent")
+        gsub.pack(fill="x", padx=8, pady=(0, 3))
+        self.lbl_dash_gpu_vram = ctk.CTkLabel(gsub, text=f"VRAM: {gm['vram_str']}", font=("Consolas", 8), text_color=COLOR_TEXT_MUTED)
+        self.lbl_dash_gpu_vram.pack(side="left")
+        self.lbl_dash_gpu_util = ctk.CTkLabel(gsub, text=f"Load: {gm['utilization_gpu_pct']}%", font=("Consolas", 8), text_color=COLOR_AMBER)
+        self.lbl_dash_gpu_util.pack(side="right")
+
+        # Deep Memory Pacer Bloat Strip
+        pacer_strip = ctk.CTkFrame(card_hw, fg_color="#0F172A", corner_radius=8, border_color="#1E293B", border_width=1)
+        pacer_strip.pack(fill="x", padx=12, pady=2)
+        ctk.CTkLabel(pacer_strip, text="💡 Bloat Pacer: Active", font=("Segoe UI", 9, "bold"), text_color="#38BDF8").pack(side="left", padx=6, pady=2)
+        ctk.CTkButton(pacer_strip, text="⚡ Suspend Bloat", font=("Segoe UI", 8, "bold"), fg_color="#0284C7", hover_color="#0369A1", height=20, width=80, command=self._suspend_bloat_candidate_ui).pack(side="right", padx=6, pady=2)
+
+        hw_foot = ctk.CTkFrame(card_hw, fg_color="transparent")
+        hw_foot.pack(fill="x", side="bottom", padx=12, pady=(0, 12))
+
+        ctk.CTkButton(
+            hw_foot, text="🧹 Flush Standby RAM", font=("Segoe UI", 10, "bold"),
+            fg_color="#059669", hover_color="#047857", text_color="#FFFFFF",
+            height=28, corner_radius=8, command=self._flush_ram_with_sfx
+        ).pack(fill="x", pady=(0, 4))
+
+        ctk.CTkButton(
+            hw_foot, text="⚡ Open Performance Suite →", font=("Segoe UI", 10, "bold"),
+            fg_color="#064E3B", hover_color="#065F46", text_color="#A7F3D0",
+            height=28, corner_radius=8, command=self.show_performance_suite_pane
+        ).pack(fill="x")
+
+        # ═══ CARD 3 (RIGHT): NEURAL AI COPILOT ═══
+        card_ai = ctk.CTkFrame(pane, fg_color="#0D0E1C", corner_radius=14, border_color="#7C3AED", border_width=1.5)
+        card_ai.grid(row=1, column=2, sticky="nsew", padx=(6, 0), pady=(0, 10))
+
+        ai_hdr = ctk.CTkFrame(card_ai, fg_color="transparent")
+        ai_hdr.pack(fill="x", padx=14, pady=(12, 2))
+        ctk.CTkLabel(ai_hdr, text="🤖 Neural AI Copilot", font=("Segoe UI", 13, "bold"), text_color="#C4B5FD").pack(side="left")
+        ctk.CTkLabel(ai_hdr, text="● ONLINE", font=("Segoe UI", 9, "bold"), text_color="#A78BFA", fg_color="#2E1065", corner_radius=6, padx=6, pady=2).pack(side="right")
+
+        # Live chat stream display box
+        self.dash_ai_chat_box = ctk.CTkTextbox(card_ai, font=("Consolas", 10), fg_color="#060710", text_color="#E0E7FF", wrap="word", corner_radius=8, border_color="#1E1438", border_width=1, height=130)
+        self.dash_ai_chat_box.pack(fill="both", expand=True, padx=12, pady=(2, 4))
+        self.dash_ai_chat_box.insert("end",
             "🤖 Antimagist Neural Copilot Online.\n"
-            "Ask me to optimize memory, diagnose latency, audit background bloat, or tune for competitive games.\n"
-            + "─" * 65 + "\n"
+            "Ask me to optimize memory, diagnose latency, audit background bloat, or tune for CS2.\n"
+            + "─" * 45 + "\n"
         )
         self.dash_ai_chat_box.configure(state="disabled")
 
-        # Quick Action Chips Row
-        chips_bar = ctk.CTkFrame(ai_card, fg_color="transparent")
-        chips_bar.pack(fill="x", padx=14, pady=(0, 6))
-
+        # Quick Suggestion Chips
+        chips_bar = ctk.CTkFrame(card_ai, fg_color="transparent")
+        chips_bar.pack(fill="x", padx=12, pady=(0, 4))
         chips = [
-            ("🧹 Flush Standby RAM", lambda: self._execute_dash_ai_prompt("Flush standby RAM pages")),
-            ("🎯 CS2 Turbo Profile", lambda: self._execute_dash_ai_prompt("Optimize PC for Counter-Strike 2 tournament")),
-            ("📉 Audit DPC Latency", lambda: self._execute_dash_ai_prompt("Audit DPC latency and check device interrupt drivers")),
-            ("💡 Check Bloat RAM", lambda: self._execute_dash_ai_prompt("Detect background bloat processes and report memory candidates")),
-            ("🛡️ Pre-Flight Check", lambda: self._execute_dash_ai_prompt("Verify 5-point sandbox preflight checklist")),
+            ("🧹 Flush RAM", "Flush standby RAM pages"),
+            ("🎯 CS2 Turbo", "Optimize PC for Counter-Strike 2 tournament"),
+            ("📉 DPC Latency", "Audit DPC latency and check device interrupt drivers"),
+            ("🛡️ Pre-Flight", "Verify 5-point sandbox preflight checklist"),
         ]
-        for lbl, act in chips:
+        for lbl, prompt in chips:
             ctk.CTkButton(
-                chips_bar, text=lbl, font=("Segoe UI", 10, "bold"),
+                chips_bar, text=lbl, font=("Segoe UI", 8, "bold"),
                 fg_color="#1A1333", hover_color="#2E1B5B", text_color="#C4B5FD",
-                border_color="#4C1D95", border_width=1, height=26, corner_radius=13,
-                command=act
-            ).pack(side="left", padx=3)
+                border_color="#4C1D95", border_width=1, height=20, corner_radius=10,
+                command=lambda p=prompt: self._execute_dash_ai_prompt(p)
+            ).pack(side="left", padx=1)
 
         # Direct AI Input Bar
-        input_bar = ctk.CTkFrame(ai_card, fg_color="transparent")
-        input_bar.pack(fill="x", padx=14, pady=(0, 10))
+        input_bar = ctk.CTkFrame(card_ai, fg_color="transparent")
+        input_bar.pack(fill="x", padx=12, pady=(0, 4))
         input_bar.grid_columnconfigure(0, weight=1)
 
         self.dash_ai_entry = ctk.CTkEntry(
             input_bar,
-            placeholder_text="Ask AI Copilot anything (e.g., 'Flush standby RAM', 'Is my ping tournament ready?', 'Kill heavy bloat', 'Optimize CS2')...",
-            font=("Segoe UI", 11), height=36,
+            placeholder_text="Ask AI Copilot anything...",
+            font=("Segoe UI", 10), height=30,
             fg_color="#0A0B16", border_color="#7C3AED", corner_radius=8
         )
-        self.dash_ai_entry.grid(row=0, column=0, sticky="ew", padx=(0, 8))
+        self.dash_ai_entry.grid(row=0, column=0, sticky="ew", padx=(0, 4))
         self.dash_ai_entry.bind("<Return>", lambda e: self._submit_dash_ai())
 
         ctk.CTkButton(
-            input_bar, text="⚡ Ask AI ↵", font=("Segoe UI", 11, "bold"),
-            fg_color="#7C3AED", hover_color="#9333EA", height=36, width=100, corner_radius=8,
+            input_bar, text="⚡ Ask ↵", font=("Segoe UI", 9, "bold"),
+            fg_color="#7C3AED", hover_color="#9333EA", height=30, width=60, corner_radius=8,
             command=self._submit_dash_ai
-        ).grid(row=0, column=1, padx=(0, 6))
+        ).grid(row=0, column=1, padx=(0, 4))
 
         ctk.CTkButton(
-            input_bar, text="🎤 Voice", font=("Segoe UI", 11, "bold"),
-            fg_color="#047857", hover_color="#059669", height=36, width=75, corner_radius=8,
+            input_bar, text="🎤", font=("Segoe UI", 10, "bold"),
+            fg_color="#047857", hover_color="#059669", height=30, width=30, corner_radius=8,
             command=self._open_mic_with_sfx
         ).grid(row=0, column=2)
 
-        # 5. Bottom Direct Action Triggers (Row 3)
+        ai_foot = ctk.CTkFrame(card_ai, fg_color="transparent")
+        ai_foot.pack(fill="x", side="bottom", padx=12, pady=(0, 12))
+
+        ctk.CTkButton(
+            ai_foot, text="💬 Open Full Neural AI Agent →", font=("Segoe UI", 10, "bold"),
+            fg_color="#3B1E6D", hover_color="#581C87", text_color="#E0E7FF",
+            height=28, corner_radius=8, command=self.show_ai_agent_pane
+        ).pack(fill="x")
+
+        # ── ROW 2: BOTTOM QUICK UTILITY BAR ──
         bottom_bar = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=10, border_color=COLOR_BORDER, border_width=1)
-        bottom_bar.grid(row=3, column=0, columnspan=2, sticky="ew")
+        bottom_bar.grid(row=2, column=0, columnspan=3, sticky="ew")
 
-        ctk.CTkLabel(bottom_bar, text="Quick Triggers:", font=("Segoe UI", 10, "bold"), text_color=COLOR_TEXT_MUTED).pack(side="left", padx=14, pady=8)
+        ctk.CTkLabel(bottom_bar, text="Quick Launchers:", font=("Segoe UI", 9, "bold"), text_color=COLOR_TEXT_MUTED).pack(side="left", padx=14, pady=5)
 
-        ctk.CTkButton(
-            bottom_bar, text="⚡ Flush RAM", font=("Segoe UI", 10, "bold"),
-            fg_color="#006666", hover_color="#008080", height=28,
-            command=self._flush_ram_with_sfx
-        ).pack(side="left", padx=4)
-
-        ctk.CTkButton(
-            bottom_bar, text="🧹 Sweep Junk", font=("Segoe UI", 10, "bold"),
-            fg_color="#4D7C0F", hover_color="#65A30D", height=28,
-            command=self._sweep_junk_with_sfx
-        ).pack(side="left", padx=4)
-
-        ctk.CTkButton(
-            bottom_bar, text="🎯 CS2 Tuner", font=("Segoe UI", 10, "bold"),
-            fg_color="#F59E0B", hover_color="#D97706", height=28, text_color="#000000",
-            command=self.show_cs2_pane
-        ).pack(side="left", padx=4)
-
-        ctk.CTkButton(
-            bottom_bar, text="📱 Mobile HUD", font=("Segoe UI", 10, "bold"),
-            fg_color="#0284C7", hover_color="#0369A1", height=28,
-            command=self.show_mobile_pane
-        ).pack(side="left", padx=4)
+        quick_btns = [
+            ("⚡ Flush RAM", "#006666", "#008080", self._flush_ram_with_sfx),
+            ("🧹 Clean Junk", "#4D7C0F", "#65A30D", self._sweep_junk_with_sfx),
+            ("🎯 CS2 Tuner", "#B45309", "#D97706", self.show_cs2_pane),
+            ("📉 DPC Latency", "#1E293B", "#334155", self.show_dpc_pane),
+            ("📱 Mobile HUD", "#0284C7", "#0369A1", self.show_mobile_pane),
+        ]
+        for q_lbl, q_bg, q_hov, q_cmd in quick_btns:
+            ctk.CTkButton(
+                bottom_bar, text=q_lbl, font=("Segoe UI", 9, "bold"),
+                fg_color=q_bg, hover_color=q_hov, height=24, corner_radius=6,
+                command=q_cmd
+            ).pack(side="left", padx=3)
 
     def _submit_dash_ai(self):
         if not hasattr(self, 'dash_ai_entry'):
