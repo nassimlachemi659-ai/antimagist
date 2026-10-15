@@ -100,6 +100,8 @@ from floating_game_bar import AntimagistFloatingGameBar
 from crash_guard import AntimagistCrashGuard, safe_worker
 from global_hotkey_engine import AntimagistGlobalHotkeyEngine
 from bandwidth_guard import AntimagistBandwidthGuard
+from hop_radar_mtu import AntimagistHopRadarMTU
+from ai_plugin_builder import AntimagistPluginBuilder
 
 # Ensure UTF-8 console output
 if hasattr(sys.stdout, "reconfigure"):
@@ -158,6 +160,8 @@ class AntimagistV4ApexApp(AntimagistV3App):
         self.ultra_game_sentinel = AntimagistUltraGameSentinel()
         self.web_bridge = AntimagistWebBridgeDaemon(port=8765)
         self.bandwidth_guard = AntimagistBandwidthGuard()
+        self.hop_radar = AntimagistHopRadarMTU()
+        self.plugin_builder = AntimagistPluginBuilder()
 
         # Call base constructor
         super().__init__()
@@ -386,17 +390,20 @@ class AntimagistV4ApexApp(AntimagistV3App):
             )
             self.pill_gpu.pack(side="right", padx=(0, 4), pady=12)
 
-        # 7. Community Free Status Button (Right Zone Uniform #171B26 Tile)
-        lic_txt = "🛡️ FREE"
-        self.btn_license = ctk.CTkButton(
-            self.topbar, text=lic_txt,
-            font=(FONT_FAMILY_UI, 10, "bold"), text_color=COLOR_EMERALD,
+        # 7. Live Hardware Profile Switcher (Replaces static FREE button)
+        cur_prof = self.profile_switcher.get_active_profile()
+        prof_txt = cur_prof.get("name", "🔥 ESPORTS ULTRA")
+        prof_col = cur_prof.get("color", COLOR_EMERALD)
+        self.btn_profile_switcher = ctk.CTkButton(
+            self.topbar, text=prof_txt,
+            font=(FONT_FAMILY_UI, 10, "bold"), text_color=prof_col,
             fg_color=COLOR_CARD_HOVER, hover_color=COLOR_BORDER_GLOW,
             border_color=COLOR_BORDER, border_width=1,
-            height=32, width=64, corner_radius=8,
-            command=self._open_activation_dialog
+            height=32, width=138, corner_radius=8,
+            command=self._cycle_hardware_profile_topbar
         )
-        self.btn_license.pack(side="right", padx=(0, 4), pady=12)
+        self.btn_profile_switcher.pack(side="right", padx=(0, 4), pady=12)
+        self.btn_license = self.btn_profile_switcher  # compatibility alias
 
         # Bind responsive layout handler with debouncing
         self.topbar.bind("<Configure>", self._on_topbar_configure)
@@ -659,6 +666,14 @@ class AntimagistV4ApexApp(AntimagistV3App):
                     ("🔄 Auto-Updater", "updater", self.show_updater_pane),
                     ("⚙️ Settings", "settings", self.show_settings_pane),
                 ]
+            },
+            "✨ Custom AI Plugins": {
+                "icon": "✨",
+                "accent": "#A855F7",
+                "items": [
+                    (f"{p['icon']} {p['name']}", f"custom_{p['id']}", lambda pid=p['id']: self._execute_custom_plugin_ui(pid))
+                    for p in (self.plugin_builder.discover_plugins() if hasattr(self, 'plugin_builder') else [])
+                ]
             }
         }
 
@@ -670,6 +685,7 @@ class AntimagistV4ApexApp(AntimagistV3App):
             "Esports & Performance": True,
             "Zero-Trust Security": True,
             "System & Network": True,
+            "✨ Custom AI Plugins": True,
         }
         self.item_to_category = {}
 
@@ -736,6 +752,54 @@ class AntimagistV4ApexApp(AntimagistV3App):
     def _expand_category(self, cat_name: str):
         if not self.category_expanded.get(cat_name, False):
             self._toggle_category(cat_name)
+
+    def refresh_custom_plugins_sidebar(self):
+        """Re-scans custom_plugins/ directory and dynamically updates the sidebar category."""
+        if not hasattr(self, 'plugin_builder'):
+            return
+        plugins = self.plugin_builder.discover_plugins()
+        items = []
+        for p in plugins:
+            items.append((f"{p['icon']} {p['name']}", f"custom_{p['id']}", lambda pid=p['id']: self._execute_custom_plugin_ui(pid)))
+
+        cat_name = "✨ Custom AI Plugins"
+        if cat_name in self.sidebar_categories:
+            self.sidebar_categories[cat_name]["items"] = items
+
+        if cat_name in self.category_headers and self.category_headers[cat_name].winfo_exists():
+            icon = "✨"
+            self.category_headers[cat_name].configure(text=f"▼  {icon} {cat_name} ({len(items)})")
+
+        if cat_name in self.category_frames and self.category_frames[cat_name].winfo_exists():
+            for child in self.category_frames[cat_name].winfo_children():
+                child.destroy()
+            for text, key, cmd in items:
+                self.item_to_category[key] = cat_name
+                parts = text.strip().split(maxsplit=1)
+                icon = parts[0]
+                label = parts[1] if len(parts) > 1 else ""
+                clean_btn_text = f"  {icon}  {label}"
+                btn = ctk.CTkButton(
+                    self.category_frames[cat_name], text=clean_btn_text, font=(FONT_FAMILY_UI, 11),
+                    fg_color="transparent", text_color=COLOR_TEXT_SUBTLE,
+                    hover_color=COLOR_CARD_HOVER, anchor="w",
+                    height=28, corner_radius=6, command=cmd
+                )
+                btn.pack(fill="x", padx=2, pady=1)
+                self.nav_buttons[key] = btn
+
+    def _execute_custom_plugin_ui(self, plugin_id: str):
+        """Executes a custom AI-synthesized plugin and surfaces feedback."""
+        self.sfx.play_click()
+        if not hasattr(self, 'plugin_builder'):
+            return
+        ok, msg = self.plugin_builder.execute_plugin(plugin_id)
+        entry = self.plugin_builder.registered_plugins.get(plugin_id, {})
+        p_name = entry.get("name", plugin_id)
+        self.show_toast_msg(f"Plugin '{p_name}': {'Success' if ok else 'Error'}")
+        self.log_to_ai_feed(f"✨ [Custom AI Plugin: {p_name}] {msg}")
+        if ok:
+            self.sfx.play_success()
 
     def _on_tool_search_changed(self, event=None):
         query = ""
@@ -1307,26 +1371,39 @@ class AntimagistV4ApexApp(AntimagistV3App):
         ctk.CTkButton(
             left_card, text="🚀 Launch CS2 with Apex Boost", font=("Segoe UI", 13, "bold"),
             fg_color="#00FF9D", hover_color="#00D480", text_color="#000000",
-            height=44, corner_radius=10, command=self._launch_cs2_action
-        ).pack(fill="x", padx=16, pady=8)
+            height=40, corner_radius=10, command=self._launch_cs2_action
+        ).pack(fill="x", padx=16, pady=(6, 4))
 
         ctk.CTkButton(
-            left_card, text="⚙️ Apply Tournament Autoexec", font=("Segoe UI", 12, "bold"),
-            fg_color="#00F0FF", hover_color="#00B4D8", text_color="#000000",
-            height=38, corner_radius=10, command=self._apply_cs2_autoexec_action
-        ).pack(fill="x", padx=16, pady=6)
+            left_card, text="🎯 Enforce 1:1 Raw Mouse Input (Zero Accel)", font=("Segoe UI", 12, "bold"),
+            fg_color="#06B6D4", hover_color="#0891B2", text_color="#000000",
+            height=36, corner_radius=8, command=self._enforce_raw_mouse_ui
+        ).pack(fill="x", padx=16, pady=4)
 
         ctk.CTkButton(
-            left_card, text="🖥️ Toggle In-Game Overlay (Ctrl+Shift+O)", font=("Segoe UI", 12, "bold"),
-            fg_color="#7C3AED", hover_color="#6D28D9", text_color="#FFFFFF",
-            height=38, corner_radius=10, command=self.hud_overlay.toggle_overlay
-        ).pack(fill="x", padx=16, pady=6)
+            left_card, text="🔧 Repair Steam & Workshop Connection", font=("Segoe UI", 12, "bold"),
+            fg_color="#6366F1", hover_color="#4F46E5", text_color="#FFFFFF",
+            height=36, corner_radius=8, command=self._repair_steam_workshop_ui
+        ).pack(fill="x", padx=16, pady=4)
+
+        ctk.CTkButton(
+            left_card, text="⚡ Apply Pro Low-Latency Config", font=("Segoe UI", 12, "bold"),
+            fg_color="#10B981", hover_color="#059669", text_color="#FFFFFF",
+            height=36, corner_radius=8, command=self._apply_cs2_autoexec_action
+        ).pack(fill="x", padx=16, pady=4)
+
+        ctk.CTkButton(
+            left_card, text="🖥️ Toggle In-Game Overlay (Ctrl+Shift+O)", font=("Segoe UI", 11, "bold"),
+            fg_color="#1E2433", hover_color="#2A3245", text_color=COLOR_TEXT_PRIMARY,
+            border_color=COLOR_BORDER, border_width=1,
+            height=32, corner_radius=8, command=self.hud_overlay.toggle_overlay
+        ).pack(fill="x", padx=16, pady=4)
 
         ctk.CTkButton(
             left_card, text="🔄 Restore Original Config Backup", font=("Segoe UI", 11),
             fg_color="#1E293B", hover_color="#334155", text_color=COLOR_TEXT_MUTED,
-            height=34, corner_radius=8, command=self._restore_cs2_backup_action
-        ).pack(fill="x", padx=16, pady=(6, 16))
+            height=32, corner_radius=8, command=self._restore_cs2_backup_action
+        ).pack(fill="x", padx=16, pady=(4, 12))
 
         path_box = ctk.CTkFrame(left_card, fg_color="#0A0C14", corner_radius=8, border_color=COLOR_BORDER, border_width=1)
         path_box.pack(fill="x", padx=16, pady=(0, 16))
@@ -1357,10 +1434,30 @@ class AntimagistV4ApexApp(AntimagistV3App):
 
     def _apply_cs2_autoexec_action(self):
         self.sfx.play_success()
-        ok, msg = self.cs2_optimizer.apply_tournament_optimization()
+        ok, msg = self.cs2_optimizer.apply_pro_low_latency_config()
         self.show_toast_msg(msg)
+        self.log_to_ai_feed(f"🎯 [CS2 Tuner] {msg}")
         if self.voice:
-            self.voice.speak("Tournament autoexec applied to Counter-Strike 2.")
+            self.voice.speak("Pro low-latency autoexec applied to Counter-Strike 2.")
+
+    def _enforce_raw_mouse_ui(self):
+        self.sfx.play_warp_boost()
+        ok, msg = self.cs2_optimizer.enforce_raw_mouse_input()
+        self.show_toast_msg(msg)
+        self.log_to_ai_feed(f"🎯 [Raw Mouse Enforcer] {msg}")
+        if self.voice:
+            self.voice.speak("One-to-one raw mouse input enforced. Zero acceleration.")
+
+    def _repair_steam_workshop_ui(self):
+        self.sfx.play_click()
+        self.show_toast_msg("Repairing Steam sockets & Workshop firewall rules...")
+        def worker():
+            ok, msg, details = self.cs2_optimizer.repair_steam_workshop_connection()
+            self.after(0, lambda: self.show_toast_msg("Steam & Workshop connection repair complete!"))
+            self.after(0, lambda: self.log_to_ai_feed(f"🔧 [Steam & Workshop Doctor] {msg}"))
+            if self.voice:
+                self.after(0, lambda: self.voice.speak("Steam and workshop connection repaired."))
+        threading.Thread(target=worker, daemon=True).start()
 
     def _restore_cs2_backup_action(self):
         self.sfx.play_click()
@@ -1686,17 +1783,31 @@ class AntimagistV4ApexApp(AntimagistV3App):
         hw_foot = ctk.CTkFrame(card_hw, fg_color="transparent")
         hw_foot.pack(fill="x", side="bottom", padx=12, pady=(0, 12))
 
+        # GPU Live Clocks, Power & Thermal Headroom Row
+        gm = self.gpu_sentinel.get_live_gpu_metrics()
+        gpu_stat_str = f"GPU: {gm.get('core_clock_mhz', 0)}MHz Core | {gm.get('power_draw_w', 0.0)}W | Headroom: {gm.get('thermal_headroom_c', 83)}°C"
+        p_gpu_diag = ctk.CTkFrame(hw_foot, fg_color=COLOR_CARD_HOVER, corner_radius=6, border_color=COLOR_BORDER, border_width=1)
+        p_gpu_diag.pack(fill="x", pady=(0, 4))
+        self.lbl_hw_gpu_stat = ctk.CTkLabel(p_gpu_diag, text=gpu_stat_str, font=(FONT_FAMILY_MONO, 9, "bold"), text_color=COLOR_CYAN)
+        self.lbl_hw_gpu_stat.pack(padx=6, pady=3)
+
         ctk.CTkButton(
             hw_foot, text="⚡ Flush Standby & Working Set RAM", font=(FONT_FAMILY_UI, 10, "bold"),
             fg_color=COLOR_EMERALD, hover_color="#059669", text_color="#FFFFFF",
-            height=30, corner_radius=8, command=self._flush_ram_with_sfx
-        ).pack(fill="x", pady=(0, 4))
+            height=28, corner_radius=8, command=self._flush_ram_with_sfx
+        ).pack(fill="x", pady=(0, 3))
+
+        ctk.CTkButton(
+            hw_foot, text="🔄 Reset GPU Driver Stack (Win+Ctrl+Shift+B)", font=(FONT_FAMILY_UI, 10, "bold"),
+            fg_color="#4F46E5", hover_color="#4338CA", text_color="#FFFFFF",
+            height=28, corner_radius=8, command=self._reset_gpu_driver_ui
+        ).pack(fill="x", pady=(0, 3))
 
         ctk.CTkButton(
             hw_foot, text="⚡ Open Performance Suite →", font=(FONT_FAMILY_UI, 10, "bold"),
             fg_color=COLOR_CARD_HOVER, hover_color=COLOR_BORDER_GLOW, text_color=COLOR_TEXT_PRIMARY,
             border_color=COLOR_BORDER, border_width=1,
-            height=30, corner_radius=8, command=self.show_performance_suite_pane
+            height=28, corner_radius=8, command=self.show_performance_suite_pane
         ).pack(fill="x")
 
         # ═══ COLUMN 3 (RIGHT): NEURAL AI COPILOT (CURSOR/LINEAR STYLE) ═══
@@ -1838,11 +1949,23 @@ class AntimagistV4ApexApp(AntimagistV3App):
                 self.dash_ai_chat_box.see("end")
                 self.dash_ai_chat_box.configure(state="disabled")
                 self.sfx.play_success()
-                self.show_toast_msg("AI Copilot: Directive completed")
                 if getattr(self, 'voice', None) and self.voice.enabled:
                     summary = resp.split("[")[0].strip()[:100]
                     if summary:
                         self.voice.speak(summary)
+
+                # Check if prompt created a custom tool
+                if any(w in query.lower() for w in ["create a new tool", "create a tool", "build a tool", "make a tool", "create tool", "build tool"]):
+                    self.refresh_custom_plugins_sidebar()
+
+                # Check if prompt switched hardware profile
+                if any(w in query.lower() for w in ["profile", "esports ultra", "daily balanced", "eco mode", "ups guard"]):
+                    cur_prof = self.profile_switcher.get_active_profile()
+                    if hasattr(self, 'btn_profile_switcher') and self.btn_profile_switcher.winfo_exists():
+                        self.btn_profile_switcher.configure(
+                            text=cur_prof["name"],
+                            text_color=cur_prof.get("color", COLOR_EMERALD)
+                        )
             self.after(0, update_ui)
 
         threading.Thread(target=run_bg, daemon=True).start()
@@ -1880,6 +2003,15 @@ class AntimagistV4ApexApp(AntimagistV3App):
             if hasattr(self, '_refresh_interactive_processes_ui'):
                 self._refresh_interactive_processes_ui()
         self.optimizer.run_memory_boost(on_done)
+
+    def _reset_gpu_driver_ui(self):
+        self.sfx.play_warp_boost()
+        self.show_toast_msg("Resetting GPU Driver Stack (Win+Ctrl+Shift+B)...")
+        ok, msg = self.gpu_sentinel.reset_gpu_driver_stack()
+        self.show_toast_msg(msg)
+        self.log_to_ai_feed(f"⚡ [GPU Sentinel] {msg}")
+        if getattr(self, 'voice', None) and self.voice.enabled:
+            self.voice.speak("Display driver stack reset signal dispatched. Video pipeline refreshed.")
 
     def _sweep_junk_with_sfx(self):
         self.sfx.play_click()
@@ -2559,6 +2691,66 @@ class AntimagistV4ApexApp(AntimagistV3App):
             ctk.CTkLabel(row, text=f"🌐 {d['name']}", font=("Segoe UI", 11, "bold"), text_color=COLOR_CYAN if d.get("is_recommended") else COLOR_TEXT_PRIMARY).pack(side="left", padx=10, pady=8)
             tag = " [FASTEST]" if d.get("is_recommended") else ""
             ctk.CTkLabel(row, text=f"{d['ping_ms']} ms{tag}", font=("Consolas", 11, "bold"), text_color=COLOR_EMERALD if d.get("is_recommended") else COLOR_TEXT_MUTED).pack(side="right", padx=10)
+
+        # ── DUAL-HOP FIBER vs. ISP HOP RADAR & AUTO-MTU TUNER ──
+        hop_box = ctk.CTkFrame(right_card, fg_color="#0A0C14", corner_radius=10, border_color=COLOR_BORDER, border_width=1)
+        hop_box.pack(fill="x", padx=12, pady=(8, 12))
+
+        ctk.CTkLabel(hop_box, text="📡 Dual-Hop Radar (Router vs. ISP Edge)", font=("Segoe UI", 12, "bold"), text_color=COLOR_CYAN).pack(anchor="w", padx=12, pady=(10, 4))
+
+        diag = self.hop_radar.last_diagnostic or self.hop_radar.run_dual_hop_diagnostic()
+        self.lbl_dual_hop_stat = ctk.CTkLabel(
+            hop_box,
+            text=f"• Local Router ({diag['gateway_ip']}): {diag['router_latency_ms']} ms (±{diag['router_jitter_ms']}ms)\n• External Edge ({diag['external_ip']}): {diag['external_latency_ms']} ms (±{diag['external_jitter_ms']}ms)\n• Pipeline: {diag['bottleneck']}",
+            font=("Segoe UI", 10), text_color=COLOR_TEXT_PRIMARY, justify="left"
+        )
+        self.lbl_dual_hop_stat.pack(anchor="w", padx=12, pady=4)
+
+        btn_row = ctk.CTkFrame(hop_box, fg_color="transparent")
+        btn_row.pack(fill="x", padx=12, pady=(4, 10))
+
+        ctk.CTkButton(
+            btn_row, text="📡 Run Dual-Hop Audit", font=("Segoe UI", 10, "bold"),
+            fg_color="#00F0FF", hover_color="#00B4D8", text_color="#000000",
+            height=30, corner_radius=6, command=self._run_dual_hop_audit_ui
+        ).pack(side="left", expand=True, fill="x", padx=(0, 4))
+
+        ctk.CTkButton(
+            btn_row, text="⚡ Discover & Apply MTU", font=("Segoe UI", 10, "bold"),
+            fg_color="#10B981", hover_color="#059669", text_color="#FFFFFF",
+            height=30, corner_radius=6, command=self._apply_auto_mtu_ui
+        ).pack(side="right", expand=True, fill="x", padx=(4, 0))
+
+    def _run_dual_hop_audit_ui(self):
+        self.sfx.play_click()
+        self.show_toast_msg("Pinging Local Gateway & ISP Edge simultaneously...")
+        def worker():
+            d = self.hop_radar.run_dual_hop_diagnostic()
+            def update():
+                if hasattr(self, 'lbl_dual_hop_stat') and self.lbl_dual_hop_stat.winfo_exists():
+                    self.lbl_dual_hop_stat.configure(
+                        text=f"• Local Router ({d['gateway_ip']}): {d['router_latency_ms']} ms (±{d['router_jitter_ms']}ms)\n• External Edge ({d['external_ip']}): {d['external_latency_ms']} ms (±{d['external_jitter_ms']}ms)\n• Pipeline: {d['bottleneck']}"
+                    )
+                self.sfx.play_success()
+                self.show_toast_msg(f"Dual-Hop: {d['bottleneck']}")
+                self.log_to_ai_feed(f"📡 [Dual-Hop Radar] Gateway {d['gateway_ip']}: {d['router_latency_ms']}ms | WAN {d['external_ip']}: {d['external_latency_ms']}ms | {d['bottleneck_desc']}")
+            self.after(0, update)
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _apply_auto_mtu_ui(self):
+        self.sfx.play_warp_boost()
+        self.show_toast_msg("Executing binary ping sweep for zero-fragmentation MTU...")
+        def worker():
+            payload, mtu, msg = self.hop_radar.discover_optimal_mtu()
+            ok, apply_msg = self.hop_radar.apply_optimal_mtu(mtu)
+            def update():
+                self.sfx.play_success()
+                self.show_toast_msg(f"Optimal MTU ({mtu}) Discovered!")
+                self.log_to_ai_feed(f"📦 [Auto-MTU Tuner] {msg}\n• Status: {apply_msg}")
+                if getattr(self, 'voice', None) and self.voice.enabled:
+                    self.voice.speak(f"Zero fragmentation MTU {mtu} applied to network interface.")
+            self.after(0, update)
+        threading.Thread(target=worker, daemon=True).start()
 
     def _refresh_radar_data(self):
         self.sfx.play_click()
@@ -3812,11 +4004,30 @@ composite hardware score and throughput ratings.
         self.profile_switcher.switch_profile(key)
         self.show_profile_switcher_pane()
 
+    def _cycle_hardware_profile_topbar(self):
+        """Cycles hardware profiles directly from the topbar button."""
+        ok, msg, prof = self.profile_switcher.cycle_profile()
+        if hasattr(self, 'btn_profile_switcher') and self.btn_profile_switcher.winfo_exists():
+            self.btn_profile_switcher.configure(
+                text=prof["name"],
+                text_color=prof.get("color", COLOR_EMERALD)
+            )
+        self.sfx.play_warp_boost()
+        self.voice.speak(f"{prof['name']} active.")
+        self.show_toast_msg(f"Profile: {prof['name']}")
+        self.log_to_ai_feed(f"🎛️ [Hardware Profile Switcher] {msg}")
+
     def _on_profile_switched_hook(self, profile_key: str, prof: Dict[str, Any]):
         """Executed automatically when a profile is changed via global hotkey or UI."""
+        if hasattr(self, 'btn_profile_switcher') and self.btn_profile_switcher.winfo_exists():
+            self.btn_profile_switcher.configure(
+                text=prof["name"],
+                text_color=prof.get("color", COLOR_EMERALD)
+            )
         self.sfx.play_warp_boost()
         self.voice.speak(f"Antimagist Profile: {prof['name']} engaged.")
-        self.show_toast_msg(f"Active Profile: {prof['name']} ({prof['hotkey']})")
+        self.show_toast_msg(f"Active Profile: {prof['name']}")
+        self.log_to_ai_feed(f"🎛️ [Hardware Profile Hook] {prof['name']} engaged ({prof.get('description', '')})")
 
     # ========================================================================
     # V9 APEX PREDATOR PILLAR 1: ESPORTS MATCH RECORDER & SESSION REPLAY

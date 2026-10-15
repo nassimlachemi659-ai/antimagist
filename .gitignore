@@ -18,6 +18,7 @@ antimagist_match_history.json
 match_history.json
 antimagist_restore_vault.json
 antimagist_crash_guard.log
+antimagist_profile.json
 windows_latency_stripper_backup.json
 
 # Environment & IDE

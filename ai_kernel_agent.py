@@ -821,6 +821,89 @@ class AntimagistAIAgent:
             except Exception as e:
                 return False, f"Ghost OS Thaw error: {e}"
 
+        elif tag == "CREATE_CUSTOM_TOOL":
+            try:
+                from ai_plugin_builder import AntimagistPluginBuilder
+                b = AntimagistPluginBuilder()
+                ok, msg, _ = b.build_tool_from_prompt(arg or "custom system tool")
+                return ok, msg
+            except Exception as e:
+                return False, f"AI Plugin Builder error: {e}"
+
+        elif tag == "SWITCH_HARDWARE_PROFILE":
+            try:
+                from profile_switcher import AntimagistProfileSwitcher
+                p = AntimagistProfileSwitcher()
+                target_p = arg.strip().lower() if arg else "cycle"
+                if target_p in ("cycle", "next"):
+                    ok, msg, _ = p.cycle_profile()
+                else:
+                    ok, msg, _ = p.switch_profile(target_p)
+                return ok, msg
+            except Exception as e:
+                return False, f"Profile Switcher error: {e}"
+
+        elif tag == "ENFORCE_RAW_MOUSE":
+            try:
+                from cs2_optimizer import AntimagistCS2Optimizer
+                cs = AntimagistCS2Optimizer()
+                ok, msg = cs.enforce_raw_mouse_input()
+                return ok, msg
+            except Exception as e:
+                return False, f"Raw mouse configuration error: {e}"
+
+        elif tag == "REPAIR_STEAM_WORKSHOP":
+            try:
+                from cs2_optimizer import AntimagistCS2Optimizer
+                cs = AntimagistCS2Optimizer()
+                ok, msg, _ = cs.repair_steam_workshop_connection()
+                return ok, msg
+            except Exception as e:
+                return False, f"Steam Workshop repair error: {e}"
+
+        elif tag == "APPLY_PRO_CS2_CONFIG":
+            try:
+                from cs2_optimizer import AntimagistCS2Optimizer
+                cs = AntimagistCS2Optimizer()
+                ok, msg = cs.apply_pro_low_latency_config()
+                return ok, msg
+            except Exception as e:
+                return False, f"CS2 config error: {e}"
+
+        elif tag == "DUAL_HOP_DIAGNOSTIC":
+            try:
+                from hop_radar_mtu import AntimagistHopRadarMTU
+                hr = AntimagistHopRadarMTU()
+                d = hr.run_dual_hop_diagnostic()
+                res_txt = (
+                    f"📡 Dual-Hop Radar:\n"
+                    f"• Local Router ({d['gateway_ip']}): {d['router_latency_ms']} ms (±{d['router_jitter_ms']} ms)\n"
+                    f"• External ISP Edge ({d['external_ip']}): {d['external_latency_ms']} ms (±{d['external_jitter_ms']} ms)\n"
+                    f"• Bottleneck Analysis: {d['bottleneck']} ({d['bottleneck_desc']})"
+                )
+                return True, res_txt
+            except Exception as e:
+                return False, f"Dual-hop diagnostic error: {e}"
+
+        elif tag == "DISCOVER_AUTO_MTU":
+            try:
+                from hop_radar_mtu import AntimagistHopRadarMTU
+                hr = AntimagistHopRadarMTU()
+                _, mtu, msg = hr.discover_optimal_mtu()
+                ok, apply_msg = hr.apply_optimal_mtu(mtu)
+                return ok, f"{msg}\n• Status: {apply_msg}"
+            except Exception as e:
+                return False, f"MTU tuner error: {e}"
+
+        elif tag == "RESET_GPU_DRIVER":
+            try:
+                from gpu_sentinel import AntimagistGPUSentinel
+                gpu = AntimagistGPUSentinel()
+                ok, msg = gpu.reset_gpu_driver_stack()
+                return ok, msg
+            except Exception as e:
+                return False, f"GPU driver reset error: {e}"
+
         return False, f"Unknown tool tag: {tag}"
 
     # ========================================================================
@@ -990,6 +1073,48 @@ class AntimagistAIAgent:
             if is_ar:
                 return f"🤖 [Antimagist Sovereign AI Kernel]\n✅ تم تشغيل حزمة الاختبارات الشاملة (5/5 بنجاح):\n{msg}"
             return f"🤖 [Antimagist Neural Copilot]\n✅ Complete System Diagnostic Suite (5/5 Tests Passed):\n{msg}"
+
+        # 3-1. Self-Expanding AI Plugin Builder ("Create a new tool that does X")
+        tool_creation_triggers = [
+            "create a new tool", "create a tool", "build a tool", "make a tool",
+            "create tool", "build tool", "make tool", "اصنع أداة", "انشئ أداة", "أداة جديدة"
+        ]
+        if any(t in norm for t in tool_creation_triggers):
+            ok, msg = self.execute_tool("CREATE_CUSTOM_TOOL", prompt)
+            return msg
+
+        # 3-2. Hardware Profile Switcher ("Esports Ultra", "Daily Balanced", "Eco / UPS Guard")
+        if any(w in norm for w in ["esports ultra", "daily balanced", "eco mode", "ups guard", "switch profile", "وضع الهاردوير", "بروفايل"]):
+            target = "cycle"
+            if "esport" in norm or "ultra" in norm or "gaming" in norm:
+                target = "esports_ultra"
+            elif "eco" in norm or "ups" in norm or "battery" in norm or "save" in norm:
+                target = "eco_ups_guard"
+            elif "balance" in norm or "daily" in norm:
+                target = "daily_balanced"
+            ok, msg = self.execute_tool("SWITCH_HARDWARE_PROFILE", target)
+            return f"🎛️ [Hardware Profile Switcher]\n{msg}"
+
+        # 3-3. 1:1 Raw Mouse Input Enforcer ("Raw mouse", "Mouse acceleration")
+        if any(w in norm for w in ["raw mouse", "mouse accel", "pointer acceleration", "تسريع الماوس", "ماوس بدون تسريع", "1:1 mouse"]):
+            ok, msg = self.execute_tool("ENFORCE_RAW_MOUSE")
+            return f"🎯 [1:1 Raw Mouse Enforcer]\n{msg}"
+
+        # 3-4. Fiber Router vs ISP Hop Radar & MTU Tuner
+        if any(w in norm for w in ["dual hop", "router vs isp", "hop radar", "gateway ping", "mtu", "zero fragmentation", "راوتر", "بينغ الراوتر"]):
+            ok_hop, msg_hop = self.execute_tool("DUAL_HOP_DIAGNOSTIC")
+            ok_mtu, msg_mtu = self.execute_tool("DISCOVER_AUTO_MTU")
+            return f"{msg_hop}\n\n📦 Auto-MTU Discovery:\n{msg_mtu}"
+
+        # 3-5. Emergency GPU Driver Stack Reset (Win + Ctrl + Shift + B)
+        if any(w in norm for w in ["reset gpu", "restart gpu", "win+ctrl+shift+b", "driver hang", "black screen", "ريستارت كرت الشاشة"]):
+            ok, msg = self.execute_tool("RESET_GPU_DRIVER")
+            return f"⚡ [GPU Driver Stack Recovery]\n{msg}"
+
+        # 3-6. Steam Workshop & CS2 Connection Repair
+        if any(w in norm for w in ["steam workshop", "workshop connection", "workshop map", "cs2 connection", "workshop timeout"]):
+            ok, msg = self.execute_tool("REPAIR_STEAM_WORKSHOP")
+            return f"🔧 [Steam & Workshop Doctor]\n{msg}"
 
         # 3a. OS Action Agent: Automated Audio Troubleshooter & Repair
         audio_keys = [
