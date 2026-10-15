@@ -5,7 +5,7 @@ a = Analysis(
     ['antimagist_v4_apex.py'],
     pathex=[],
     binaries=[],
-    datas=[('antimagist.ico', '.')],
+    datas=[('antimagist.ico', '.'), ('antimagist_mobile_qr.png', '.')],
     hiddenimports=[
         'customtkinter', 'pystray', 'PIL', 'psutil', 'requests', 'qrcode',
         'win32com.client', 'winreg', 'keyboard', 'winsound', 'ctypes',
@@ -18,7 +18,9 @@ a = Analysis(
         'predictive_interceptor', 'packet_racer', 'tpm_hardware_attestor', 'ghost_os_cryo',
         'devops_turbo', 'battery_whisper', 'studio_master', 'privacy_scrubber', 'storage_accelerator',
         'ultra_game_sentinel', 'web_bridge_daemon', 'floating_game_bar', 'detonation_chamber',
-        'windows_stripper', 'context_menu_v4', 'cs2_optimizer', 'ai_kernel_agent'
+        'windows_stripper', 'context_menu_v4', 'cs2_optimizer', 'ai_kernel_agent',
+        'game_watchdog', 'tray_manager', 'hud_overlay', 'ping_optimizer',
+        'kernel_timer_resolution', 'system_state_vault', 'antimagist_v3_ultra'
     ],
     hookspath=[],
     hooksconfig={},
