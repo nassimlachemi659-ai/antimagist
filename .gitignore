@@ -11,6 +11,10 @@ build/
 *.spec.bak
 
 # Local customer databases & private records
+config_vault/*
+!config_vault/.gitkeep
+antimagist_rig_report.txt
+eicar.txt
 issued_licenses.json
 license.dat
 .trial_stamp

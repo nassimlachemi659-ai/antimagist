@@ -118,6 +118,49 @@ class AntimagistShaderSentinel:
 
     def purge_shader_cache(self, pool_target: Optional[str] = None) -> Tuple[bool, str, int]:
         """Safely cleans compiled shader files to eliminate fragmented cache conflicts."""
+        return self.deep_nuclear_shader_reset(pool_target=pool_target)
+
+    def smart_clean_shaders(self, max_age_days: int = 7) -> Tuple[bool, str, int, int]:
+        """Removes corrupted (0-byte) or stale shader blobs (>7 days old) while preserving active warm shaders."""
+        self.cached_audit = None
+        cleaned_count = 0
+        preserved_count = 0
+        errors = 0
+        cutoff_sec = time.time() - (max_age_days * 86400)
+
+        for name, path in self.shader_directories.items():
+            if not path or not os.path.exists(path):
+                continue
+
+            try:
+                for root, _, files in os.walk(path):
+                    for f in files:
+                        fp = os.path.join(root, f)
+                        try:
+                            st = os.stat(fp)
+                            is_corrupt = (st.st_size == 0)
+                            is_stale = (st.st_mtime < cutoff_sec)
+
+                            if is_corrupt or is_stale:
+                                os.remove(fp)
+                                cleaned_count += 1
+                            else:
+                                preserved_count += 1
+                        except (PermissionError, OSError):
+                            errors += 1
+                        except Exception:
+                            pass
+            except Exception:
+                pass
+
+        msg = (
+            f"Smart Shader Clean complete: Removed {cleaned_count} stale/corrupted cache blobs. "
+            f"Preserved {preserved_count} warm shaders (< {max_age_days}d old) for zero game launch stutter."
+        )
+        return True, msg, cleaned_count, preserved_count
+
+    def deep_nuclear_shader_reset(self, pool_target: Optional[str] = None) -> Tuple[bool, str, int]:
+        """Full purge of DirectX, NVIDIA, and AMD shader caches for major game updates or GPU driver upgrades."""
         self.cached_audit = None
         deleted_count = 0
         errors = 0
@@ -137,16 +180,15 @@ class AntimagistShaderSentinel:
                             os.remove(fp)
                             deleted_count += 1
                         except (PermissionError, OSError):
-                            # File currently locked by running game or driver; skip safely
                             errors += 1
             except Exception:
                 pass
 
         if deleted_count > 0:
-            msg = f"Successfully purged {deleted_count} stale shader cache files. (Skipped {errors} locked by active processes)."
+            msg = f"Nuclear Shader Reset applied: Purged {deleted_count} compiled shaders across all vendor pools. (Skipped {errors} locked by active processes)."
             return True, msg, deleted_count
         else:
-            return True, "Shader caches are already pristine (0 stale files found).", 0
+            return True, "All shader cache pools are completely clean (0 stale files).", 0
 
 
 if __name__ == "__main__":

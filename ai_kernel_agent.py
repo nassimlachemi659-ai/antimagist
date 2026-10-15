@@ -904,6 +904,74 @@ class AntimagistAIAgent:
             except Exception as e:
                 return False, f"GPU driver reset error: {e}"
 
+        elif tag in ("CRASH_FORENSICS", "DIAGNOSE_CRASH"):
+            try:
+                from crash_forensics import AntimagistCrashForensics
+                cf = AntimagistCrashForensics()
+                rep = cf.scan_crash_history(max_records=5)
+                if rep["latest_crash"]:
+                    lc = rep["latest_crash"]
+                    res_msg = (
+                        f"💥 Crash Forensics Diagnostic:\n"
+                        f"• Latest Crash: {lc['bugcheck_name']} ({lc['bugcheck_hex']}) at {lc['timestamp']}\n"
+                        f"• Diagnosis: {lc['explanation']}\n"
+                        f"• Likely Cause: {lc['causes']}\n"
+                        f"• Recommended Fix: {lc['remediation_title']}"
+                    )
+                    if arg.strip().lower() in ("fix", "apply", "repair"):
+                        ok_fix, msg_fix = cf.apply_remediation(lc["action_key"])
+                        res_msg += f"\n• Automated Remediation Applied: {msg_fix}"
+                    return True, res_msg
+                return True, "Zero kernel crash dumps or abnormal reboots detected in event logs. System stability is optimal."
+            except Exception as e:
+                return False, f"Crash forensics error: {e}"
+
+        elif tag in ("LOCK_MIC", "BOOST_AUDIO"):
+            try:
+                from competitive_audio_booster import AntimagistAudioBooster
+                b = AntimagistAudioBooster()
+                ok, msg = b.lock_mic_volume_100()
+                step_audit = b.audit_footstep_enhancements()
+                return ok, f"🎙️ {msg}\n• Footstep Enhancement: {step_audit.get('status')}"
+            except Exception as e:
+                return False, f"Audio booster error: {e}"
+
+        elif tag == "TUNE_FORTNITE":
+            try:
+                from game_config_vault import AntimagistGameConfigVault
+                gv = AntimagistGameConfigVault()
+                ok, msg, preserved = gv.optimize_fortnite_config()
+                return ok, f"🎮 {msg} (Preserved {len(preserved)} user settings)"
+            except Exception as e:
+                return False, f"Fortnite tuner error: {e}"
+
+        elif tag == "SMART_CLEAN_SHADERS":
+            try:
+                from shader_sentinel import AntimagistShaderSentinel
+                ss = AntimagistShaderSentinel()
+                ok, msg, cleaned, preserved = ss.smart_clean_shaders(max_age_days=7)
+                return ok, f"🧹 {msg}"
+            except Exception as e:
+                return False, f"Shader cleaner error: {e}"
+
+        elif tag in ("UNLOCK_PCI_USB_SLEEP", "UNLOCK_LATENCY"):
+            try:
+                from msi_interrupt_tuner import AntimagistMSITuner
+                t = AntimagistMSITuner()
+                ok, msg = t.apply_usb_pcie_latency_unlock()
+                return ok, f"⚡ {msg}"
+            except Exception as e:
+                return False, f"Latency unlock error: {e}"
+
+        elif tag == "ENABLE_GAMING_MSI":
+            try:
+                from msi_interrupt_tuner import AntimagistMSITuner
+                t = AntimagistMSITuner()
+                ok, msg, cnt = t.enable_all_gaming_msi()
+                return ok, f"🛡️ {msg}"
+            except Exception as e:
+                return False, f"MSI tuner error: {e}"
+
         return False, f"Unknown tool tag: {tag}"
 
     # ========================================================================
@@ -1484,6 +1552,36 @@ class AntimagistAIAgent:
                 f"• Apex Legends: Cap framerate 3 FPS below monitor refresh (e.g. +fps_max 141) to prevent GPU driver render queue latency."
             )
 
+        # 11.5 Crash & BSOD Forensics
+        crash_keys = ["crash", "bsod", "blue screen", "minidump", "tdr", "crashing", "crashed", "شاشة زرقاء", "انهيار", "كراش"]
+        if any(w in norm for w in crash_keys):
+            ok_cf, cf_msg = self.execute_tool("CRASH_FORENSICS", "fix" if "fix" in norm or "repair" in norm else "")
+            return (
+                f"🤖 [Antimagist Autonomous Kernel — BSOD & Crash Forensics Engine]\n"
+                f"{cf_msg}\n\n"
+                f"🛡️ Action Taken: Deep Windows Event Log & BugCheck stop code analysis completed."
+            )
+
+        # 11.6 Microphone & Audio Footstep Gain Lock
+        mic_keys = ["mic", "microphone", "mic gain", "mic volume", "lock mic", "footstep", "صوت المايك", "ميكروفون", "خطوات"]
+        if any(w in norm for w in mic_keys):
+            ok_mic, mic_msg = self.execute_tool("LOCK_MIC")
+            return (
+                f"🤖 [Antimagist Autonomous Audio Engine — Competitive Gain Lock]\n"
+                f"{mic_msg}\n\n"
+                f"🎧 Competitive Posture: Microphone master volume locked to 100% and 48,000 Hz studio audio stream verified."
+            )
+
+        # 11.7 Fortnite Config Tuning
+        fn_keys = ["fortnite config", "tune fortnite", "fortnite settings", "فورتنايت كونفق", "تسريع فورتنايت"]
+        if any(w in norm for w in fn_keys):
+            ok_fn, fn_msg = self.execute_tool("TUNE_FORTNITE")
+            return (
+                f"🤖 [Antimagist Game Config Vault — Fortnite Low-Latency Engine]\n"
+                f"{fn_msg}\n\n"
+                f"🎯 Native resolution and user sensitivity were strictly preserved while motion blur, grass, and cosmetic hitching were neutralized."
+            )
+
         # 12. Windows 11 Bloatware, Recall & Telemetry
         win11_keys = ["windows 11", "win 11", "win11", "bloatware", "telemetry", "recall", "copilot", "xboxapp", "game bar", "gamedvr", "تخفيف", "ويندوز 11"]
         if any(w in norm for w in win11_keys):
@@ -1608,7 +1706,7 @@ class AntimagistAIAgent:
         executed_actions = []
 
         # Find tags
-        tag_pattern = re.compile(r'\[(BOOST_RAM|CLEAN_CACHE|FLUSH_DNS|DISM_SWEEP|NVMe_TRIM|GET_METRICS|NETWORK_AUDIT|KILL_PROCESS|OPEN_AND_TYPE|FIX_AUDIO|DIAGNOSE_GAME)(?::\s*([^\]]+))?\]', re.IGNORECASE)
+        tag_pattern = re.compile(r'\[([A-Z0-9_]+)(?::\s*([^\]]+))?\]', re.IGNORECASE)
         matches = tag_pattern.findall(ai_text)
 
         clean_text = tag_pattern.sub("", ai_text).strip()

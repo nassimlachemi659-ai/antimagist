@@ -62,7 +62,9 @@ def build_executable():
         "windows_stripper", "context_menu_v4", "cs2_optimizer", "ai_kernel_agent",
         "game_watchdog", "tray_manager", "hud_overlay", "ping_optimizer",
         "kernel_timer_resolution", "system_state_vault", "antimagist_v3_ultra",
-        "crash_guard", "global_hotkey_engine", "bandwidth_guard"
+        "crash_guard", "global_hotkey_engine", "bandwidth_guard",
+        "hop_radar_mtu", "ai_plugin_builder",
+        "competitive_audio_booster", "crash_forensics", "game_config_vault", "settings_vault"
     ]
 
     cmd = [

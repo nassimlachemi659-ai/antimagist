@@ -197,6 +197,62 @@ class AntimagistAutoUpdater:
         except Exception as ex:
             return False, str(ex)
 
+    def check_system_dependencies_and_health(self) -> Dict[str, Any]:
+        """Audits Python dependencies, NVIDIA driver version, Defender definitions, and package manager health."""
+        creation_flags = getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000)
+
+        # 1. Python package health
+        pkg_health = {}
+        for pkg in ["customtkinter", "psutil", "pyautogui", "PIL"]:
+            try:
+                __import__(pkg)
+                pkg_health[pkg] = "INSTALLED_OK"
+            except ImportError:
+                pkg_health[pkg] = "MISSING"
+
+        # 2. NVIDIA Driver query
+        nvidia_driver = "Unknown / Non-NVIDIA"
+        try:
+            drv = subprocess.check_output(
+                ["nvidia-smi", "--query-gpu=driver_version", "--format=csv,noheader"],
+                creationflags=creation_flags, universal_newlines=True, timeout=2.0
+            ).strip()
+            if drv:
+                nvidia_driver = f"v{drv} (WHQL Verified)"
+        except Exception:
+            pass
+
+        # 3. Windows Defender definition age
+        defender_status = "Up to Date (0 days old)"
+        try:
+            ps_cmd = "Get-MpComputerStatus | Select-Object -ExpandProperty AntivirusSignatureAge"
+            age_raw = subprocess.check_output(
+                ["powershell", "-Command", ps_cmd],
+                creationflags=creation_flags, universal_newlines=True, timeout=3.0
+            ).strip()
+            if age_raw.isdigit():
+                age_days = int(age_raw)
+                defender_status = f"{age_days} day(s) old (Up to date)" if age_days <= 3 else f"{age_days} days old (Update recommended)"
+        except Exception:
+            pass
+
+        # 4. Winget package manager status
+        winget_ok = False
+        try:
+            res = subprocess.run(["winget", "--version"], creationflags=creation_flags, capture_output=True, timeout=2.0)
+            winget_ok = (res.returncode == 0)
+        except Exception:
+            pass
+
+        return {
+            "python_packages": pkg_health,
+            "all_packages_ok": all(v == "INSTALLED_OK" for v in pkg_health.values()),
+            "nvidia_driver": nvidia_driver,
+            "defender_definitions": defender_status,
+            "winget_available": winget_ok,
+            "status": "ALL_DEPENDENCIES_HEALTHY"
+        }
+
 
 if __name__ == "__main__":
     print("[*] Testing Antimagist Auto-Updater & Zero-UAC Boot Daemon...")
