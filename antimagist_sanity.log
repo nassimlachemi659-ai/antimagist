@@ -203,3 +203,303 @@ NoneType: None
 [2026-10-13T15:41:04] [SECURITY_EVENT] Type: UNAUTHORIZED_REMOTE_ACTION | Action: flush_ram; rm -rf / | Details: {"reason": "VALIDATION_REJECT: Unauthorized action trigger 'flush_ram; rm -rf /'. Not in argument whitelist."}
 [2026-10-13T15:50:41] [SECURITY_EVENT] Type: UNAUTHORIZED_ACTION | Action: flush_ram; rm -rf / | Details: {"args": {}}
 [2026-10-13T15:50:41] [SECURITY_EVENT] Type: UNAUTHORIZED_REMOTE_ACTION | Action: flush_ram; rm -rf / | Details: {"reason": "VALIDATION_REJECT: Unauthorized action trigger 'flush_ram; rm -rf /'. Not in argument whitelist."}
+[2026-10-13T18:39:12] [SECURITY_EVENT] Type: UNAUTHORIZED_ACTION | Action: flush_ram; rm -rf / | Details: {"args": {}}
+[2026-10-13T18:39:12] [SECURITY_EVENT] Type: UNAUTHORIZED_REMOTE_ACTION | Action: flush_ram; rm -rf / | Details: {"reason": "VALIDATION_REJECT: Unauthorized action trigger 'flush_ram; rm -rf /'. Not in argument whitelist."}
+
+[2026-10-13T18:45:24] [CRASH_INTERCEPT] Module: OptimizerUI::_run_async_powershell | Type: RuntimeError
+  Message: Optimize-Volume : Access denied
+Activity ID: {a31bd537-5b59-000b-cdd6-1ba3595bdd01}
+At line:1 char:1
++ Optimize-Volume -DriveLetter C -ReTrim -Defrag -Verbose
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : PermissionDenied: (StorageWMI:ROOT/Microsoft/...age/MSFT_Volume) [Optimize-Volume], CimE 
+   xception
+    + FullyQualifiedErrorId : StorageWMI 40001,Optimize-Volume
+  Telemetry: RAM=22.1% | CPU=0.0%
+  Metadata: {"cmd": "Optimize-Volume -DriveLetter C -ReTrim -Defrag -Verbose"}
+  Traceback:
+NoneType: None
+
+--------------------------------------------------------------------------------
+
+[2026-10-13T18:47:11] [CRASH_INTERCEPT] Module: OptimizerUI::_run_async_powershell | Type: RuntimeError
+  Message: Optimize-Volume : Access denied
+Activity ID: {a31bd537-5b59-000b-cdd6-1ba3595bdd01}
+At line:1 char:1
++ Optimize-Volume -DriveLetter C -ReTrim -Defrag -Verbose
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : PermissionDenied: (StorageWMI:ROOT/Microsoft/...age/MSFT_Volume) [Optimize-Volume], CimE 
+   xception
+    + FullyQualifiedErrorId : StorageWMI 40001,Optimize-Volume
+  Telemetry: RAM=22.4% | CPU=0.0%
+  Metadata: {"cmd": "Optimize-Volume -DriveLetter C -ReTrim -Defrag -Verbose"}
+  Traceback:
+NoneType: None
+
+--------------------------------------------------------------------------------
+
+[2026-10-13T18:50:14] [CRASH_INTERCEPT] Module: OptimizerUI::_run_async_powershell | Type: RuntimeError
+  Message: Optimize-Volume : Access denied
+Activity ID: {a31bd537-5b59-000b-cdd6-1ba3595bdd01}
+At line:1 char:1
++ Optimize-Volume -DriveLetter C -ReTrim -Defrag -Verbose
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : PermissionDenied: (StorageWMI:ROOT/Microsoft/...age/MSFT_Volume) [Optimize-Volume], CimE 
+   xception
+    + FullyQualifiedErrorId : StorageWMI 40001,Optimize-Volume
+  Telemetry: RAM=22.2% | CPU=0.0%
+  Metadata: {"cmd": "Optimize-Volume -DriveLetter C -ReTrim -Defrag -Verbose"}
+  Traceback:
+NoneType: None
+
+--------------------------------------------------------------------------------
+
+[2026-10-13T18:50:21] [CRASH_INTERCEPT] Module: OptimizerUI::_run_async_powershell | Type: RuntimeError
+  Message: Optimize-Volume : Access denied
+Activity ID: {a31bd537-5b59-000b-cdd6-1ba3595bdd01}
+At line:1 char:1
++ Optimize-Volume -DriveLetter C -ReTrim -Defrag -Verbose
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : PermissionDenied: (StorageWMI:ROOT/Microsoft/...age/MSFT_Volume) [Optimize-Volume], CimE 
+   xception
+    + FullyQualifiedErrorId : StorageWMI 40001,Optimize-Volume
+  Telemetry: RAM=24.2% | CPU=0.0%
+  Metadata: {"cmd": "Optimize-Volume -DriveLetter C -ReTrim -Defrag -Verbose"}
+  Traceback:
+NoneType: None
+
+--------------------------------------------------------------------------------
+
+[2026-10-13T18:51:46] [CRASH_INTERCEPT] Module: OptimizerUI::_run_async_powershell | Type: RuntimeError
+  Message: Optimize-Volume : Access denied
+Activity ID: {a31bd537-5b59-000b-cdd6-1ba3595bdd01}
+At line:1 char:1
++ Optimize-Volume -DriveLetter C -ReTrim -Defrag -Verbose
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : PermissionDenied: (StorageWMI:ROOT/Microsoft/...age/MSFT_Volume) [Optimize-Volume], CimE 
+   xception
+    + FullyQualifiedErrorId : StorageWMI 40001,Optimize-Volume
+  Telemetry: RAM=23.3% | CPU=0.0%
+  Metadata: {"cmd": "Optimize-Volume -DriveLetter C -ReTrim -Defrag -Verbose"}
+  Traceback:
+NoneType: None
+
+--------------------------------------------------------------------------------
+
+[2026-10-13T18:54:15] [CRASH_INTERCEPT] Module: OptimizerUI::_run_async_powershell | Type: RuntimeError
+  Message: Optimize-Volume : Access denied
+Activity ID: {a31bd537-5b59-000b-cdd6-1ba3595bdd01}
+At line:1 char:1
++ Optimize-Volume -DriveLetter C -ReTrim -Defrag -Verbose
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : PermissionDenied: (StorageWMI:ROOT/Microsoft/...age/MSFT_Volume) [Optimize-Volume], CimE 
+   xception
+    + FullyQualifiedErrorId : StorageWMI 40001,Optimize-Volume
+  Telemetry: RAM=22.0% | CPU=0.0%
+  Metadata: {"cmd": "Optimize-Volume -DriveLetter C -ReTrim -Defrag -Verbose"}
+  Traceback:
+NoneType: None
+
+--------------------------------------------------------------------------------
+
+[2026-10-13T18:54:23] [CRASH_INTERCEPT] Module: OptimizerUI::_run_async_powershell | Type: RuntimeError
+  Message: Optimize-Volume : Access denied
+Activity ID: {a31bd537-5b59-000b-cdd6-1ba3595bdd01}
+At line:1 char:1
++ Optimize-Volume -DriveLetter C -ReTrim -Defrag -Verbose
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : PermissionDenied: (StorageWMI:ROOT/Microsoft/...age/MSFT_Volume) [Optimize-Volume], CimE 
+   xception
+    + FullyQualifiedErrorId : StorageWMI 40001,Optimize-Volume
+  Telemetry: RAM=23.8% | CPU=0.0%
+  Metadata: {"cmd": "Optimize-Volume -DriveLetter C -ReTrim -Defrag -Verbose"}
+  Traceback:
+NoneType: None
+
+--------------------------------------------------------------------------------
+
+[2026-10-13T18:55:47] [CRASH_INTERCEPT] Module: OptimizerUI::_run_async_powershell | Type: RuntimeError
+  Message: Optimize-Volume : Access denied
+Activity ID: {a31bd537-5b59-000b-cdd6-1ba3595bdd01}
+At line:1 char:1
++ Optimize-Volume -DriveLetter C -ReTrim -Defrag -Verbose
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : PermissionDenied: (StorageWMI:ROOT/Microsoft/...age/MSFT_Volume) [Optimize-Volume], CimE 
+   xception
+    + FullyQualifiedErrorId : StorageWMI 40001,Optimize-Volume
+  Telemetry: RAM=23.3% | CPU=0.0%
+  Metadata: {"cmd": "Optimize-Volume -DriveLetter C -ReTrim -Defrag -Verbose"}
+  Traceback:
+NoneType: None
+
+--------------------------------------------------------------------------------
+
+[2026-10-13T18:56:57] [CRASH_INTERCEPT] Module: OptimizerUI::_run_async_powershell | Type: RuntimeError
+  Message: Optimize-Volume : Access denied
+Activity ID: {a31bd537-5b59-000b-cdd6-1ba3595bdd01}
+At line:1 char:1
++ Optimize-Volume -DriveLetter C -ReTrim -Defrag -Verbose
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : PermissionDenied: (StorageWMI:ROOT/Microsoft/...age/MSFT_Volume) [Optimize-Volume], CimE 
+   xception
+    + FullyQualifiedErrorId : StorageWMI 40001,Optimize-Volume
+  Telemetry: RAM=23.5% | CPU=0.0%
+  Metadata: {"cmd": "Optimize-Volume -DriveLetter C -ReTrim -Defrag -Verbose"}
+  Traceback:
+NoneType: None
+
+--------------------------------------------------------------------------------
+
+[2026-10-13T18:58:59] [CRASH_INTERCEPT] Module: OptimizerUI::_run_async_powershell | Type: RuntimeError
+  Message: Optimize-Volume : Access denied
+Activity ID: {a31bd537-5b59-000b-cdd6-1ba3595bdd01}
+At line:1 char:1
++ Optimize-Volume -DriveLetter C -ReTrim -Defrag -Verbose
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : PermissionDenied: (StorageWMI:ROOT/Microsoft/...age/MSFT_Volume) [Optimize-Volume], CimE 
+   xception
+    + FullyQualifiedErrorId : StorageWMI 40001,Optimize-Volume
+  Telemetry: RAM=22.6% | CPU=0.0%
+  Metadata: {"cmd": "Optimize-Volume -DriveLetter C -ReTrim -Defrag -Verbose"}
+  Traceback:
+NoneType: None
+
+--------------------------------------------------------------------------------
+
+[2026-10-13T18:59:06] [CRASH_INTERCEPT] Module: OptimizerUI::_run_async_powershell | Type: RuntimeError
+  Message: Optimize-Volume : Access denied
+Activity ID: {a31bd537-5b59-000b-cdd6-1ba3595bdd01}
+At line:1 char:1
++ Optimize-Volume -DriveLetter C -ReTrim -Defrag -Verbose
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : PermissionDenied: (StorageWMI:ROOT/Microsoft/...age/MSFT_Volume) [Optimize-Volume], CimE 
+   xception
+    + FullyQualifiedErrorId : StorageWMI 40001,Optimize-Volume
+  Telemetry: RAM=23.7% | CPU=0.0%
+  Metadata: {"cmd": "Optimize-Volume -DriveLetter C -ReTrim -Defrag -Verbose"}
+  Traceback:
+NoneType: None
+
+--------------------------------------------------------------------------------
+
+[2026-10-13T19:00:28] [CRASH_INTERCEPT] Module: OptimizerUI::_run_async_powershell | Type: RuntimeError
+  Message: Optimize-Volume : Access denied
+Activity ID: {a31bd537-5b59-000b-cdd6-1ba3595bdd01}
+At line:1 char:1
++ Optimize-Volume -DriveLetter C -ReTrim -Defrag -Verbose
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : PermissionDenied: (StorageWMI:ROOT/Microsoft/...age/MSFT_Volume) [Optimize-Volume], CimE 
+   xception
+    + FullyQualifiedErrorId : StorageWMI 40001,Optimize-Volume
+  Telemetry: RAM=22.8% | CPU=0.0%
+  Metadata: {"cmd": "Optimize-Volume -DriveLetter C -ReTrim -Defrag -Verbose"}
+  Traceback:
+NoneType: None
+
+--------------------------------------------------------------------------------
+[2026-10-13T19:01:22] [SECURITY_EVENT] Type: UNAUTHORIZED_ACTION | Action: flush_ram; rm -rf / | Details: {"args": {}}
+[2026-10-13T19:01:22] [SECURITY_EVENT] Type: UNAUTHORIZED_REMOTE_ACTION | Action: flush_ram; rm -rf / | Details: {"reason": "VALIDATION_REJECT: Unauthorized action trigger 'flush_ram; rm -rf /'. Not in argument whitelist."}
+
+[2026-10-13T19:03:42] [CRASH_INTERCEPT] Module: OptimizerUI::_run_async_powershell | Type: RuntimeError
+  Message: Optimize-Volume : Access denied
+Activity ID: {a31bd537-5b59-000b-cdd6-1ba3595bdd01}
+At line:1 char:1
++ Optimize-Volume -DriveLetter C -ReTrim -Defrag -Verbose
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : PermissionDenied: (StorageWMI:ROOT/Microsoft/...age/MSFT_Volume) [Optimize-Volume], CimE 
+   xception
+    + FullyQualifiedErrorId : StorageWMI 40001,Optimize-Volume
+  Telemetry: RAM=20.1% | CPU=0.0%
+  Metadata: {"cmd": "Optimize-Volume -DriveLetter C -ReTrim -Defrag -Verbose"}
+  Traceback:
+NoneType: None
+
+--------------------------------------------------------------------------------
+
+[2026-10-13T19:03:47] [CRASH_INTERCEPT] Module: OptimizerUI::_run_async_powershell | Type: RuntimeError
+  Message: Optimize-Volume : Access denied
+Activity ID: {a31bd537-5b59-000b-cdd6-1ba3595bdd01}
+At line:1 char:1
++ Optimize-Volume -DriveLetter C -ReTrim -Defrag -Verbose
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : PermissionDenied: (StorageWMI:ROOT/Microsoft/...age/MSFT_Volume) [Optimize-Volume], CimE 
+   xception
+    + FullyQualifiedErrorId : StorageWMI 40001,Optimize-Volume
+  Telemetry: RAM=20.1% | CPU=0.0%
+  Metadata: {"cmd": "Optimize-Volume -DriveLetter C -ReTrim -Defrag -Verbose"}
+  Traceback:
+NoneType: None
+
+--------------------------------------------------------------------------------
+
+[2026-10-13T19:05:11] [CRASH_INTERCEPT] Module: OptimizerUI::_run_async_powershell | Type: RuntimeError
+  Message: Optimize-Volume : Access denied
+Activity ID: {a31bd537-5b59-000b-cdd6-1ba3595bdd01}
+At line:1 char:1
++ Optimize-Volume -DriveLetter C -ReTrim -Defrag -Verbose
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : PermissionDenied: (StorageWMI:ROOT/Microsoft/...age/MSFT_Volume) [Optimize-Volume], CimE 
+   xception
+    + FullyQualifiedErrorId : StorageWMI 40001,Optimize-Volume
+  Telemetry: RAM=19.7% | CPU=0.0%
+  Metadata: {"cmd": "Optimize-Volume -DriveLetter C -ReTrim -Defrag -Verbose"}
+  Traceback:
+NoneType: None
+
+--------------------------------------------------------------------------------
+[2026-10-13T19:05:55] [SECURITY_EVENT] Type: UNAUTHORIZED_ACTION | Action: flush_ram; rm -rf / | Details: {"args": {}}
+[2026-10-13T19:05:55] [SECURITY_EVENT] Type: UNAUTHORIZED_REMOTE_ACTION | Action: flush_ram; rm -rf / | Details: {"reason": "VALIDATION_REJECT: Unauthorized action trigger 'flush_ram; rm -rf /'. Not in argument whitelist."}
+
+[2026-10-14T20:41:57] [CRASH_INTERCEPT] Module: OptimizerUI::_run_async_powershell | Type: RuntimeError
+  Message: Optimize-Volume : Access denied
+Activity ID: {a20106a8-5c20-0006-9508-01a2205cdd01}
+At line:1 char:1
++ Optimize-Volume -DriveLetter C -ReTrim -Defrag -Verbose
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : PermissionDenied: (StorageWMI:ROOT/Microsoft/...age/MSFT_Volume) [Optimize-Volume], CimE 
+   xception
+    + FullyQualifiedErrorId : StorageWMI 40001,Optimize-Volume
+  Telemetry: RAM=37.1% | CPU=0.0%
+  Metadata: {"cmd": "Optimize-Volume -DriveLetter C -ReTrim -Defrag -Verbose"}
+  Traceback:
+NoneType: None
+
+--------------------------------------------------------------------------------
+
+[2026-10-14T20:41:57] [CRASH_INTERCEPT] Module: OptimizerUI::_run_async_powershell | Type: RuntimeError
+  Message: Optimize-Volume : Access denied
+Activity ID: {a20106a8-5c20-0006-9508-01a2205cdd01}
+At line:1 char:1
++ Optimize-Volume -DriveLetter C -ReTrim -Defrag -Verbose
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : PermissionDenied: (StorageWMI:ROOT/Microsoft/...age/MSFT_Volume) [Optimize-Volume], CimE 
+   xception
+    + FullyQualifiedErrorId : StorageWMI 40001,Optimize-Volume
+  Telemetry: RAM=37.1% | CPU=80.0%
+  Metadata: {"cmd": "Optimize-Volume -DriveLetter C -ReTrim -Defrag -Verbose"}
+  Traceback:
+NoneType: None
+
+--------------------------------------------------------------------------------
+[2026-10-14T20:41:57] [SECURITY_EVENT] Type: UNAUTHORIZED_ACTION | Action: flush_ram; rm -rf / | Details: {"args": {}}
+[2026-10-14T20:41:57] [SECURITY_EVENT] Type: UNAUTHORIZED_REMOTE_ACTION | Action: flush_ram; rm -rf / | Details: {"reason": "VALIDATION_REJECT: Unauthorized action trigger 'flush_ram; rm -rf /'. Not in argument whitelist."}
+
+[2026-10-14T20:41:59] [CRASH_INTERCEPT] Module: OptimizerUI::_run_async_powershell | Type: RuntimeError
+  Message: Optimize-Volume : Access denied
+Activity ID: {a20106a8-5c20-0006-9508-01a2205cdd01}
+At line:1 char:1
++ Optimize-Volume -DriveLetter C -ReTrim -Defrag -Verbose
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : PermissionDenied: (StorageWMI:ROOT/Microsoft/...age/MSFT_Volume) [Optimize-Volume], CimE 
+   xception
+    + FullyQualifiedErrorId : StorageWMI 40001,Optimize-Volume
+  Telemetry: RAM=31.6% | CPU=0.0%
+  Metadata: {"cmd": "Optimize-Volume -DriveLetter C -ReTrim -Defrag -Verbose"}
+  Traceback:
+NoneType: None
+
+--------------------------------------------------------------------------------
+[2026-10-14T20:58:11] [SECURITY_EVENT] Type: UNAUTHORIZED_ACTION | Action: flush_ram; rm -rf / | Details: {"args": {}}
+[2026-10-14T20:58:11] [SECURITY_EVENT] Type: UNAUTHORIZED_REMOTE_ACTION | Action: flush_ram; rm -rf / | Details: {"reason": "VALIDATION_REJECT: Unauthorized action trigger 'flush_ram; rm -rf /'. Not in argument whitelist."}
+[2026-10-14T21:17:24] [SECURITY_EVENT] Type: UNAUTHORIZED_ACTION | Action: flush_ram; rm -rf / | Details: {"args": {}}
+[2026-10-14T21:17:24] [SECURITY_EVENT] Type: UNAUTHORIZED_REMOTE_ACTION | Action: flush_ram; rm -rf / | Details: {"reason": "VALIDATION_REJECT: Unauthorized action trigger 'flush_ram; rm -rf /'. Not in argument whitelist."}

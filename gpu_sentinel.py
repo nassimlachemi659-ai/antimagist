@@ -48,7 +48,7 @@ class AntimagistGPUSentinel:
         """Queries nvidia-smi for ultra-fast native hardware metrics."""
         cmd = [
             "nvidia-smi",
-            "--query-gpu=name,temperature.gpu,utilization.gpu,utilization.memory,memory.total,memory.used",
+            "--query-gpu=name,temperature.gpu,utilization.gpu,utilization.memory,memory.total,memory.used,clocks.current.graphics,clocks.current.memory,power.draw,fan.speed",
             "--format=csv,noheader,nounits"
         ]
         try:
@@ -60,11 +60,22 @@ class AntimagistGPUSentinel:
                 parts = [p.strip() for p in res.stdout.strip().split(",")]
                 if len(parts) >= 6:
                     name = parts[0]
-                    temp = int(parts[1]) if parts[1].isdigit() else 0
-                    util_gpu = int(parts[2]) if parts[2].isdigit() else 0
-                    util_vram = int(parts[3]) if parts[3].isdigit() else 0
-                    total_mb = int(parts[4]) if parts[4].isdigit() else 0
-                    used_mb = int(parts[5]) if parts[5].isdigit() else 0
+                    temp = int(float(parts[1])) if parts[1] and parts[1] != "[N/A]" else 0
+                    util_gpu = int(float(parts[2])) if parts[2] and parts[2] != "[N/A]" else 0
+                    util_vram = int(float(parts[3])) if parts[3] and parts[3] != "[N/A]" else 0
+                    total_mb = int(float(parts[4])) if parts[4] and parts[4] != "[N/A]" else 0
+                    used_mb = int(float(parts[5])) if parts[5] and parts[5] != "[N/A]" else 0
+
+                    core_clock = int(float(parts[6])) if len(parts) > 6 and parts[6] and parts[6] != "[N/A]" else 0
+                    mem_clock = int(float(parts[7])) if len(parts) > 7 and parts[7] and parts[7] != "[N/A]" else 0
+                    try:
+                        power_w = round(float(parts[8]), 1) if len(parts) > 8 and parts[8] and parts[8] != "[N/A]" else 0.0
+                    except Exception:
+                        power_w = 0.0
+                    try:
+                        fan_speed = int(float(parts[9])) if len(parts) > 9 and parts[9] and parts[9] != "[N/A]" else 0
+                    except Exception:
+                        fan_speed = 0
 
                     used_gb = round(used_mb / 1024.0, 1)
                     total_gb = round(total_mb / 1024.0, 1)
@@ -85,6 +96,10 @@ class AntimagistGPUSentinel:
                         "vram_total_mb": total_mb,
                         "vram_used_mb": used_mb,
                         "vram_str": vram_str,
+                        "core_clock_mhz": core_clock,
+                        "memory_clock_mhz": mem_clock,
+                        "power_draw_w": power_w,
+                        "fan_speed_pct": fan_speed,
                         "status_color": color,
                         "thermal_alert": temp >= 83,
                         "is_available": True

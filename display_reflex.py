@@ -97,6 +97,71 @@ class AntimagistDisplayReflex:
             "display_classification": "ESPORTS_HIGH_REFRESH" if hz >= 144 else "STANDARD_60HZ"
         }
 
+    def get_display_hz_audit(self) -> Dict[str, Any]:
+        """Queries EnumDisplaySettingsW to find current vs maximum supported refresh rate."""
+        dm = DEVMODEW()
+        dm.dmSize = ctypes.sizeof(DEVMODEW)
+        ENUM_CURRENT_SETTINGS = -1
+        res = ctypes.windll.user32.EnumDisplaySettingsW(None, ENUM_CURRENT_SETTINGS, ctypes.byref(dm))
+        if not res:
+            return {
+                "current_hz": 60,
+                "max_hz": 60,
+                "is_max": True,
+                "supported_hz": [60],
+                "resolution": "1920x1080",
+                "width": 1920,
+                "height": 1080
+            }
+
+        cur_w = dm.dmPelsWidth
+        cur_h = dm.dmPelsHeight
+        cur_hz = dm.dmDisplayFrequency
+
+        modes = set()
+        i = 0
+        while ctypes.windll.user32.EnumDisplaySettingsW(None, i, ctypes.byref(dm)):
+            if dm.dmPelsWidth == cur_w and dm.dmPelsHeight == cur_h:
+                modes.add(dm.dmDisplayFrequency)
+            i += 1
+
+        supported_list = sorted(list(modes)) if modes else [cur_hz]
+        max_hz = max(supported_list) if supported_list else cur_hz
+
+        return {
+            "current_hz": cur_hz,
+            "max_hz": max_hz,
+            "is_max": cur_hz >= max_hz,
+            "supported_hz": supported_list,
+            "resolution": f"{cur_w}x{cur_h}",
+            "width": cur_w,
+            "height": cur_h
+        }
+
+    def lock_max_refresh_rate(self) -> Tuple[bool, str]:
+        """Applies maximum supported refresh rate via ChangeDisplaySettingsW."""
+        audit = self.get_display_hz_audit()
+        max_hz = audit["max_hz"]
+        cur_hz = audit["current_hz"]
+
+        if cur_hz >= max_hz:
+            return True, f"Display is already operating at maximum refresh rate ({cur_hz}Hz)."
+
+        dm = DEVMODEW()
+        dm.dmSize = ctypes.sizeof(DEVMODEW)
+        ctypes.windll.user32.EnumDisplaySettingsW(None, -1, ctypes.byref(dm))
+        dm.dmDisplayFrequency = max_hz
+        dm.dmFields |= 0x00400000  # DM_DISPLAYFREQUENCY
+
+        CDS_UPDATEREGISTRY = 0x01
+        DISP_CHANGE_SUCCESSFUL = 0
+
+        res = ctypes.windll.user32.ChangeDisplaySettingsW(ctypes.byref(dm), CDS_UPDATEREGISTRY)
+        if res == DISP_CHANGE_SUCCESSFUL:
+            return True, f"Locked display refresh rate to maximum: {max_hz}Hz."
+        else:
+            return False, f"Failed to apply {max_hz}Hz (Error Code: {res})."
+
     def _query_hags_status(self) -> int:
         import winreg
         try:
