@@ -42,6 +42,7 @@ KNOWN_GAME_PROCESSES = {
     "r5apex.exe": "Apex Legends",
     "fortniteclient-win64-shipping.exe": "Fortnite",
     "gta5.exe": "Grand Theft Auto V",
+    "bf1.exe": "Battlefield 1",
 }
 
 
@@ -58,7 +59,10 @@ class AntimagistGameWatchdog:
         hud_overlay=None,
         discord_rpc=None,
         voice_engine=None,
-        sound_fx=None
+        sound_fx=None,
+        on_game_started_callback: Optional[Callable[[str, int], None]] = None,
+        on_game_closed_callback: Optional[Callable[[Dict[str, Any]], None]] = None,
+        app_instance=None
     ):
         self.optimizer = optimizer_core
         self.gamer_mode = gamer_mode
@@ -69,6 +73,9 @@ class AntimagistGameWatchdog:
         self.discord_rpc = discord_rpc
         self.voice = voice_engine
         self.sfx = sound_fx
+        self.on_game_started_cb = on_game_started_callback
+        self.on_game_closed_cb = on_game_closed_callback
+        self.app = app_instance
 
         self.history_file = os.path.abspath("antimagist_match_history.json")
         self.match_history: List[Dict[str, Any]] = self._load_history()
@@ -158,9 +165,28 @@ class AntimagistGameWatchdog:
         if self.voice:
             self.voice.speak(f"{game_name} detected. Autonomous Apex boost engaged.")
 
-        # 3. Hardware Boost & P-Core Pinning
+        # 3. Hardware Boost, High Priority & Power Plan Switching
         if self.optimizer:
             self.optimizer.run_memory_boost(lambda m: None)
+
+        # Elevate process priority to HIGH
+        try:
+            p_obj = psutil.Process(pid)
+            if hasattr(psutil, "HIGH_PRIORITY_CLASS"):
+                p_obj.nice(psutil.HIGH_PRIORITY_CLASS)
+        except Exception:
+            pass
+
+        # Switch Windows Power Plan to High Performance
+        try:
+            import subprocess
+            subprocess.run(
+                ["powercfg", "/setactive", "8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c"],
+                capture_output=True,
+                creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
+            )
+        except Exception:
+            pass
 
         if self.ping_optimizer:
             self.ping_optimizer.optimize_gaming_network()
@@ -178,6 +204,12 @@ class AntimagistGameWatchdog:
         # 5. Discord RPC
         if self.discord_rpc:
             self.discord_rpc.update_presence(game_name=game_name)
+
+        # 6. UI Banner & Terminal Callback
+        if self.on_game_started_cb:
+            self.on_game_started_cb(game_name, pid)
+        elif self.app and hasattr(self.app, '_on_game_started_ui'):
+            self.app.after(0, lambda: self.app._on_game_started_ui(game_name, pid))
 
     def _sample_session_telemetry(self):
         if not self.current_session:
@@ -220,6 +252,17 @@ class AntimagistGameWatchdog:
             self._save_history()
             self.current_session = None
 
+        # Restore Windows Power Plan to Balanced
+        try:
+            import subprocess
+            subprocess.run(
+                ["powercfg", "/setactive", "381b4222-f694-41f0-9685-ff5bb260df2e"],
+                capture_output=True,
+                creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
+            )
+        except Exception:
+            pass
+
         # Disengage Gamer Mode & Hide HUD
         if self.gamer_mode and self.gamer_mode.is_active:
             self.gamer_mode.deactivate_gamer_mode()
@@ -232,6 +275,12 @@ class AntimagistGameWatchdog:
 
         if self.voice:
             self.voice.speak(f"Game session finished. Duration {dur_str}. Peak GPU temperature was {sess['peak_gpu_temp']} degrees.")
+
+        # UI Banner & Terminal Callback
+        if self.on_game_closed_cb:
+            self.on_game_closed_cb(match_record)
+        elif self.app and hasattr(self.app, '_on_game_closed_ui'):
+            self.app.after(0, lambda: self.app._on_game_closed_ui(match_record))
 
 
 if __name__ == "__main__":

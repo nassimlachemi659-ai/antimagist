@@ -74,16 +74,22 @@ class AntimagistTrayManager:
             self.stop_tray()
             self.app.after(0, lambda: self.app.destroy())
 
+        def toggle_autopilot_action(icon, item):
+            if hasattr(self.app, 'toggle_auto_pilot_guardian'):
+                self.app.after(0, self.app.toggle_auto_pilot_guardian)
+            elif self.on_sentinel_toggle:
+                self.app.after(0, self.on_sentinel_toggle)
+
         menu = pystray.Menu(
-            pystray.MenuItem("🛡️ Open Antimagist Dashboard", restore_action, default=True),
+            pystray.MenuItem("🛡️ Open Dashboard", restore_action, default=True),
             pystray.Menu.SEPARATOR,
-            pystray.MenuItem("⚡ 1-Click Flush Standby RAM", turbo_action),
+            pystray.MenuItem("⚡ 1-Click Boost Now", turbo_action),
+            pystray.MenuItem("🤖 Toggle Auto-Pilot", toggle_autopilot_action),
             pystray.MenuItem("🎯 CS2 Tournament Mode", cs2_action),
             pystray.MenuItem("📉 Audit DPC Latency", dpc_action),
-            pystray.MenuItem("👁️ Toggle Sentinel Auto-Pilot", toggle_sentinel_action),
             pystray.MenuItem("🔒 Quarantine Vault", open_vault_action),
             pystray.Menu.SEPARATOR,
-            pystray.MenuItem("🚪 Exit Antimagist Completely", exit_action)
+            pystray.MenuItem("🚪 Exit Completely", exit_action)
         )
 
         self.icon = pystray.Icon("AntimagistEnterprise", img, "Antimagist Enterprise V11 Omni-Workstation", menu)

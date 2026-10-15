@@ -139,8 +139,9 @@ class StudioMasterEngine:
 
         for proc in psutil.process_iter(['pid', 'name', 'memory_info']):
             try:
-                name_lower = proc.info['name'].lower() if proc.info['name'] else ''
-                mem_mb = round(proc.info['memory_info'].rss / (1024 * 1024), 1) if proc.info['memory_info'] else 0.0
+                name_lower = proc.info.get('name', '').lower() if proc.info.get('name') else ''
+                mem_info = proc.info.get('memory_info')
+                mem_mb = round(mem_info.rss / (1024 * 1024), 1) if mem_info and hasattr(mem_info, 'rss') else 0.0
 
                 for daw_key, daw_title in DAW_PROCESS_NAMES.items():
                     if name_lower == daw_key:

@@ -55,39 +55,38 @@ class AntimagistPingOptimizer:
 
     def get_live_ping_telemetry(self) -> Dict[str, Any]:
         """
-        Samples fast pings to calculate real-time Ping, Jitter, and Packet Loss with 4.0s cache.
+        Measures real-time rolling Ping, Jitter, and Packet Loss over the last 10 pings with 3.0s cache.
         """
         now = time.time()
-        if self.cached_telemetry and (now - self.last_poll_time < 4.0):
+        if self.cached_telemetry and (now - self.last_poll_time < 3.0):
             return self.cached_telemetry
-        samples = []
-        lost = 0
-        trials = 3
 
-        for _ in range(trials):
-            ms = self.measure_quick_ping("1.1.1.1", port=53, timeout=0.8)
-            if ms is not None:
-                samples.append(ms)
-            else:
-                lost += 1
-            time.sleep(0.05)
+        with self._lock:
+            if not hasattr(self, '_rolling_pings'):
+                self._rolling_pings: List[Optional[float]] = []
 
-        if not samples:
-            # Fallback to secondary target
-            ms_fallback = self.measure_quick_ping("8.8.8.8", port=53, timeout=1.0)
-            if ms_fallback is not None:
-                samples.append(ms_fallback)
-            else:
-                lost += 1
+        # Sample quick ping (1-2 non-blocking probes)
+        for _ in range(2):
+            ms = self.measure_quick_ping("1.1.1.1", port=53, timeout=0.6)
+            if ms is None:
+                ms = self.measure_quick_ping("8.8.8.8", port=53, timeout=0.6)
+            with self._lock:
+                self._rolling_pings.append(ms)
+                if len(self._rolling_pings) > 10:
+                    self._rolling_pings = self._rolling_pings[-10:]
 
-        if samples:
-            avg_ping = round(sum(samples) / len(samples), 1)
-            # Calculate Jitter: mean deviation between consecutive samples
-            if len(samples) > 1:
-                jitter = round(sum(abs(samples[i] - samples[i-1]) for i in range(1, len(samples))) / (len(samples) - 1), 1)
+        with self._lock:
+            total_samples = len(self._rolling_pings)
+            lost_count = sum(1 for x in self._rolling_pings if x is None)
+            valid_samples = [x for x in self._rolling_pings if x is not None]
+
+        if valid_samples:
+            avg_ping = round(sum(valid_samples) / len(valid_samples), 1)
+            if len(valid_samples) > 1:
+                jitter = round(sum(abs(valid_samples[i] - valid_samples[i-1]) for i in range(1, len(valid_samples))) / (len(valid_samples) - 1), 1)
             else:
                 jitter = 0.8
-            loss_pct = round((lost / (trials + (1 if not samples else 0))) * 100.0, 1)
+            loss_pct = round((lost_count / max(1, total_samples)) * 100.0, 1)
         else:
             avg_ping = 999.0
             jitter = 0.0
@@ -102,19 +101,19 @@ class AntimagistPingOptimizer:
             if len(self.ping_history) > 20:
                 self.ping_history.pop(0)
 
-        # Rating tier
-        if avg_ping < 20:
-            rating = "EXCELLENT (Tournament Grade)"
-            status_color = "#00FF9D" # Emerald
-        elif avg_ping < 50:
-            rating = "GOOD (Competitive Ready)"
-            status_color = "#00F0FF" # Cyan
-        elif avg_ping < 100:
-            rating = "MODERATE (Standard Play)"
-            status_color = "#FBBF24" # Amber
+        # Dynamic Color-Coding per specification:
+        # Green (<20ms and <2ms jitter, 0% loss)
+        # Yellow/Orange (moderate jitter 2.0-15.0ms or 20-60ms ping)
+        # Red (packet loss > 0% or jitter > 15ms or ping >= 60ms)
+        if loss_pct > 0.0 or jitter > 15.0 or avg_ping >= 60.0:
+            status_color = "#EF4444"  # Red
+            rating = "PACKET LOSS / JITTER SPIKE" if loss_pct > 0 else "HIGH LATENCY / JITTER"
+        elif avg_ping >= 20.0 or jitter >= 2.0:
+            status_color = "#F59E0B"  # Yellow / Orange
+            rating = "MODERATE JITTER (Standard Play)"
         else:
-            rating = "HIGH LATENCY (Lag Detected)"
-            status_color = "#FF0055" # Crimson
+            status_color = "#00FF9D"  # Green
+            rating = "EXCELLENT (Tournament Grade)"
 
         res = {
             "ping_ms": avg_ping,
@@ -221,6 +220,45 @@ class AntimagistPingOptimizer:
             return False, "Permission Denied: Administrator rights required to modify registry."
         except Exception as ex:
             return False, f"Restore failed: {ex}"
+
+    def benchmark_dns_servers(self) -> List[Dict[str, Any]]:
+        """
+        Benchmarks major gaming DNS providers for minimum routing latency:
+        Cloudflare (1.1.1.1), Google (8.8.8.8), Quad9 (9.9.9.9), OpenDNS (208.67.222.222).
+        """
+        dns_targets = [
+            {"provider": "Cloudflare", "primary": "1.1.1.1", "secondary": "1.0.0.1"},
+            {"provider": "Google Public DNS", "primary": "8.8.8.8", "secondary": "8.8.4.4"},
+            {"provider": "Quad9 Security", "primary": "9.9.9.9", "secondary": "149.112.112.112"},
+            {"provider": "OpenDNS Home", "primary": "208.67.222.222", "secondary": "208.67.220.220"}
+        ]
+        results = []
+        for target in dns_targets:
+            latencies = []
+            for _ in range(3):
+                lat = self.measure_quick_ping(target["primary"], port=53, timeout=0.6)
+                if lat is not None:
+                    latencies.append(lat)
+            avg_lat = round(sum(latencies) / len(latencies), 1) if latencies else 999.0
+            results.append({
+                "provider": target["provider"],
+                "primary": target["primary"],
+                "secondary": target["secondary"],
+                "latency_ms": avg_lat,
+                "reachable": bool(latencies)
+            })
+        results.sort(key=lambda x: x["latency_ms"])
+        return results
+
+    def reset_winsock_and_ip(self) -> Tuple[bool, str]:
+        """Resets Winsock catalog and TCP/IP stack to resolve severe bufferbloat/routing faults."""
+        try:
+            subprocess.run(["netsh", "winsock", "reset"], capture_output=True, timeout=5, creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
+            subprocess.run(["netsh", "int", "ip", "reset"], capture_output=True, timeout=5, creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
+            subprocess.run(["ipconfig", "/flushdns"], capture_output=True, timeout=5, creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
+            return True, "Winsock catalog and TCP/IP stack cleanly reset. Windows socket routing restored."
+        except Exception as e:
+            return False, f"Winsock reset error: {e}"
 
 
 if __name__ == "__main__":

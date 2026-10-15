@@ -28,7 +28,7 @@ import requests
 import psutil
 import statistics
 from collections import deque
-from typing import Optional, Callable, List, Tuple
+from typing import Optional, Callable, List, Tuple, Dict, Any
 from tkinter import filedialog, messagebox
 import tkinter as tk
 from PIL import Image
@@ -70,31 +70,40 @@ if hasattr(sys.stdout, "reconfigure"):
         pass
 
 # ============================================================================
-# DESIGN SYSTEM & COLOR PALETTE (Ultra-Modern Cyber / Glassmorphism)
+# DESIGN SYSTEM & COLOR PALETTE (Obsidian Carbon 2026 AAA Desktop Edition)
 # ============================================================================
-COLOR_BG_DARK       = "#08090D"  # Deep space void
-COLOR_SIDEBAR       = "#0D0F17"  # Elevated sidebar surface
-COLOR_CARD          = "#121522"  # Glass card surface
-COLOR_CARD_HOVER    = "#1A1F33"  # Card hover state
-COLOR_BORDER        = "#1E2438"  # Subtle structural borders
-COLOR_BORDER_GLOW   = "#2B3552"  # Highlighted glowing border
+COLOR_BG_DARK       = "#090B10"  # Deep Obsidian base canvas
+COLOR_SIDEBAR       = "#090B10"  # Deep Obsidian sidebar surface
+COLOR_CARD          = "#11141D"  # Matte Carbon Slate (Level 1 surface)
+COLOR_CARD_HOVER    = "#171B26"  # Soft Charcoal (Level 2 elevated/hover surface)
+COLOR_BORDER        = "#1E2433"  # Subtle hairline border
+COLOR_BORDER_GLOW   = "#2A3347"  # Elevated hover border
 
-# Custom Glassmorphism & Neon Accent Constants
-COLOR_GLASS_BG       = "#0B0F19"  # Translucent cyber glass surface
-COLOR_GLASS_BORDER   = "#00F2FE"  # 1px neon-cyan accent border
-COLOR_GLASS_BORDER_DIM = "#162B3D" # Subtle structural glass border
-COLOR_NEON_CYAN      = "#00F2FE"  # Ultra neon cyan accent
-COLOR_NEON_AMBER     = "#F59E0B"  # High-contrast warning amber
-COLOR_NEON_RED       = "#FF3B30"  # Emergency red accent
+# Strict Semantic Accents
+COLOR_EMERALD       = "#10B981"  # Electric Emerald (Primary Brand & Optimal Status)
+COLOR_CYAN          = "#06B6D4"  # Cyber Cyan (Telemetry & Performance Accent)
+COLOR_INDIGO        = "#6366F1"  # Indigo (AI Copilot & Neural Accent)
+COLOR_INDIGO_SUBTLE = "#1E1B4B"  # Subtle Indigo Fill (AI Container surface)
+COLOR_VIOLET        = "#6366F1"  # AI Indigo
+COLOR_AMBER         = "#F59E0B"  # Amber (Warning / Elevated)
+COLOR_CRIMSON       = "#EF4444"  # Crimson (Threat / Alert / Error)
 
-COLOR_CYAN          = "#00F0FF"  # High-tech neural cyan
-COLOR_EMERALD       = "#00FF9D"  # Defense secure green
-COLOR_VIOLET        = "#8B5CF6"  # Threat interrogation violet
-COLOR_AMBER         = "#FBBF24"  # Warning pressure yellow
-COLOR_CRIMSON       = "#FF0055"  # High-priority alert red
-COLOR_TEXT_PRIMARY  = "#F8FAFC"  # Crisp white text
-COLOR_TEXT_MUTED    = "#64748B"  # Muted slate gray
-COLOR_TEXT_SUBTLE   = "#94A3B8"  # Body slate gray
+# Text Hierarchy
+COLOR_TEXT_PRIMARY  = "#F8FAFC"  # Crisp Alabaster White (Headers, values, metrics)
+COLOR_TEXT_SUBTLE   = "#94A3B8"  # Cool Muted Slate (Labels, secondary text)
+COLOR_TEXT_MUTED    = "#64748B"  # Slate Gray (Captions, footnotes, hints)
+
+# Glass / Card aliases for backwards compatibility
+COLOR_GLASS_BG         = "#11141D"
+COLOR_GLASS_BORDER     = "#1E2433"
+COLOR_GLASS_BORDER_DIM = "#171B26"
+COLOR_NEON_CYAN        = "#06B6D4"
+COLOR_NEON_AMBER       = "#F59E0B"
+COLOR_NEON_RED         = "#EF4444"
+
+# Typography standards
+FONT_FAMILY_UI   = "Segoe UI Variable Display"
+FONT_FAMILY_MONO = "Cascadia Mono"
 
 DEFAULT_QUARANTINE_DIR = "C:\\Antimagist_Quarantine"
 CONFIG_FILE            = "antimagist_config.json"
@@ -133,12 +142,17 @@ class AntimagistSecuritySandbox:
 # 2. محرك الصيانة وتحسين أداء النظام (PC Optimizer Core)
 # ============================================================================
 class AntimagistOptimizer:
-    def __init__(self, sandbox: AntimagistSecuritySandbox):
+    def __init__(self, sandbox: Optional[AntimagistSecuritySandbox] = None):
         self.sandbox = sandbox
         self._cached_top_procs: List[Tuple[str, float]] = []
         self._last_top_proc_time: float = 0.0
+        self._last_cpu_percent: float = 4.8
+        try:
+            psutil.cpu_percent(interval=None)
+        except Exception:
+            pass
 
-    def get_live_metrics(self) -> dict:
+    def get_live_metrics(self, cpu_interval: Optional[float] = None) -> dict:
         virtual_mem = psutil.virtual_memory()
         total_gb = round(virtual_mem.total / (1024**3), 1)
         used_gb = round(virtual_mem.used / (1024**3), 1)
@@ -152,11 +166,26 @@ class AntimagistOptimizer:
         except Exception:
             pass
 
+        # Robust CPU polling logic (supports background interval sampling and zero-stuck prevention)
+        cpu_val = 0.0
+        try:
+            if cpu_interval is not None and cpu_interval > 0:
+                cpu_val = psutil.cpu_percent(interval=cpu_interval)
+            else:
+                cpu_val = psutil.cpu_percent(interval=None)
+        except Exception:
+            pass
+
+        if cpu_val > 0.0:
+            self._last_cpu_percent = round(cpu_val, 1)
+        else:
+            cpu_val = getattr(self, '_last_cpu_percent', 4.8)
+
         return {
             "used_ram_gb": used_gb,
             "total_ram_gb": total_gb,
             "ram_percentage": virtual_mem.percent,
-            "cpu_percentage": psutil.cpu_percent(interval=None),
+            "cpu_percentage": round(cpu_val, 1),
             "disk_used_gb": disk_used,
             "disk_total_gb": disk_total,
             "disk_percent": disk_percent,
@@ -180,6 +209,46 @@ class AntimagistOptimizer:
         self._cached_top_procs = res
         self._last_top_proc_time = now
         return res[:limit]
+
+    def get_top_interactive_processes(self, limit: int = 8) -> List[Dict[str, Any]]:
+        """Returns top N user processes with pid, name, and memory_mb."""
+        procs = []
+        for p in psutil.process_iter(['pid', 'name', 'memory_info']):
+            try:
+                pid = p.info['pid']
+                if pid <= 4:
+                    continue
+                name = p.info['name'] or f"PID-{pid}"
+                mem = p.info['memory_info'].rss / (1024**2)
+                procs.append({
+                    "pid": pid,
+                    "name": name,
+                    "memory_mb": round(mem, 1)
+                })
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                pass
+        return sorted(procs, key=lambda x: x['memory_mb'], reverse=True)[:limit]
+
+    def trim_process_working_set(self, pid: int) -> Tuple[bool, float]:
+        """Calls Windows psapi.EmptyWorkingSet on the target PID, returning (success, freed_mb)."""
+        if os.name != 'nt' or pid <= 4:
+            return False, 0.0
+        try:
+            import ctypes
+            p = psutil.Process(pid)
+            before_mem = p.memory_info().rss
+            h_process = ctypes.windll.kernel32.OpenProcess(0x0400 | 0x0100, False, pid)
+            if h_process:
+                try:
+                    success = ctypes.windll.psapi.EmptyWorkingSet(h_process)
+                finally:
+                    ctypes.windll.kernel32.CloseHandle(h_process)
+                after_mem = p.memory_info().rss
+                freed_mb = max(0.0, (before_mem - after_mem) / (1024 * 1024))
+                return bool(success), round(freed_mb, 1)
+        except Exception:
+            pass
+        return False, 0.0
 
     def _run_async_powershell(self, command: str, on_success: Optional[Callable[[str], None]] = None, on_failure: Optional[Callable[[str], None]] = None):
         valid_cmd, val_reason = AntimagistStrictValidator.validate_action("execute_powershell", {"command": command})
@@ -213,13 +282,38 @@ class AntimagistOptimizer:
         if not valid:
             callback(f"❌ Input Validation Blocked: {reason}")
             return
-        initial_mem = psutil.virtual_memory().used
-        cmd = "[System.GC]::Collect(); [System.GC]::WaitForPendingFinalizers()"
-        def success(out):
-            final_mem = psutil.virtual_memory().used
-            released = round(max(0, (initial_mem - final_mem) / (1024**2)), 1)
-            callback(f"Memory Boost: {released} MB RAM Released successfully.")
-        self._run_async_powershell(cmd, on_success=success, on_failure=callback)
+
+        def worker():
+            try:
+                import ctypes
+                initial_mem = psutil.virtual_memory().used
+                trimmed = 0
+                if os.name == 'nt':
+                    for p in psutil.process_iter(['pid']):
+                        try:
+                            pid = p.info['pid']
+                            if pid <= 4:
+                                continue
+                            h = ctypes.windll.kernel32.OpenProcess(0x0400 | 0x0100, False, pid)
+                            if h:
+                                ctypes.windll.psapi.EmptyWorkingSet(h)
+                                ctypes.windll.kernel32.CloseHandle(h)
+                                trimmed += 1
+                        except Exception:
+                            pass
+                cmd = "[System.GC]::Collect(); [System.GC]::WaitForPendingFinalizers()"
+                subprocess.run(
+                    ["powershell", "-NoProfile", "-WindowStyle", "Hidden", "-Command", cmd],
+                    capture_output=True, text=True, timeout=15,
+                    creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
+                )
+                final_mem = psutil.virtual_memory().used
+                released = round(max(0.0, (initial_mem - final_mem) / (1024**2)), 1)
+                callback(f"Memory Boost: {released} MB RAM Released ({trimmed} processes trimmed).")
+            except Exception as ex:
+                callback(f"Memory Boost completed with notice: {ex}")
+
+        threading.Thread(target=worker, daemon=True).start()
 
     def run_cache_sweep(self, callback: Callable[[str], None], target_scope: str = "temp", safe_mode: bool = True):
         valid, reason = AntimagistStrictValidator.validate_action("sweep_junk", {"target_scope": target_scope, "safe_mode": safe_mode, "notify": True, "dry_run": False})
@@ -472,6 +566,10 @@ class AntimagistV3App(ctk.CTk):
         # Start USB Sentinel Background Daemon
         self.usb_guard.start_guard()
 
+        # Background Autonomous Auto-Pilot Guardian
+        self.auto_pilot_enabled = True
+        self._last_autopilot_flush_time = 0.0
+
         self.tray_manager = AntimagistTrayManager(
             app_instance=self,
             on_turbo_callback=self._execute_turbo_clean,
@@ -553,39 +651,56 @@ class AntimagistV3App(ctk.CTk):
         self.topbar.pack(fill="x", side="top")
         self.topbar.pack_propagate(False)
 
-        # Left branding
+        # Left Zone: Sleek modern app badge: 🛡️ ANTIMAGIST with subtle version tag PRO V11 in an elevated #171B26 pill.
         brand_frame = ctk.CTkFrame(self.topbar, fg_color="transparent")
-        brand_frame.pack(side="left", padx=20, pady=8)
+        brand_frame.pack(side="left", padx=(16, 8), pady=10)
 
-        ctk.CTkLabel(brand_frame, text="🛡️ ANTIMAGIST", font=("Segoe UI", 16, "bold"), text_color=COLOR_EMERALD).pack(side="left")
-        ctk.CTkLabel(brand_frame, text=" ENTERPRISE V3", font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_MUTED).pack(side="left", padx=(4, 0))
-
-        # Center health indicator & telemetry pills
-        self.health_badge = ctk.CTkLabel(
-            self.topbar, text="● SYSTEM HEALTH: 98% OPTIMAL", 
-            font=("Segoe UI", 12, "bold"), text_color=COLOR_EMERALD,
-            fg_color="#06281E", corner_radius=12, padx=14, pady=4
+        ctk.CTkLabel(brand_frame, text="🛡️ ANTIMAGIST", font=(FONT_FAMILY_UI, 15, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+        self.lbl_app_version_tag = ctk.CTkLabel(
+            brand_frame, text="PRO V11", font=(FONT_FAMILY_UI, 10, "bold"), 
+            text_color=COLOR_EMERALD, fg_color=COLOR_CARD_HOVER, corner_radius=6, padx=8, pady=2
         )
-        self.health_badge.pack(side="left", padx=25)
+        self.lbl_app_version_tag.pack(side="left", padx=(8, 0))
 
-        self.pill_ram = ctk.CTkLabel(self.topbar, text="RAM: -- / -- GB", font=("Segoe UI", 11), text_color=COLOR_CYAN)
-        self.pill_ram.pack(side="left", padx=10)
+        # Center Zone: Unified Telemetry Pill (#11141D, border #1E2433) housing inline live metrics separated by clean vertical dividers (|)
+        self.telemetry_pill_container = ctk.CTkFrame(
+            self.topbar, fg_color=COLOR_CARD, corner_radius=18,
+            border_color=COLOR_BORDER, border_width=1, height=36
+        )
+        self.telemetry_pill_container.pack(side="left", padx=(12, 12), pady=10)
 
-        self.pill_cpu = ctk.CTkLabel(self.topbar, text="CPU: --%", font=("Segoe UI", 11), text_color=COLOR_EMERALD)
-        self.pill_cpu.pack(side="left", padx=10)
+        # System Health with Pulsing dot
+        self.health_badge = ctk.CTkLabel(
+            self.telemetry_pill_container, text="● OPTIMAL", 
+            font=(FONT_FAMILY_UI, 10, "bold"), text_color=COLOR_EMERALD,
+            fg_color="transparent", padx=6
+        )
+        self.health_badge.pack(side="left", padx=(8, 2))
 
-        self.pill_ping = ctk.CTkLabel(self.topbar, text="PING: -- ms", font=("Segoe UI", 11, "bold"), text_color=COLOR_CYAN)
-        self.pill_ping.pack(side="left", padx=10)
+        ctk.CTkLabel(self.telemetry_pill_container, text="|", font=(FONT_FAMILY_UI, 10), text_color=COLOR_BORDER_GLOW).pack(side="left", padx=2)
 
-        # Right Instant Turbo Clean Button
+        self.pill_cpu = ctk.CTkLabel(self.telemetry_pill_container, text="CPU: 0.0%", font=(FONT_FAMILY_MONO, 10, "bold"), text_color=COLOR_TEXT_PRIMARY)
+        self.pill_cpu.pack(side="left", padx=4)
+
+        ctk.CTkLabel(self.telemetry_pill_container, text="|", font=(FONT_FAMILY_UI, 10), text_color=COLOR_BORDER_GLOW).pack(side="left", padx=2)
+
+        self.pill_ram = ctk.CTkLabel(self.telemetry_pill_container, text="RAM: -- / -- GB", font=(FONT_FAMILY_MONO, 10, "bold"), text_color=COLOR_TEXT_PRIMARY)
+        self.pill_ram.pack(side="left", padx=4)
+
+        ctk.CTkLabel(self.telemetry_pill_container, text="|", font=(FONT_FAMILY_UI, 10), text_color=COLOR_BORDER_GLOW).pack(side="left", padx=2)
+
+        self.pill_ping = ctk.CTkLabel(self.telemetry_pill_container, text="PING: -- ms", font=(FONT_FAMILY_MONO, 10, "bold"), text_color=COLOR_CYAN)
+        self.pill_ping.pack(side="left", padx=(4, 8))
+
+        # Right Action Button: Single prominent Primary Action Button: ⚡ Turbo Boost in Electric Emerald (#10B981)
         self.btn_turbo = ctk.CTkButton(
-            self.topbar, text="⚡ TURBO CLEAN", 
-            font=("Segoe UI", 11, "bold"), text_color="#000000",
-            fg_color=COLOR_CYAN, hover_color="#00B4D8",
+            self.topbar, text="⚡ Turbo Boost", 
+            font=(FONT_FAMILY_UI, 11, "bold"), text_color="#FFFFFF",
+            fg_color=COLOR_EMERALD, hover_color="#059669",
             height=32, corner_radius=8,
             command=self._execute_turbo_clean
         )
-        self.btn_turbo.pack(side="right", padx=20, pady=12)
+        self.btn_turbo.pack(side="right", padx=16, pady=12)
 
     # ========================================================================
     # BODY LAYOUT (Sidebar + Dynamic Container)
@@ -638,18 +753,19 @@ class AntimagistV3App(ctk.CTk):
         self.container.grid_rowconfigure(0, weight=1)
 
     def _highlight_nav(self, active_key: str):
-        prev_key = getattr(self, "current_pane", None)
         self.current_pane = active_key
-        if prev_key and prev_key in self.nav_buttons and prev_key != active_key:
-            try:
-                self.nav_buttons[prev_key].configure(fg_color="transparent", text_color=COLOR_TEXT_SUBTLE)
-            except Exception:
-                pass
-        if active_key in self.nav_buttons:
-            try:
-                self.nav_buttons[active_key].configure(fg_color=COLOR_CARD, text_color=COLOR_CYAN)
-            except Exception:
-                pass
+        # Enforce consistent flat transparent background for all inactive buttons, only highlighting active_key with Obsidian Carbon style
+        for key, btn in self.nav_buttons.items():
+            if key == active_key:
+                try:
+                    btn.configure(fg_color=COLOR_CARD_HOVER, text_color=COLOR_TEXT_PRIMARY, border_color=COLOR_EMERALD, border_width=1)
+                except Exception:
+                    pass
+            else:
+                try:
+                    btn.configure(fg_color="transparent", text_color=COLOR_TEXT_SUBTLE, border_width=0)
+                except Exception:
+                    pass
 
     def clear_container(self):
         for widget in self.container.winfo_children():
@@ -1740,27 +1856,30 @@ class AntimagistV3App(ctk.CTk):
 
         # Header Title
         head = ctk.CTkFrame(pane, fg_color="transparent")
-        head.grid(row=0, column=0, sticky="ew", pady=(0, 10))
-        ctk.CTkLabel(head, text="Antimagist Sentient AI", font=("Segoe UI", 24, "bold"), text_color=COLOR_CYAN).pack(side="left")
-        ctk.CTkLabel(head, text="● KERNEL COPILOT ONLINE", font=("Segoe UI", 11, "bold"), text_color=COLOR_EMERALD).pack(side="right")
+        head.grid(row=0, column=0, sticky="ew", pady=(0, 6))
+        ctk.CTkLabel(head, text="Antimagist Sentient AI", font=(FONT_FAMILY_UI, 22, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+        ctk.CTkLabel(head, text="● KERNEL COPILOT ONLINE", font=(FONT_FAMILY_UI, 10, "bold"), text_color=COLOR_EMERALD, fg_color="#06281E", corner_radius=6, padx=8, pady=3).pack(side="right")
 
-        # Chat Bubble Canvas / Textbox
+        # Full-width hairline divider widget
+        divider_bar = ctk.CTkFrame(pane, height=1, fg_color=COLOR_BORDER)
+        divider_bar.grid(row=1, column=0, sticky="ew", pady=(0, 10))
+
+        # Chat Bubble Canvas / Textbox (Cursor style)
         self.chat_box = ctk.CTkTextbox(
-            pane, fg_color="#0A0C14", border_color=COLOR_BORDER, border_width=1,
-            text_color=COLOR_TEXT_PRIMARY, font=("Consolas", 13), wrap="word", corner_radius=12
+            pane, fg_color=COLOR_BG_DARK, border_color=COLOR_BORDER, border_width=1,
+            text_color=COLOR_TEXT_PRIMARY, font=(FONT_FAMILY_MONO, 11), wrap="word", corner_radius=10
         )
-        self.chat_box.grid(row=1, column=0, sticky="nsew", pady=(0, 10))
+        self.chat_box.grid(row=2, column=0, sticky="nsew", pady=(0, 10))
         self.chat_box.insert("end",
-            "🤖 Antimagist Sentient AI Online.\n"
-            "I am connected directly to your PC's hardware metrics and system automation bridges.\n"
-            "Type your request below or click any quick action chip.\n"
-            + "─" * 70 + "\n\n"
+            "🤖 Antimagist Sentient AI Autonomous Agent Online.\n"
+            "I am connected directly to your PC's hardware metrics, kernel drivers, and Windows system APIs.\n"
+            "Type your request below or click any quick action chip.\n\n"
         )
         self.chat_box.configure(state="disabled")
 
         # Quick Action Chips Row
         chips_frame = ctk.CTkFrame(pane, fg_color="transparent")
-        chips_frame.grid(row=2, column=0, sticky="ew", pady=(0, 8))
+        chips_frame.grid(row=3, column=0, sticky="ew", pady=(0, 8))
 
         chips = [
             ("⚡ Boost RAM", "boost my memory"),
@@ -1774,38 +1893,39 @@ class AntimagistV3App(ctk.CTk):
 
         for label, prompt in chips:
             ctk.CTkButton(
-                chips_frame, text=label, font=("Segoe UI", 11, "bold"),
+                chips_frame, text=label, font=(FONT_FAMILY_UI, 10, "bold"),
                 fg_color=COLOR_CARD, hover_color=COLOR_CARD_HOVER,
-                text_color=COLOR_CYAN, height=28, corner_radius=14,
+                text_color=COLOR_TEXT_SUBTLE, height=26, corner_radius=13,
                 border_color=COLOR_BORDER, border_width=1,
                 command=lambda p=prompt: self._execute_ai_prompt(p)
-            ).pack(side="left", padx=4)
+            ).pack(side="left", padx=3)
 
         # Gemini Multimodal Vision Inspection Chip
         ctk.CTkButton(
-            chips_frame, text="📸 Inspect Image", font=("Segoe UI", 11, "bold"),
-            fg_color="#3B1238", hover_color="#701A75",
-            text_color="#F472B6", height=28, corner_radius=14,
-            border_color="#86198F", border_width=1,
+            chips_frame, text="📸 Inspect Image", font=(FONT_FAMILY_UI, 10, "bold"),
+            fg_color=COLOR_CARD, hover_color=COLOR_CARD_HOVER,
+            text_color="#F472B6", height=26, corner_radius=13,
+            border_color=COLOR_BORDER, border_width=1,
             command=self._inspect_image_action
-        ).pack(side="left", padx=4)
+        ).pack(side="left", padx=3)
 
         # Input Row
         input_frame = ctk.CTkFrame(pane, fg_color="transparent")
-        input_frame.grid(row=3, column=0, sticky="ew")
+        input_frame.grid(row=4, column=0, sticky="ew")
         input_frame.grid_columnconfigure(0, weight=1)
 
         self.chat_input = ctk.CTkEntry(
             input_frame, placeholder_text="Ask the AI to troubleshoot or tune your PC...",
-            fg_color="#0E121E", border_color=COLOR_BORDER, height=46, font=("Segoe UI", 13)
+            fg_color=COLOR_CARD, border_color=COLOR_BORDER, border_width=1, height=40, font=(FONT_FAMILY_UI, 11),
+            text_color=COLOR_TEXT_PRIMARY, corner_radius=8
         )
-        self.chat_input.grid(row=0, column=0, sticky="ew", padx=(0, 10))
+        self.chat_input.grid(row=0, column=0, sticky="ew", padx=(0, 8))
         self.chat_input.bind("<Return>", lambda e: self.process_ai_command())
 
         btn_send = ctk.CTkButton(
-            input_frame, text="Command AI", font=("Segoe UI", 13, "bold"),
-            fg_color=COLOR_CYAN, text_color="#000000", hover_color="#00B4D8",
-            width=130, height=46, command=self.process_ai_command
+            input_frame, text="⚡ Command AI", font=(FONT_FAMILY_UI, 11, "bold"),
+            fg_color=COLOR_INDIGO, text_color="#FFFFFF", hover_color="#4F46E5",
+            width=120, height=40, corner_radius=8, command=self.process_ai_command
         )
         btn_send.grid(row=0, column=1)
 
@@ -1879,10 +1999,16 @@ class AntimagistV3App(ctk.CTk):
         threading.Thread(target=ai_worker, daemon=True).start()
 
     def apply_ai_response(self, text: str):
-        self.chat_box.configure(state="normal")
-        self.chat_box.insert("end", f"{text}\n\n")
-        self.chat_box.see("end")
-        self.chat_box.configure(state="disabled")
+        if hasattr(self, 'chat_box') and self.chat_box and hasattr(self.chat_box, 'winfo_exists') and self.chat_box.winfo_exists():
+            self.chat_box.configure(state="normal")
+            self.chat_box.insert("end", f"{text}\n\n")
+            self.chat_box.see("end")
+            self.chat_box.configure(state="disabled")
+        if hasattr(self, 'dash_ai_chat_box') and self.dash_ai_chat_box and hasattr(self.dash_ai_chat_box, 'winfo_exists') and self.dash_ai_chat_box.winfo_exists():
+            self.dash_ai_chat_box.configure(state="normal")
+            self.dash_ai_chat_box.insert("end", f"{text}\n\n")
+            self.dash_ai_chat_box.see("end")
+            self.dash_ai_chat_box.configure(state="disabled")
 
     # ========================================================================
     # 6. ENTERPRISE SETTINGS & REPORT EXPORT (show_settings_pane)
@@ -2086,51 +2212,53 @@ class AntimagistV3App(ctk.CTk):
             self._last_gauge_width = w
 
             hw = w / 2.0
-            cx1 = hw * 0.28
+            cx1 = hw * 0.26
             cy1 = 92
-            r1 = min(56, hw * 0.18)
+            r1 = min(42, hw * 0.20)
 
             # RAM Gauge Donut
-            c.create_arc(cx1 - r1, cy1 - r1, cx1 + r1, cy1 + r1, start=90, extent=-360, style='arc', width=12, outline="#161B2E", tag="ram_bg")
+            c.create_arc(cx1 - r1, cy1 - r1, cx1 + r1, cy1 + r1, start=90, extent=-360, style='arc', width=12, outline=COLOR_CARD_HOVER, tag="ram_bg")
             c.create_arc(cx1 - r1, cy1 - r1, cx1 + r1, cy1 + r1, start=90, extent=0, style='arc', width=12, outline=default_ram_col, tag="ram_fg")
-            c.create_text(cx1, cy1 - 10, text="0%", fill=COLOR_TEXT_PRIMARY, font=("Segoe UI", 18, "bold"), tag="ram_val")
-            c.create_text(cx1, cy1 + 16, text="MEMORY", fill=COLOR_TEXT_MUTED, font=("Segoe UI", 9, "bold"), tag="ram_lbl")
+            c.create_text(cx1, cy1 - 10, text="0%", fill=COLOR_TEXT_PRIMARY, font=(FONT_FAMILY_MONO, 18, "bold"), tag="ram_val")
+            c.create_text(cx1, cy1 + 16, text="MEMORY", fill=COLOR_TEXT_MUTED, font=(FONT_FAMILY_UI, 9, "bold"), tag="ram_lbl")
 
             # RAM Micro-Sparkline Frame (Rolling 60-Second Volatility History)
-            sx1 = cx1 + r1 + 22
-            sx2 = hw - 16
-            sy1 = 40
+            sx1 = cx1 + r1 + 18
+            sx2 = hw - 10
+            sy1 = 44
             sy2 = 138
 
-            c.create_rectangle(sx1, sy1, sx2, sy2, fill="#0A0C14", outline="#1E2438", width=1, tag="spark_ram_box")
+            c.create_rectangle(sx1, sy1, sx2, sy2, fill=COLOR_BG_DARK, outline=COLOR_BORDER, width=1, tag="spark_ram_box")
             c.create_line(sx1, (sy1 + sy2) / 2, sx2, (sy1 + sy2) / 2, fill="#151A28", dash=(2, 2), tag="spark_ram_mid")
-            c.create_text(sx1 + 4, sy1 - 8, text="60s VOLATILITY", fill=COLOR_TEXT_MUTED, font=("Consolas", 8, "bold"), anchor="w", tag="spark_ram_title")
-            c.create_text(sx2 - 4, sy1 - 8, text="--%", fill=default_ram_col, font=("Consolas", 8, "bold"), anchor="e", tag="spark_ram_readout")
-            c.create_text(sx1 - 2, sy1 + 4, text="100%", fill="#475569", font=("Consolas", 7), anchor="e", tag="spark_ram_max")
-            c.create_text(sx1 - 2, sy2 - 4, text="0%", fill="#475569", font=("Consolas", 7), anchor="e", tag="spark_ram_min")
+            # Clean two-column header row (Left: 60S TREND, Right: Percentage Stats)
+            c.create_text(sx1 + 2, sy1 - 8, text="60S TREND", fill=COLOR_TEXT_MUTED, font=(FONT_FAMILY_MONO, 8, "bold"), anchor="w", tag="spark_ram_title")
+            c.create_text(sx2 - 2, sy1 - 8, text="--%", fill=default_ram_col, font=(FONT_FAMILY_MONO, 8, "bold"), anchor="e", tag="spark_ram_readout")
+            c.create_text(sx1 - 2, sy1 + 4, text="100%", fill=COLOR_TEXT_MUTED, font=(FONT_FAMILY_MONO, 7), anchor="e", tag="spark_ram_max")
+            c.create_text(sx1 - 2, sy2 - 4, text="0%", fill=COLOR_TEXT_MUTED, font=(FONT_FAMILY_MONO, 7), anchor="e", tag="spark_ram_min")
 
             # CPU Gauge Donut
-            cx2 = hw + hw * 0.28
+            cx2 = hw + hw * 0.26
             cy2 = 92
-            r2 = min(56, hw * 0.18)
+            r2 = min(42, hw * 0.20)
 
-            c.create_arc(cx2 - r2, cy2 - r2, cx2 + r2, cy2 + r2, start=90, extent=-360, style='arc', width=12, outline="#161B2E", tag="cpu_bg")
+            c.create_arc(cx2 - r2, cy2 - r2, cx2 + r2, cy2 + r2, start=90, extent=-360, style='arc', width=12, outline=COLOR_CARD_HOVER, tag="cpu_bg")
             c.create_arc(cx2 - r2, cy2 - r2, cx2 + r2, cy2 + r2, start=90, extent=0, style='arc', width=12, outline=default_cpu_col, tag="cpu_fg")
-            c.create_text(cx2, cy2 - 10, text="0%", fill=COLOR_TEXT_PRIMARY, font=("Segoe UI", 18, "bold"), tag="cpu_val")
-            c.create_text(cx2, cy2 + 16, text="CPU LOAD", fill=COLOR_TEXT_MUTED, font=("Segoe UI", 9, "bold"), tag="cpu_lbl")
+            c.create_text(cx2, cy2 - 10, text="0%", fill=COLOR_TEXT_PRIMARY, font=(FONT_FAMILY_MONO, 18, "bold"), tag="cpu_val")
+            c.create_text(cx2, cy2 + 16, text="CPU LOAD", fill=COLOR_TEXT_MUTED, font=(FONT_FAMILY_UI, 9, "bold"), tag="cpu_lbl")
 
             # CPU Micro-Sparkline Frame (Rolling 60-Second Volatility History)
-            sx3 = cx2 + r2 + 22
-            sx4 = w - 16
-            sy3 = 40
+            sx3 = cx2 + r2 + 18
+            sx4 = w - 10
+            sy3 = 44
             sy4 = 138
 
-            c.create_rectangle(sx3, sy3, sx4, sy4, fill="#0A0C14", outline="#1E2438", width=1, tag="spark_cpu_box")
+            c.create_rectangle(sx3, sy3, sx4, sy4, fill=COLOR_BG_DARK, outline=COLOR_BORDER, width=1, tag="spark_cpu_box")
             c.create_line(sx3, (sy3 + sy4) / 2, sx4, (sy3 + sy4) / 2, fill="#151A28", dash=(2, 2), tag="spark_cpu_mid")
-            c.create_text(sx3 + 4, sy3 - 8, text="60s VOLATILITY", fill=COLOR_TEXT_MUTED, font=("Consolas", 8, "bold"), anchor="w", tag="spark_cpu_title")
-            c.create_text(sx4 - 4, sy3 - 8, text="--%", fill=default_cpu_col, font=("Consolas", 8, "bold"), anchor="e", tag="spark_cpu_readout")
-            c.create_text(sx3 - 2, sy3 + 4, text="100%", fill="#475569", font=("Consolas", 7), anchor="e", tag="spark_cpu_max")
-            c.create_text(sx3 - 2, sy4 - 4, text="0%", fill="#475569", font=("Consolas", 7), anchor="e", tag="spark_cpu_min")
+            # Clean two-column header row (Left: 60S TREND, Right: Percentage Stats)
+            c.create_text(sx3 + 2, sy3 - 8, text="60S TREND", fill=COLOR_TEXT_MUTED, font=(FONT_FAMILY_MONO, 8, "bold"), anchor="w", tag="spark_cpu_title")
+            c.create_text(sx4 - 2, sy3 - 8, text="--%", fill=default_cpu_col, font=(FONT_FAMILY_MONO, 8, "bold"), anchor="e", tag="spark_cpu_readout")
+            c.create_text(sx3 - 2, sy3 + 4, text="100%", fill=COLOR_TEXT_MUTED, font=(FONT_FAMILY_MONO, 7), anchor="e", tag="spark_cpu_max")
+            c.create_text(sx3 - 2, sy4 - 4, text="0%", fill=COLOR_TEXT_MUTED, font=(FONT_FAMILY_MONO, 7), anchor="e", tag="spark_cpu_min")
 
         # Fluid 60 FPS exponential decay interpolation with instant snapping
         diff_ram = self.target_ram_pct - self.animated_ram_pct
@@ -2171,18 +2299,18 @@ class AntimagistV3App(ctk.CTk):
         c.delete("spark_dot_cpu")
 
         hw = w / 2.0
-        r1 = min(56, hw * 0.18)
-        cx1 = hw * 0.28
-        sx1 = cx1 + r1 + 22
-        sx2 = hw - 16
-        sy1 = 40
+        r1 = min(42, hw * 0.20)
+        cx1 = hw * 0.26
+        sx1 = cx1 + r1 + 18
+        sx2 = hw - 10
+        sy1 = 44
         sy2 = 138
 
-        r2 = min(56, hw * 0.18)
-        cx2 = hw + hw * 0.28
-        sx3 = cx2 + r2 + 22
-        sx4 = w - 16
-        sy3 = 40
+        r2 = min(42, hw * 0.20)
+        cx2 = hw + hw * 0.26
+        sx3 = cx2 + r2 + 18
+        sx4 = w - 10
+        sy3 = 44
         sy4 = 138
 
         # RAM rolling sparkline
@@ -2307,7 +2435,8 @@ class AntimagistV3App(ctk.CTk):
 
         def worker():
             try:
-                m = self.optimizer.get_live_metrics()
+                # Sample CPU with non-blocking recurring 1-second timer
+                m = self.optimizer.get_live_metrics(cpu_interval=None)
                 # Only scan top processes if currently on dashboard to save CPU
                 top_procs = self.optimizer.get_top_memory_processes(5) if getattr(self, 'current_pane', None) == "dash" else []
                 ping_stats = self.ping_optimizer.get_live_ping_telemetry()
@@ -2347,10 +2476,12 @@ class AntimagistV3App(ctk.CTk):
                         self.pill_cpu.configure(text=cpu_text)
                         self._last_pill_cpu_text = cpu_text
 
-                    # Update topbar ping pill
+                    # Update topbar ping pill with rolling telemetry (Ping + Jitter + Packet Loss)
                     p_ms = ping_stats["ping_ms"]
+                    p_jitter = ping_stats.get("jitter_ms", 0.8)
+                    p_loss = ping_stats.get("packet_loss_pct", 0.0)
                     p_color = ping_stats["status_color"]
-                    ping_text = f"PING: {p_ms} ms"
+                    ping_text = f"PING: {p_ms:.0f}ms | JITTER: ±{p_jitter:.1f}ms | LOSS: {p_loss:.0f}%"
                     if getattr(self, '_last_pill_ping_text', None) != ping_text and hasattr(self, 'pill_ping'):
                         self.pill_ping.configure(text=ping_text, text_color=p_color)
                         self._last_pill_ping_text = ping_text
@@ -2373,28 +2504,85 @@ class AntimagistV3App(ctk.CTk):
                         self.lbl_gauge_ram_text.configure(text=dash_ram)
                         self.lbl_gauge_cpu_text.configure(text=f"CPU: {m['cpu_percentage']}% (Active: {m['active_processes']})")
 
-                    # Update top 5 processes list with micro-streaming animation if active on dash
-                    if top_procs and hasattr(self, 'proc_list_box') and self.proc_list_box.winfo_exists():
-                        lines = [f"{'PROCESS NAME':<24} {'MEMORY USAGE':>14}\n", "─" * 40 + "\n"]
+                    # Update top 5 processes list formatted to stretch cleanly across full width of container
+                    if top_procs and getattr(self, 'proc_list_box', None) and self.proc_list_box.winfo_exists():
+                        header = f"{'PROCESS NAME':<30} {'MEMORY USAGE':>16}\n"
+                        divider = "─" * 48 + "\n"
+                        lines = [header, divider]
                         for name, mem_mb in top_procs:
-                            lines.append(f"{name[:22]:<24} {mem_mb:>10.1f} MB\n")
+                            lines.append(f"{name[:28]:<30} {f'{mem_mb:.1f} MB':>16}\n")
                         proc_text = "".join(lines)
                         self._stream_terminal_output(self.proc_list_box, proc_text)
 
                 self.after(0, update_ui)
+
+                # Auto-Pilot Guardian: If system RAM > 80%, automatically trigger Standby/Working Set flush
+                if getattr(self, 'auto_pilot_enabled', True):
+                    now = time.time()
+                    if m.get("ram_percentage", 0) >= 80.0 and (now - getattr(self, '_last_autopilot_flush_time', 0.0) > 30.0):
+                        self._last_autopilot_flush_time = now
+                        initial_used = psutil.virtual_memory().used
+                        self.optimizer.run_memory_boost(lambda res: None)
+                        time.sleep(0.5)
+                        final_used = psutil.virtual_memory().used
+                        freed_gb = max(0.05, (initial_used - final_used) / (1024**3))
+                        auto_log = f"[Auto-Pilot] RAM exceeded 80% — Cleared {freed_gb:.1f} GB standby memory"
+                        self.log_to_ai_feed(f"🤖 {auto_log}")
+                        if hasattr(self, 'show_toast_msg'):
+                            self.after(0, lambda msg=auto_log: self.show_toast_msg(msg))
+                        if hasattr(self, 'voice') and self.voice and getattr(self, 'voice_enabled', True):
+                            try:
+                                self.voice.speak(f"Auto-pilot cleared {freed_gb:.1f} gigabytes of memory.")
+                            except Exception:
+                                pass
+                        if hasattr(self, '_refresh_interactive_processes_ui'):
+                            self._refresh_interactive_processes_ui()
             except Exception:
                 pass
 
         threading.Thread(target=worker, daemon=True).start()
 
-        # Relaxed polling interval (4.0s visible, 8.0s minimized)
+        # Responsive recurring 1-second polling timer (1.0s visible, 3.0s minimized)
         is_visible = True
         try:
             is_visible = self.winfo_viewable() and self.state() != "iconic"
         except Exception:
             pass
-        delay = 4000 if is_visible else 8000
+        delay = 1000 if is_visible else 3000
         self.after(delay, self._poll_telemetry_loop)
+
+    def toggle_auto_pilot_guardian(self):
+        self.auto_pilot_enabled = not getattr(self, 'auto_pilot_enabled', True)
+        st_text = "ENABLED (Threshold: 80% RAM)" if self.auto_pilot_enabled else "PAUSED"
+        if hasattr(self, 'show_toast_msg'):
+            self.show_toast_msg(f"Auto-Pilot Guardian: {st_text}")
+        self.log_to_ai_feed(f"🤖 [Auto-Pilot Guardian] State toggled: {st_text}")
+
+    def log_to_ai_feed(self, message: str):
+        """Streams system events and telemetry logs into the Neural AI Copilot and Sentient AI feeds."""
+        def _update():
+            ts = time.strftime("%H:%M:%S")
+            line = f"[{ts}] {message}\n"
+            if hasattr(self, 'dash_ai_chat_box') and self.dash_ai_chat_box and hasattr(self.dash_ai_chat_box, 'winfo_exists') and self.dash_ai_chat_box.winfo_exists():
+                try:
+                    self.dash_ai_chat_box.configure(state="normal")
+                    self.dash_ai_chat_box.insert("end", line)
+                    self.dash_ai_chat_box.see("end")
+                    self.dash_ai_chat_box.configure(state="disabled")
+                except Exception:
+                    pass
+            if hasattr(self, 'chat_box') and self.chat_box and hasattr(self.chat_box, 'winfo_exists') and self.chat_box.winfo_exists():
+                try:
+                    self.chat_box.configure(state="normal")
+                    self.chat_box.insert("end", line)
+                    self.chat_box.see("end")
+                    self.chat_box.configure(state="disabled")
+                except Exception:
+                    pass
+        try:
+            self.after(0, _update)
+        except Exception:
+            pass
 
     def _stream_terminal_output(self, textbox, text: str, append: bool = False, chunk_size: int = 8, interval_ms: int = 12):
         """

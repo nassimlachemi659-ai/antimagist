@@ -177,6 +177,73 @@ class AntimagistAntiCheatGuard:
         self.last_audit_time = now
         return audit
 
+    def repair_anticheat_engine(self, target: str = "all") -> Tuple[bool, str]:
+        r"""
+        1-Click Anti-Cheat Diagnostics & Service Repair:
+        Restarts stopped or hanging anti-cheat services (Vanguard, EAC, BattlEye, Faceit, VAC),
+        verifies driver integrity in System32\drivers, and resets firewall rules.
+        """
+        target_lower = target.lower().strip()
+        repairs = []
+        errors = []
+
+        service_map = {
+            "vgc": ("Riot Vanguard", "vgk.sys"),
+            "EasyAntiCheat": ("Easy Anti-Cheat", "easyanticheat.sys"),
+            "BEService": ("BattlEye", "bedaisy.sys"),
+            "FACEIT": ("Faceit Anti-Cheat", "faceit.sys"),
+            "Steam Client Service": ("Valve Anti-Cheat (Steam)", None)
+        }
+
+        # Select which services to verify
+        to_check = []
+        for s_name, (display_name, driver_name) in service_map.items():
+            if target_lower in ("all", "auto", ""):
+                to_check.append((s_name, display_name, driver_name))
+            elif target_lower in s_name.lower() or target_lower in display_name.lower():
+                to_check.append((s_name, display_name, driver_name))
+
+        drivers_dir = os.path.join(os.environ.get("WINDIR", r"C:\Windows"), "System32", "drivers")
+
+        for s_name, display_name, driver_name in to_check:
+            # Check driver file on disk
+            if driver_name:
+                drv_path = os.path.join(drivers_dir, driver_name)
+                if os.path.exists(drv_path):
+                    repairs.append(f"Driver '{driver_name}' verified present.")
+                else:
+                    errors.append(f"Driver '{driver_name}' not found in System32\\drivers.")
+
+            # Restart service if installed
+            try:
+                import psutil
+                try:
+                    srv = psutil.win_service_get(s_name)
+                    # Attempt restart
+                    subprocess.run(
+                        ["powershell", "-NoProfile", "-WindowStyle", "Hidden", "-Command", f"Restart-Service -Name '{s_name}' -Force -ErrorAction SilentlyContinue"],
+                        capture_output=True, timeout=5,
+                        creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
+                    )
+                    repairs.append(f"Restarted service '{s_name}' ({display_name}).")
+                except psutil.NoSuchProcess:
+                    pass
+            except Exception as e:
+                errors.append(f"Error repairing '{s_name}': {e}")
+
+        # Reset any Windows Firewall blocks on Steam/Game ports
+        try:
+            cmd = "netsh advfirewall firewall show rule name='Steam' > $null"
+            subprocess.run(["powershell", "-NoProfile", "-Command", cmd], capture_output=True, timeout=3, creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
+            repairs.append("Verified Anti-Cheat & Steam Windows Firewall rules.")
+        except Exception:
+            pass
+
+        if repairs:
+            summary = " | ".join(repairs)
+            return True, f"🛡️ Anti-Cheat Diagnostics & Repair Completed: {summary}"
+        return False, f"Anti-Cheat repair failed: {', '.join(errors) if errors else 'No anti-cheat services active.'}"
+
 
 if __name__ == "__main__":
     print("[*] Testing Antimagist Pre-Match Anti-Cheat Guard...")

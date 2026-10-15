@@ -62,6 +62,8 @@ class AntimagistHUDOverlay:
         self.is_visible = False
         self._lock = threading.Lock()
         self._updater_running = False
+        self._stop_event = threading.Event()
+        self._ticker_thread = None
 
         # 60-frame historical buffer for the rolling graph
         self.frametime_history: List[float] = [5.0] * 60
@@ -119,6 +121,8 @@ class AntimagistHUDOverlay:
     def hide(self):
         """Hides the HUD overlay window."""
         with self._lock:
+            self._updater_running = False
+            self.is_visible = False
             if self.frametime_sentinel:
                 self.frametime_sentinel.stop_active_sampling()
             if self.window:
@@ -126,7 +130,20 @@ class AntimagistHUDOverlay:
                     self.window.withdraw()
                 except Exception:
                     pass
+
+    def destroy(self):
+        """Cleanly terminates overlay and cancels background loops."""
+        with self._lock:
+            self._updater_running = False
             self.is_visible = False
+            if self.frametime_sentinel:
+                self.frametime_sentinel.stop_active_sampling()
+            if self.window:
+                try:
+                    self.window.destroy()
+                except Exception:
+                    pass
+                self.window = None
 
     def _setup_drag(self, win):
         """Enables dragging the frameless overlay anywhere on the screen."""
@@ -218,6 +235,24 @@ class AntimagistHUDOverlay:
             if self.voice:
                 self.voice.speak("P-Cores isolated for gaming.")
 
+    def set_click_through(self, enable: bool = True):
+        """Sets WS_EX_TRANSPARENT and WS_EX_LAYERED for true click-through overlay in-game."""
+        if os.name != 'nt' or not self.window:
+            return
+        try:
+            import ctypes
+            hwnd = ctypes.windll.user32.GetParent(self.window.winfo_id()) or self.window.winfo_id()
+            GWL_EXSTYLE = -20
+            WS_EX_LAYERED = 0x00080000
+            WS_EX_TRANSPARENT = 0x00000020
+            style = ctypes.windll.user32.GetWindowLongW(hwnd, GWL_EXSTYLE)
+            if enable:
+                ctypes.windll.user32.SetWindowLongW(hwnd, GWL_EXSTYLE, style | WS_EX_LAYERED | WS_EX_TRANSPARENT)
+            else:
+                ctypes.windll.user32.SetWindowLongW(hwnd, GWL_EXSTYLE, style & ~WS_EX_TRANSPARENT)
+        except Exception:
+            pass
+
     def _draw_frametime_graph(self, latest_ft: float):
         """Draws the 60-frame rolling frametime graph on the Tkinter canvas."""
         self.frametime_history.append(latest_ft)
@@ -255,14 +290,15 @@ class AntimagistHUDOverlay:
         if self._updater_running:
             return
         self._updater_running = True
+        self._stop_event.clear()
 
         def loop():
-            while self.is_visible and self.window:
+            while not self._stop_event.is_set():
+                if self._stop_event.wait(timeout=0.6):
+                    break
+                if not self.is_visible or not self.window or self._stop_event.is_set():
+                    break
                 try:
-                    time.sleep(1.0)
-                    if not self.is_visible or not self.window:
-                        break
-
                     ping_val = 12.0
                     if self.ping_optimizer:
                         pt = self.ping_optimizer.get_live_ping_telemetry()
@@ -291,7 +327,7 @@ class AntimagistHUDOverlay:
 
                     def update_ui():
                         try:
-                            if self.window and self.is_visible and hasattr(self, "lbl_ping") and self.lbl_ping.winfo_exists():
+                            if not self._stop_event.is_set() and self.window and self.is_visible and hasattr(self, "lbl_ping") and self.lbl_ping.winfo_exists():
                                 p_col = "#00FF9D" if ping_val < 35 else "#FBBF24"
                                 self.lbl_ping.config(text=f"📶 PING: {ping_val} ms", fg=p_col)
                                 self.lbl_gpu.config(text=f"🎮 GPU: {gpu_temp}°C", fg=gpu_color)
@@ -304,7 +340,7 @@ class AntimagistHUDOverlay:
                         except Exception:
                             pass
 
-                    if self.window and self.is_visible:
+                    if not self._stop_event.is_set() and self.window and self.is_visible:
                         try:
                             self.window.after(0, update_ui)
                         except Exception:
@@ -313,11 +349,19 @@ class AntimagistHUDOverlay:
                     pass
             self._updater_running = False
 
-        threading.Thread(target=loop, daemon=True).start()
+        self._ticker_thread = threading.Thread(target=loop, daemon=True)
+        self._ticker_thread.start()
 
     def destroy(self):
+        """Cleanly terminates overlay, joins updater thread, and destroys window."""
+        self._stop_event.set()
         self.is_visible = False
         self._updater_running = False
+        if self._ticker_thread and self._ticker_thread.is_alive():
+            try:
+                self._ticker_thread.join(timeout=0.8)
+            except Exception:
+                pass
         win = self.window
         self.window = None
         if win:
