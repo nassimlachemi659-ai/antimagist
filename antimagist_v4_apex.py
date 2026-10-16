@@ -337,95 +337,92 @@ class AntimagistV4ApexApp(AntimagistV3App):
     # TOPBAR V5 ENHANCEMENTS (OBSIDIAN CARBON 3-ZONE HEADER)
     # ========================================================================
     def _enhance_topbar_v4(self):
-        # 1. Voice Copilot Toggle Button (Right Zone Uniform #171B26 Tile)
-        self.btn_voice = ctk.CTkButton(
-            self.topbar, text="🔊 VOICE",
-            font=(FONT_FAMILY_UI, 10, "bold"), text_color=COLOR_EMERALD,
+        parent_bar = getattr(self, 'topbar_actions_frame', self.topbar)
+
+        # 1. Live Hardware Profile Switcher (Replaces static FREE button)
+        cur_prof = self.profile_switcher.get_active_profile()
+        prof_txt = cur_prof.get("name", "🔥 ESPORTS ULTRA")
+        prof_col = cur_prof.get("color", COLOR_EMERALD)
+        self.btn_profile_switcher = ctk.CTkButton(
+            parent_bar, text=prof_txt,
+            font=(FONT_FAMILY_UI, 10, "bold"), text_color=prof_col,
             fg_color=COLOR_CARD_HOVER, hover_color=COLOR_BORDER_GLOW,
             border_color=COLOR_BORDER, border_width=1,
-            height=32, width=68, corner_radius=8,
-            command=self._toggle_voice_copilot
+            height=32, width=134, corner_radius=8,
+            command=self._cycle_hardware_profile_topbar
         )
-        self.btn_voice.pack(side="right", padx=(0, 4), pady=12)
+        self.btn_profile_switcher.pack(side="right", padx=(0, 4))
+        self.btn_license = self.btn_profile_switcher  # compatibility alias
 
-        # 2. Sound FX Toggle (Right Zone Uniform #171B26 Tile)
-        self.btn_sfx = ctk.CTkButton(
-            self.topbar, text="🎵 SFX",
-            font=(FONT_FAMILY_UI, 10, "bold"), text_color="#A78BFA",
-            fg_color=COLOR_CARD_HOVER, hover_color=COLOR_BORDER_GLOW,
-            border_color=COLOR_BORDER, border_width=1,
-            height=32, width=58, corner_radius=8,
-            command=self._toggle_sfx
-        )
-        self.btn_sfx.pack(side="right", padx=(0, 4), pady=12)
-
-        # 3. In-Game HUD Overlay Button (Right Zone Uniform #171B26 Tile)
-        self.btn_hud_nav = ctk.CTkButton(
-            self.topbar, text="🖥️ HUD",
-            font=(FONT_FAMILY_UI, 10, "bold"), text_color=COLOR_TEXT_PRIMARY,
-            fg_color=COLOR_CARD_HOVER, hover_color=COLOR_BORDER_GLOW,
-            border_color=COLOR_BORDER, border_width=1,
-            height=32, width=54, corner_radius=8,
-            command=self._toggle_hud_with_sfx
-        )
-        self.btn_hud_nav.pack(side="right", padx=(0, 4), pady=12)
-
-        # 4. Two-Way Voice Mic Dialogue (Right Zone Uniform #171B26 Tile)
-        self.btn_mic = ctk.CTkButton(
-            self.topbar, text="🎙️ MIC",
-            font=(FONT_FAMILY_UI, 10, "bold"), text_color=COLOR_CYAN,
-            fg_color=COLOR_CARD_HOVER, hover_color=COLOR_BORDER_GLOW,
-            border_color=COLOR_BORDER, border_width=1,
-            height=32, width=54, corner_radius=8,
-            command=self._open_mic_with_sfx
-        )
-        self.btn_mic.pack(side="right", padx=(0, 4), pady=12)
-
-        # 5. Mobile Companion Quick Button (Right Zone Uniform #171B26 Tile)
+        # 2. Mobile Companion Quick Button (Right Zone Uniform #171B26 Tile)
         self.btn_mobile_nav = ctk.CTkButton(
-            self.topbar, text="📱 MOBILE",
+            parent_bar, text="📱 MOBILE",
             font=(FONT_FAMILY_UI, 10, "bold"), text_color=COLOR_TEXT_PRIMARY,
             fg_color=COLOR_CARD_HOVER, hover_color=COLOR_BORDER_GLOW,
             border_color=COLOR_BORDER, border_width=1,
             height=32, width=70, corner_radius=8,
             command=self.show_mobile_pane
         )
-        self.btn_mobile_nav.pack(side="right", padx=(0, 4), pady=12)
+        self.btn_mobile_nav.pack(side="right", padx=(0, 4))
 
-        # 6. Live GPU Sentinel Pill Badge (Full GPU Model Name inside Center Telemetry Container)
-        gm = self.gpu_sentinel.get_live_gpu_metrics()
+        # 3. Two-Way Voice Mic Dialogue (Right Zone Uniform #171B26 Tile)
+        self.btn_mic = ctk.CTkButton(
+            parent_bar, text="🎙️ MIC",
+            font=(FONT_FAMILY_UI, 10, "bold"), text_color=COLOR_CYAN,
+            fg_color=COLOR_CARD_HOVER, hover_color=COLOR_BORDER_GLOW,
+            border_color=COLOR_BORDER, border_width=1,
+            height=32, width=54, corner_radius=8,
+            command=self._open_mic_with_sfx
+        )
+        self.btn_mic.pack(side="right", padx=(0, 4))
+
+        # 4. In-Game HUD Overlay Button (Right Zone Uniform #171B26 Tile)
+        self.btn_hud_nav = ctk.CTkButton(
+            parent_bar, text="🖥️ HUD",
+            font=(FONT_FAMILY_UI, 10, "bold"), text_color=COLOR_TEXT_PRIMARY,
+            fg_color=COLOR_CARD_HOVER, hover_color=COLOR_BORDER_GLOW,
+            border_color=COLOR_BORDER, border_width=1,
+            height=32, width=54, corner_radius=8,
+            command=self._toggle_hud_with_sfx
+        )
+        self.btn_hud_nav.pack(side="right", padx=(0, 4))
+
+        # 5. Sound FX Toggle (Right Zone Uniform #171B26 Tile)
+        self.btn_sfx = ctk.CTkButton(
+            parent_bar, text="🎵 SFX",
+            font=(FONT_FAMILY_UI, 10, "bold"), text_color="#A78BFA",
+            fg_color=COLOR_CARD_HOVER, hover_color=COLOR_BORDER_GLOW,
+            border_color=COLOR_BORDER, border_width=1,
+            height=32, width=58, corner_radius=8,
+            command=self._toggle_sfx
+        )
+        self.btn_sfx.pack(side="right", padx=(0, 4))
+
+        # 6. Voice Copilot Toggle Button (Right Zone Uniform #171B26 Tile)
+        self.btn_voice = ctk.CTkButton(
+            parent_bar, text="🔊 VOICE",
+            font=(FONT_FAMILY_UI, 10, "bold"), text_color=COLOR_EMERALD,
+            fg_color=COLOR_CARD_HOVER, hover_color=COLOR_BORDER_GLOW,
+            border_color=COLOR_BORDER, border_width=1,
+            height=32, width=68, corner_radius=8,
+            command=self._toggle_voice_copilot
+        )
+        self.btn_voice.pack(side="right", padx=(0, 4))
+
+        # 7. Live GPU Sentinel Pill Badge (Inside Center Telemetry Container)
         if hasattr(self, 'telemetry_pill_container') and self.telemetry_pill_container.winfo_exists():
+            gm = self.gpu_sentinel.get_live_gpu_metrics()
+            gpu_short = gm['gpu_name'].replace("NVIDIA ", "").replace("GeForce ", "")
             ctk.CTkLabel(self.telemetry_pill_container, text="|", font=(FONT_FAMILY_UI, 10), text_color=COLOR_BORDER_GLOW).pack(side="left", padx=2)
             self.pill_gpu = ctk.CTkLabel(
-                self.telemetry_pill_container, text=f"🎮 {gm['gpu_name']}: {gm['temperature_c']}°C",
+                self.telemetry_pill_container, text=f"🎮 {gpu_short}: {gm['temperature_c']}°C",
                 font=(FONT_FAMILY_MONO, 10, "bold"), text_color=gm['status_color']
             )
             self.pill_gpu.pack(side="left", padx=4)
-        else:
-            self.pill_gpu = ctk.CTkLabel(
-                self.topbar, text=f"🎮 {gm['gpu_name']}: {gm['temperature_c']}°C",
-                font=(FONT_FAMILY_MONO, 10, "bold"), text_color=gm['status_color'],
-                fg_color=COLOR_CARD_HOVER, corner_radius=8, padx=8, height=32
-            )
-            self.pill_gpu.pack(side="right", padx=(0, 4), pady=12)
 
-        # 7. Live Hardware Profile Switcher (Replaces static FREE button)
-        cur_prof = self.profile_switcher.get_active_profile()
-        prof_txt = cur_prof.get("name", "🔥 ESPORTS ULTRA")
-        prof_col = cur_prof.get("color", COLOR_EMERALD)
-        self.btn_profile_switcher = ctk.CTkButton(
-            self.topbar, text=prof_txt,
-            font=(FONT_FAMILY_UI, 10, "bold"), text_color=prof_col,
-            fg_color=COLOR_CARD_HOVER, hover_color=COLOR_BORDER_GLOW,
-            border_color=COLOR_BORDER, border_width=1,
-            height=32, width=138, corner_radius=8,
-            command=self._cycle_hardware_profile_topbar
-        )
-        self.btn_profile_switcher.pack(side="right", padx=(0, 4), pady=12)
-        self.btn_license = self.btn_profile_switcher  # compatibility alias
-
-        # Bind responsive layout handler with debouncing
+        # Bind responsive layout handler with debouncing and apply initial layout
         self.topbar.bind("<Configure>", self._on_topbar_configure)
+        self._apply_topbar_responsive_layout()
 
     def _on_topbar_configure(self, event=None):
         if getattr(self, '_topbar_debounce_id', None):
@@ -438,33 +435,48 @@ class AntimagistV4ApexApp(AntimagistV3App):
     def _apply_topbar_responsive_layout(self):
         try:
             w = self.winfo_width()
-            compact = (w < 1280)
+            compact = (w < 1360)
             p = 2 if compact else 4
             for b in [getattr(self, 'btn_voice', None), getattr(self, 'btn_sfx', None),
                       getattr(self, 'btn_hud_nav', None), getattr(self, 'btn_mic', None),
-                      getattr(self, 'btn_mobile_nav', None), getattr(self, 'btn_license', None)]:
+                      getattr(self, 'btn_mobile_nav', None), getattr(self, 'btn_profile_switcher', None),
+                      getattr(self, 'btn_turbo', None)]:
                 if b and b.winfo_exists():
                     b.pack_configure(padx=(0, p))
-            if hasattr(self, 'pill_gpu') and self.pill_gpu.winfo_exists() and self.pill_gpu.master == self.topbar:
-                self.pill_gpu.pack_configure(padx=(0, p))
 
             # Dynamic compact text so pills never crush or clip on smaller resolutions
             if compact:
+                if hasattr(self, 'btn_turbo') and self.btn_turbo.winfo_exists():
+                    self.btn_turbo.configure(text="⚡ Turbo", width=96)
+                if hasattr(self, 'btn_profile_switcher') and self.btn_profile_switcher.winfo_exists():
+                    self.btn_profile_switcher.configure(width=124)
                 if hasattr(self, 'btn_sfx') and self.btn_sfx.winfo_exists():
-                    self.btn_sfx.configure(text="🎵 SFX", width=52)
+                    self.btn_sfx.configure(text="🎵 SFX", width=50)
                 if hasattr(self, 'btn_voice') and self.btn_voice.winfo_exists():
-                    self.btn_voice.configure(text="🔊 VOICE", width=60)
+                    self.btn_voice.configure(text="🔊 VOICE", width=58)
                 if hasattr(self, 'btn_mobile_nav') and self.btn_mobile_nav.winfo_exists():
-                    self.btn_mobile_nav.configure(text="📱 HUD", width=54)
+                    self.btn_mobile_nav.configure(text="📱 MOBILE", width=62)
+                if hasattr(self, 'btn_mic') and self.btn_mic.winfo_exists():
+                    self.btn_mic.configure(text="🎙️ MIC", width=52)
+                if hasattr(self, 'btn_hud_nav') and self.btn_hud_nav.winfo_exists():
+                    self.btn_hud_nav.configure(text="🖥️ HUD", width=52)
             else:
+                if hasattr(self, 'btn_turbo') and self.btn_turbo.winfo_exists():
+                    self.btn_turbo.configure(text="⚡ Turbo Boost", width=120)
+                if hasattr(self, 'btn_profile_switcher') and self.btn_profile_switcher.winfo_exists():
+                    self.btn_profile_switcher.configure(width=134)
                 if hasattr(self, 'btn_sfx') and self.btn_sfx.winfo_exists():
                     sfx_st = "ON" if getattr(self, 'sfx_enabled', True) else "OFF"
-                    self.btn_sfx.configure(text=f"🎵 SFX: {sfx_st}", width=66)
+                    self.btn_sfx.configure(text=f"🎵 SFX: {sfx_st}", width=58)
                 if hasattr(self, 'btn_voice') and self.btn_voice.winfo_exists():
                     v_st = "ON" if getattr(self, 'voice_enabled', True) else "OFF"
-                    self.btn_voice.configure(text=f"🔊 VOICE: {v_st}", width=74)
+                    self.btn_voice.configure(text=f"🔊 VOICE: {v_st}", width=68)
                 if hasattr(self, 'btn_mobile_nav') and self.btn_mobile_nav.winfo_exists():
                     self.btn_mobile_nav.configure(text="📱 MOBILE", width=70)
+                if hasattr(self, 'btn_mic') and self.btn_mic.winfo_exists():
+                    self.btn_mic.configure(text="🎙️ MIC", width=54)
+                if hasattr(self, 'btn_hud_nav') and self.btn_hud_nav.winfo_exists():
+                    self.btn_hud_nav.configure(text="🖥️ HUD", width=54)
         except Exception:
             pass
 
@@ -641,7 +653,7 @@ class AntimagistV4ApexApp(AntimagistV3App):
                     ("🖥️ Display Reflex", "reflex", self.show_display_reflex_pane),
                     ("🎮 Gamer Mode", "gamer", self.show_gamer_pane),
                     ("🎯 CS2 Tuner", "cs2", self.show_cs2_pane),
-                    ("🎛️ Profile Switcher", "switcher", self.show_profile_switcher_pane),
+                    ("⚙️ Profile Switcher", "switcher", self.show_profile_switcher_pane),
                     ("⚡ MSI-X IRQ Director", "msi", self.show_msi_pane),
                     ("🎮 Shader Sentinel", "shader", self.show_shader_pane),
                     ("⚡ Stutter Interceptor", "interceptor", self.show_predictive_interceptor_pane),

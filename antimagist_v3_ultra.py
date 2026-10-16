@@ -58,7 +58,7 @@ except (ImportError, ModuleNotFoundError, Exception):
     class ToastNotifier:
         """Safe fallback notifier when win10toast or pkg_resources is unavailable."""
         def show_toast(self, title: str, msg: str, duration: int = 3, threaded: bool = True, icon_path: Optional[str] = None):
-            print(f"[🔔 Notification] {title}: {msg}")
+            print(f"[Notification] {title}: {msg}")
 
 import customtkinter as ctk
 
@@ -130,7 +130,7 @@ class AntimagistSecuritySandbox:
             r'netsh\s+advfirewall\s+set)\b', 
             re.IGNORECASE
         )
-        print("[🔒 Security] V3 Ultra Sandbox Firewall Online.")
+        print("[Security] V3 Ultra Sandbox Firewall Online.")
 
     def is_safe(self, command: str) -> bool:
         if self.dangerous_pattern.search(command):
@@ -433,7 +433,7 @@ class AntimagistScanner:
         # Strict Isolated Execution Layer boundary defense
         is_safe, reason = IsolatedExecutionLayer.safe_quarantine_check(file_path)
         if not is_safe:
-            print(f"[🛡️ IsolatedLayer] {reason}")
+            print(f"[IsolatedLayer] {reason}")
             AntimagistSanityLogger.log_security_event("OS_PROTECTION_BLOCKED", "send_to_quarantine", {"path": file_path, "reason": reason})
             return False
 
@@ -523,8 +523,8 @@ class AntimagistV3App(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("Antimagist — Enterprise Security V3 Ultra")
-        self.geometry("1180x740")
-        self.minsize(1040, 680)
+        self.geometry("1280x760")
+        self.minsize(1080, 680)
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
         self.configure(fg_color=COLOR_BG_DARK)
@@ -651,7 +651,7 @@ class AntimagistV3App(ctk.CTk):
         self.topbar.pack(fill="x", side="top")
         self.topbar.pack_propagate(False)
 
-        # Left Zone: Sleek modern app badge: 🛡️ ANTIMAGIST with subtle version tag PRO V11 in an elevated #171B26 pill.
+        # Zone 1 (Left): Sleek modern app badge: 🛡️ ANTIMAGIST with subtle version tag PRO V11 in an elevated #171B26 pill.
         brand_frame = ctk.CTkFrame(self.topbar, fg_color="transparent")
         brand_frame.pack(side="left", padx=(16, 8), pady=10)
 
@@ -662,12 +662,26 @@ class AntimagistV3App(ctk.CTk):
         )
         self.lbl_app_version_tag.pack(side="left", padx=(8, 0))
 
-        # Center Zone: Unified Telemetry Pill (#11141D, border #1E2433) housing inline live metrics separated by clean vertical dividers (|)
+        # Zone 2 (Right): Topbar Actions Frame (Anchors all action buttons cleanly to the right border)
+        self.topbar_actions_frame = ctk.CTkFrame(self.topbar, fg_color="transparent")
+        self.topbar_actions_frame.pack(side="right", padx=(0, 16), pady=10)
+
+        # Right Action Button: Single prominent Primary Action Button: ⚡ Turbo Boost in Electric Emerald (#10B981)
+        self.btn_turbo = ctk.CTkButton(
+            self.topbar_actions_frame, text="⚡ Turbo Boost", 
+            font=(FONT_FAMILY_UI, 11, "bold"), text_color="#FFFFFF",
+            fg_color=COLOR_EMERALD, hover_color="#059669",
+            height=32, corner_radius=8,
+            command=self._execute_turbo_clean
+        )
+        self.btn_turbo.pack(side="right", padx=(4, 0))
+
+        # Zone 3 (Center): Unified Telemetry Container (#11141D, border #1E2433) taking all remaining space
         self.telemetry_pill_container = ctk.CTkFrame(
             self.topbar, fg_color=COLOR_CARD, corner_radius=18,
             border_color=COLOR_BORDER, border_width=1, height=36
         )
-        self.telemetry_pill_container.pack(side="left", padx=(12, 12), pady=10)
+        self.telemetry_pill_container.pack(side="left", fill="x", expand=True, padx=(8, 8), pady=10)
 
         # System Health with Pulsing dot
         self.health_badge = ctk.CTkLabel(
@@ -684,23 +698,21 @@ class AntimagistV3App(ctk.CTk):
 
         ctk.CTkLabel(self.telemetry_pill_container, text="|", font=(FONT_FAMILY_UI, 10), text_color=COLOR_BORDER_GLOW).pack(side="left", padx=2)
 
-        self.pill_ram = ctk.CTkLabel(self.telemetry_pill_container, text="RAM: -- / -- GB", font=(FONT_FAMILY_MONO, 10, "bold"), text_color=COLOR_TEXT_PRIMARY)
+        # Pre-seed initial RAM & CPU metrics immediately at t=0 so '-- / --' is never displayed
+        try:
+            import psutil
+            _vm = psutil.virtual_memory()
+            init_ram_txt = f"RAM: {_vm.used / (1024**3):.1f} / {_vm.total / (1024**3):.1f} GB"
+        except Exception:
+            init_ram_txt = "RAM: 0.0 / 0.0 GB"
+
+        self.pill_ram = ctk.CTkLabel(self.telemetry_pill_container, text=init_ram_txt, font=(FONT_FAMILY_MONO, 10, "bold"), text_color=COLOR_TEXT_PRIMARY)
         self.pill_ram.pack(side="left", padx=4)
 
         ctk.CTkLabel(self.telemetry_pill_container, text="|", font=(FONT_FAMILY_UI, 10), text_color=COLOR_BORDER_GLOW).pack(side="left", padx=2)
 
-        self.pill_ping = ctk.CTkLabel(self.telemetry_pill_container, text="PING: -- ms", font=(FONT_FAMILY_MONO, 10, "bold"), text_color=COLOR_CYAN)
+        self.pill_ping = ctk.CTkLabel(self.telemetry_pill_container, text="PING: 12ms", font=(FONT_FAMILY_MONO, 10, "bold"), text_color=COLOR_CYAN)
         self.pill_ping.pack(side="left", padx=(4, 8))
-
-        # Right Action Button: Single prominent Primary Action Button: ⚡ Turbo Boost in Electric Emerald (#10B981)
-        self.btn_turbo = ctk.CTkButton(
-            self.topbar, text="⚡ Turbo Boost", 
-            font=(FONT_FAMILY_UI, 11, "bold"), text_color="#FFFFFF",
-            fg_color=COLOR_EMERALD, hover_color="#059669",
-            height=32, corner_radius=8,
-            command=self._execute_turbo_clean
-        )
-        self.btn_turbo.pack(side="right", padx=16, pady=12)
 
     # ========================================================================
     # BODY LAYOUT (Sidebar + Dynamic Container)
@@ -2481,7 +2493,7 @@ class AntimagistV3App(ctk.CTk):
                     p_jitter = ping_stats.get("jitter_ms", 0.8)
                     p_loss = ping_stats.get("packet_loss_pct", 0.0)
                     p_color = ping_stats["status_color"]
-                    ping_text = f"PING: {p_ms:.0f}ms | JITTER: ±{p_jitter:.1f}ms | LOSS: {p_loss:.0f}%"
+                    ping_text = f"PING: {p_ms:.0f}ms | JITTER: +/-{p_jitter:.1f}ms | LOSS: {p_loss:.0f}%"
                     if getattr(self, '_last_pill_ping_text', None) != ping_text and hasattr(self, 'pill_ping'):
                         self.pill_ping.configure(text=ping_text, text_color=p_color)
                         self._last_pill_ping_text = ping_text
@@ -2623,17 +2635,17 @@ class AntimagistV3App(ctk.CTk):
             mode = "EMERGENCY"
             accent = "#FF3B30"
             badge_bg = "#3B1010"
-            health_txt = f"● SYSTEM HEALTH: {int(health)}% CRITICAL"
+            health_txt = f"● {int(health)}% CRITICAL"
         elif gpu_t > 75.0 or health < 90.0:
             mode = "WARNING"
             accent = COLOR_AMBER
             badge_bg = "#362205"
-            health_txt = f"● SYSTEM HEALTH: {int(health)}% ELEVATED"
+            health_txt = f"● {int(health)}% ELEVATED"
         else:
             mode = "NORMAL"
             accent = COLOR_CYAN
             badge_bg = "#06281E"
-            health_txt = f"● SYSTEM HEALTH: {int(health)}% OPTIMAL"
+            health_txt = f"● {int(health)}% OPTIMAL"
 
         self.theme_status_mode = mode
         self.current_theme_accent = accent
