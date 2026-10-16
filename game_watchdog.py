@@ -91,24 +91,20 @@ class AntimagistGameWatchdog:
         self._thread: Optional[threading.Thread] = None
 
     def _load_history(self) -> List[Dict[str, Any]]:
+        from self_healing_supervisor import SelfHealingSupervisor
         for target_f in [self.history_file, self.legacy_history_file]:
             if os.path.exists(target_f):
-                try:
-                    with open(target_f, "r", encoding="utf-8") as f:
-                        data = json.load(f)
-                        if isinstance(data, list):
-                            return data
-                except Exception:
-                    pass
+                data = SelfHealingSupervisor.safe_read_json(
+                    target_f, default_fallback=[], validator=lambda d: isinstance(d, list)
+                )
+                if data:
+                    return data
         return []
 
     def _save_history(self):
+        from self_healing_supervisor import SelfHealingSupervisor
         for target_f in [self.history_file, self.legacy_history_file]:
-            try:
-                with open(target_f, "w", encoding="utf-8") as f:
-                    json.dump(self.match_history[-30:], f, indent=2)
-            except Exception:
-                pass
+            SelfHealingSupervisor.atomic_write_json(target_f, self.match_history[-30:])
 
     def start_watchdog(self):
         """Starts background game monitoring thread."""
@@ -136,6 +132,12 @@ class AntimagistGameWatchdog:
     def _watchdog_loop(self):
         while self.is_running:
             try:
+                try:
+                    from self_healing_supervisor import supervisor
+                    supervisor.heartbeat("game_watchdog")
+                except Exception:
+                    pass
+
                 detected = self._detect_running_game()
 
                 # Case 1: Game Started
@@ -171,6 +173,13 @@ class AntimagistGameWatchdog:
                 "dpc_spike_count": 0,
                 "avg_ping": 15.0
             }
+
+        # Inform Telemetry Bus to engage Game-Active Eco Mode
+        try:
+            from telemetry_bus import telemetry_bus
+            telemetry_bus.set_game_active(True, game_name)
+        except Exception:
+            pass
 
         # 1. Engage Bandwidth Guard (throttle background torrents, syncs, winstore)
         try:
@@ -337,6 +346,13 @@ class AntimagistGameWatchdog:
             self.match_history.append(match_record)
             self._save_history()
             self.current_session = None
+
+        # Inform Telemetry Bus that game closed (exit Eco Mode)
+        try:
+            from telemetry_bus import telemetry_bus
+            telemetry_bus.set_game_active(False, "")
+        except Exception:
+            pass
 
         # Disengage Bandwidth Guard (restore throttled apps)
         try:

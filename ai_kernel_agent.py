@@ -1183,6 +1183,62 @@ class AntimagistAIAgent:
             except Exception as e:
                 return False, f"Job cage error: {e}"
 
+        elif tag in ("SOLVE_MEMORY", "CLOSED_LOOP_MEMORY", "TURBO_CLEAN"):
+            try:
+                from closed_loop_solver import ClosedLoopSolver
+                solver = ClosedLoopSolver()
+                res = solver.solve_memory_pressure()
+                steps = "\n".join(f"  • {s}" for s in res["steps"])
+                out = (
+                    f"🧠 [Closed-Loop Memory Optimization: {res['resolution']}]\n"
+                    f"{steps}\n"
+                    f"✅ Final Result: {res['initial_ram_pct']}% -> {res['final_ram_pct']}% RAM ({res['freed_mb']} MB Freed, Tier {res['tier_reached']})"
+                )
+                return res["success"], out
+            except Exception as e:
+                return False, f"Closed-loop memory solver error: {e}"
+
+        elif tag in ("SOLVE_NETWORK", "CLOSED_LOOP_NETWORK", "FIX_PING"):
+            try:
+                from closed_loop_solver import ClosedLoopSolver
+                solver = ClosedLoopSolver()
+                res = solver.solve_network_latency()
+                steps = "\n".join(f"  • {s}" for s in res["steps"])
+                out = (
+                    f"📡 [Closed-Loop Network Optimization: {res['resolution']}]\n"
+                    f"{steps}\n"
+                    f"✅ Verification: {res['initial_ping_ms']}ms (±{res['initial_jitter_ms']}ms) -> {res['final_ping_ms']}ms (±{res['final_jitter_ms']}ms)"
+                )
+                return res["success"], out
+            except Exception as e:
+                return False, f"Closed-loop network solver error: {e}"
+
+        elif tag in ("DIAGNOSE_BOTTLENECK", "CHECK_BOTTLENECK", "ROOT_CAUSE"):
+            try:
+                from closed_loop_solver import BottleneckAnalyzer
+                from telemetry_bus import telemetry_bus
+                import psutil
+                m = telemetry_bus.get_latest_metrics()
+                per_cpu = psutil.cpu_percent(percpu=True)
+                diag = BottleneckAnalyzer.analyze_system_state(
+                    cpu_pct=m.get("cpu_pct", 0.0),
+                    ram_pct=m.get("ram_pct", 0.0),
+                    gpu_temp=m.get("gpu", {}).get("temperature_c", 0.0),
+                    gpu_util=m.get("gpu", {}).get("utilization_gpu_pct", 0.0),
+                    ping_ms=m.get("ping_ms", 0.0),
+                    jitter_ms=m.get("jitter_ms", 0.0),
+                    per_cpu_pcts=per_cpu
+                )
+                out = (
+                    f"🔬 [Root-Cause Bottleneck Brain: {diag['headline']}]\n"
+                    f"• Severity: {diag['severity']}\n"
+                    f"• Diagnosis: {diag['explanation']}\n"
+                    f"• Prescribed Closed-Loop Action: {diag['recommended_action']}"
+                )
+                return True, out
+            except Exception as e:
+                return False, f"Bottleneck analysis error: {e}"
+
         return False, f"Unknown tool tag: {tag}"
 
     # ========================================================================
@@ -1385,6 +1441,21 @@ class AntimagistAIAgent:
         if any(w in norm for w in ["tpm attestation", "anticheat check", "anti-cheat check", "vanguard ready", "faceit ready", "فحص الانتي شيت"]):
             ok, msg = self.execute_tool("CHECK_ANTICHEAT_TPM")
             return f"🛡️ [Anti-Cheat Hardware Attestation]\n{msg}"
+
+        # 3-0f. Closed-Loop Memory Optimization (Diagnose -> Act -> Verify -> Escalate)
+        if any(w in norm for w in ["solve memory", "fix memory", "closed loop memory", "deep clean ram", "حل مشكلة الرام", "تنظيف ذكي"]):
+            ok, msg = self.execute_tool("SOLVE_MEMORY")
+            return msg
+
+        # 3-0g. Closed-Loop Network Optimization (Diagnose -> Act -> Verify -> Escalate)
+        if any(w in norm for w in ["solve network", "fix ping", "network lag", "packet loss", "high jitter", "بينغ مرتفع", "حل مشكلة البينغ"]):
+            ok, msg = self.execute_tool("SOLVE_NETWORK")
+            return msg
+
+        # 3-0h. Root-Cause Bottleneck Brain
+        if any(w in norm for w in ["diagnose lag", "why is my game lagging", "bottleneck", "check bottleneck", "root cause", "ما سبب البطء", "عنق الزجاجة"]):
+            ok, msg = self.execute_tool("DIAGNOSE_BOTTLENECK")
+            return msg
 
         # 3-1. Self-Expanding AI Plugin Builder ("Create a new tool that does X")
         tool_creation_triggers = [

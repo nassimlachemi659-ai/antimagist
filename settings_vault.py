@@ -66,21 +66,16 @@ class AntimagistSettingsVault:
     def load_settings(self) -> Dict[str, Any]:
         """Loads configuration from JSON file with fallback to defaults."""
         with self._lock:
-            if os.path.exists(self.config_path):
-                try:
-                    with open(self.config_path, "r", encoding="utf-8") as f:
-                        loaded = json.load(f)
-                    # Merge defaults with loaded to guarantee all fields exist
-                    for k, v in DEFAULT_SETTINGS.items():
-                        if k not in loaded:
-                            loaded[k] = v
-                    self._settings = loaded
-                    return self._settings
-                except Exception:
-                    pass
-
-            self._settings = dict(DEFAULT_SETTINGS)
-            self._save_atomic()
+            from self_healing_supervisor import SelfHealingSupervisor
+            loaded = SelfHealingSupervisor.safe_read_json(
+                self.config_path, default_fallback=dict(DEFAULT_SETTINGS),
+                validator=lambda d: isinstance(d, dict)
+            )
+            # Merge defaults with loaded to guarantee all fields exist
+            for k, v in DEFAULT_SETTINGS.items():
+                if k not in loaded:
+                    loaded[k] = v
+            self._settings = loaded
             return self._settings
 
     def save_settings(self, new_settings: Optional[Dict[str, Any]] = None) -> bool:
@@ -91,17 +86,9 @@ class AntimagistSettingsVault:
             return self._save_atomic()
 
     def _save_atomic(self) -> bool:
-        """Writes to a temporary file then replaces the target to prevent file corruption."""
-        try:
-            dir_name = os.path.dirname(self.config_path) or "."
-            fd, tmp_path = tempfile.mkstemp(dir=dir_name, prefix="antimagist_cfg_", suffix=".tmp")
-            with os.fdopen(fd, "w", encoding="utf-8") as f:
-                json.dump(self._settings, f, indent=4)
-            # Atomic replace
-            os.replace(tmp_path, self.config_path)
-            return True
-        except Exception:
-            return False
+        """Writes to a temporary file then replaces target to prevent file corruption."""
+        from self_healing_supervisor import SelfHealingSupervisor
+        return SelfHealingSupervisor.atomic_write_json(self.config_path, self._settings)
 
     def get(self, key: str, default: Any = None) -> Any:
         with self._lock:

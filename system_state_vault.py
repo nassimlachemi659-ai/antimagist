@@ -53,11 +53,8 @@ class AntimagistSystemStateVault:
             "timer_resolution_ms": self._get_timer_resolution()
         }
 
-        try:
-            with open(self.vault_path, "w", encoding="utf-8") as f:
-                json.dump(snapshot, f, indent=2)
-        except Exception as e:
-            print(f"[-] Failed to write restore vault: {e}")
+        from self_healing_supervisor import SelfHealingSupervisor
+        SelfHealingSupervisor.atomic_write_json(self.vault_path, snapshot)
 
         return snapshot
 
@@ -152,14 +149,10 @@ class AntimagistSystemStateVault:
         actions = []
         errors = []
 
-        if not os.path.exists(self.vault_path):
-            self.capture_snapshot(reason="Created before rollback")
-
-        try:
-            with open(self.vault_path, "r", encoding="utf-8") as f:
-                snapshot = json.load(f)
-        except Exception as e:
-            return False, f"Failed to read vault file: {e}", []
+        from self_healing_supervisor import SelfHealingSupervisor
+        snapshot = SelfHealingSupervisor.safe_read_json(
+            self.vault_path, default_fallback=lambda: self.capture_snapshot(reason="Self-healed baseline")
+        )
 
         # 1. Restore Power Plan
         plan = snapshot.get("power_plan", {})

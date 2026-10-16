@@ -5816,58 +5816,57 @@ composite hardware score and throughput ratings.
         threading.Thread(target=_bg_dism, daemon=True).start()
 
     # ========================================================================
-    # TELEMETRY LOOP WITH REAL-TIME GPU & DISCORD STATUS POLLING
+    # TELEMETRY LOOP WITH REAL-TIME GPU & DISCORD STATUS POLLING (OPTIMIZED BUS)
     # ========================================================================
     def _poll_telemetry_loop(self):
         super()._poll_telemetry_loop()
-        def gpu_worker():
-            try:
-                gm = self.gpu_sentinel.get_live_gpu_metrics()
-                # Feed live GPU temperature into strict conditional styling engine
-                try:
-                    self.gpu_temp_val = float(gm.get("temperature_c", 42.0))
-                except Exception:
-                    self.gpu_temp_val = 42.0
+        try:
+            from telemetry_bus import telemetry_bus
+            m = telemetry_bus.get_latest_metrics()
+            gm = m.get("gpu", {})
+            self.gpu_temp_val = float(gm.get("temperature_c", 42.0))
 
-                def update_gpu():
-                    if not hasattr(self, 'winfo_exists') or not self.winfo_exists():
-                        return
-                    # Dynamically refresh conditional styling
-                    self._update_conditional_styling()
-                    if hasattr(self, 'pill_gpu') and self.pill_gpu.winfo_exists():
-                        g_text = f"🎮 {gm['gpu_name']}: {gm['temperature_c']}°C"
-                        if getattr(self, '_last_pill_gpu_text', None) != g_text:
-                            self.pill_gpu.configure(
-                                text=g_text,
-                                text_color=gm['status_color']
-                            )
-                            self._last_pill_gpu_text = g_text
-                    if hasattr(self, 'lbl_dash_gpu_temp') and self.lbl_dash_gpu_temp.winfo_exists():
-                        gt_text = f"{gm['temperature_c']} °C"
-                        if getattr(self, '_last_dash_gpu_temp', None) != gt_text:
-                            self.lbl_dash_gpu_temp.configure(text=gt_text, text_color=gm['status_color'])
-                            self._last_dash_gpu_temp = gt_text
-                    if hasattr(self, 'lbl_dash_gpu_vram') and self.lbl_dash_gpu_vram.winfo_exists():
-                        gv_text = f"VRAM: {gm['vram_str']}"
-                        if getattr(self, '_last_dash_gpu_vram', None) != gv_text:
-                            self.lbl_dash_gpu_vram.configure(text=gv_text)
-                            self._last_dash_gpu_vram = gv_text
-                    if hasattr(self, 'lbl_dash_gpu_util') and self.lbl_dash_gpu_util.winfo_exists():
-                        gu_text = f"Core Load: {gm['utilization_gpu_pct']}%"
-                        if getattr(self, '_last_dash_gpu_util', None) != gu_text:
-                            self.lbl_dash_gpu_util.configure(text=gu_text)
-                            self._last_dash_gpu_util = gu_text
-                self.after(0, update_gpu)
+            # Dynamically refresh conditional styling
+            self._update_conditional_styling()
 
-                # Periodic Discord Presence refresh (every ~15s)
-                if hasattr(self, "discord_rpc") and self.discord_rpc.is_connected:
-                    self.discord_rpc.update_presence(
-                        details="Protected by Antimagist V8 Sovereign",
-                        state=f"{gm['gpu_name']} ({gm['temperature_c']}°C) | Sovereign"
+            if hasattr(self, 'pill_gpu') and self.pill_gpu.winfo_exists():
+                g_text = f"🎮 {gm.get('gpu_name', 'GPU')}: {gm.get('temperature_c', 40)}°C"
+                if getattr(self, '_last_pill_gpu_text', None) != g_text:
+                    self.pill_gpu.configure(
+                        text=g_text,
+                        text_color=gm.get('status_color', '#10B981')
                     )
-            except Exception:
-                pass
-        threading.Thread(target=gpu_worker, daemon=True).start()
+                    self._last_pill_gpu_text = g_text
+
+            if hasattr(self, 'lbl_dash_gpu_temp') and self.lbl_dash_gpu_temp.winfo_exists():
+                gt_text = f"{gm.get('temperature_c', 40)} °C"
+                if getattr(self, '_last_dash_gpu_temp', None) != gt_text:
+                    self.lbl_dash_gpu_temp.configure(text=gt_text, text_color=gm.get('status_color', '#10B981'))
+                    self._last_dash_gpu_temp = gt_text
+
+            if hasattr(self, 'lbl_dash_gpu_vram') and self.lbl_dash_gpu_vram.winfo_exists():
+                gv_text = f"VRAM: {gm.get('vram_str', '0.0 / 0.0 GB')}"
+                if getattr(self, '_last_dash_gpu_vram', None) != gv_text:
+                    self.lbl_dash_gpu_vram.configure(text=gv_text)
+                    self._last_dash_gpu_vram = gv_text
+
+            if hasattr(self, 'lbl_dash_gpu_util') and self.lbl_dash_gpu_util.winfo_exists():
+                gu_text = f"Core Load: {gm.get('utilization_gpu_pct', 0)}%"
+                if getattr(self, '_last_dash_gpu_util', None) != gu_text:
+                    self.lbl_dash_gpu_util.configure(text=gu_text)
+                    self._last_dash_gpu_util = gu_text
+
+            # Periodic Discord Presence refresh (every ~15s, no thread spawn)
+            if hasattr(self, "discord_rpc") and self.discord_rpc.is_connected:
+                now = time.time()
+                if now - getattr(self, "_last_discord_rpc_time", 0.0) >= 15.0:
+                    self._last_discord_rpc_time = now
+                    self.discord_rpc.update_presence(
+                        details="Protected by Antimagist V12 Apex",
+                        state=f"{gm.get('gpu_name', 'GPU')} ({gm.get('temperature_c', 40)}°C) | Sovereign"
+                    )
+        except Exception:
+            pass
 
     # ========================================================================
     # V5 GAMER MODE & VOICE ALERTS
@@ -5886,8 +5885,17 @@ composite hardware score and throughput ratings.
 
     def _execute_turbo_clean(self):
         self.sfx.play_warp_boost()
-        super()._execute_turbo_clean()
-        self.voice.alert_turbo_clean()
+        def _bg_turbo():
+            from closed_loop_solver import ClosedLoopSolver
+            solver = ClosedLoopSolver()
+            res_mem = solver.solve_memory_pressure()
+            res_net = solver.solve_network_latency()
+            def _done():
+                self.voice.speak(f"Turbo clean verified. Freed {res_mem['freed_mb']} megabytes.")
+                self.show_toast_msg(f"Closed-Loop Clean: {res_mem['resolution']} ({res_mem['freed_mb']} MB freed)")
+            self.after(0, _done)
+        threading.Thread(target=_bg_turbo, daemon=True).start()
+
 
     def _on_ransomware_breach_v5(self, breach_info: dict):
         self.sfx.play_alarm()

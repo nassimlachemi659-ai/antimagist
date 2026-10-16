@@ -110,6 +110,11 @@ class AntimagistTrayManager:
     def minimize_to_tray(self):
         """Hides the GUI window while keeping background threads and tray icon active."""
         self.app.withdraw()
+        try:
+            from telemetry_bus import telemetry_bus
+            telemetry_bus.trim_own_working_set()
+        except Exception:
+            pass
         if hasattr(self.app, 'show_toast_msg'):
             self.app.show_toast_msg("Antimagist is running silently in the system tray.")
 
