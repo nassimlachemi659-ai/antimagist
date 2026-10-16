@@ -10,6 +10,7 @@ Antimagist Enterprise Security V4 Component
 
 import os
 import sys
+import time
 import psutil
 import subprocess
 import json
@@ -167,7 +168,12 @@ class AntimagistCoreDirector:
         """
         Queries WMI Win32_PhysicalMemory to read physical RAM clock speed (MHz),
         slot population, channel configuration, and validates whether XMP/DOCP is active.
+        Caches result for 60 seconds to prevent subprocess spam.
         """
+        now = time.time()
+        if hasattr(self, '_ram_cache') and (now - getattr(self, '_ram_cache_time', 0.0) < 60.0):
+            return self._ram_cache
+
         modules: List[Dict[str, Any]] = []
         total_ram_gb = 0.0
         max_configured_speed = 0
@@ -235,7 +241,7 @@ class AntimagistCoreDirector:
         else:
             status_desc = f"{max_configured_speed} MHz ({channel_mode}, XMP Profile Active)"
 
-        return {
+        result = {
             "modules": modules,
             "slots_populated": slots_count,
             "total_ram_gb": total_ram_gb,
@@ -246,6 +252,9 @@ class AntimagistCoreDirector:
             "xmp_alert": xmp_alert,
             "status_label": status_desc
         }
+        self._ram_cache = result
+        self._ram_cache_time = time.time()
+        return result
 
 
 if __name__ == "__main__":

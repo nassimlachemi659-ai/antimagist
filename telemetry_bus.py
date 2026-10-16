@@ -55,8 +55,10 @@ class TelemetryBus:
         self.last_medium_tick = 0.0
         self.last_slow_tick = 0.0
         self.last_trim_tick = time.time()
+        self.last_net_bytes = psutil.net_io_counters() if hasattr(psutil, 'net_io_counters') else None
+        self.last_net_time = time.time()
 
-        # Telemetry State Cache
+        # Telemetry State Cache (Single Source of Truth)
         self.state: Dict[str, Any] = {
             "timestamp": time.time(),
             "cpu_pct": 0.0,
@@ -65,6 +67,12 @@ class TelemetryBus:
             "ram_total_gb": 0.0,
             "ping_ms": 12.0,
             "jitter_ms": 1.5,
+            "packet_loss_pct": 0.0,
+            "down_str": "0.0 KB/s",
+            "up_str": "0.0 KB/s",
+            "active_processes": 120,
+            "top_processes": [],
+            "top_5_memory_processes": [],
             "gpu": {
                 "gpu_name": "Standard Graphics",
                 "temperature_c": 40,
@@ -188,16 +196,38 @@ class TelemetryBus:
             cpu = psutil.cpu_percent(interval=None)
             mem = psutil.virtual_memory()
 
+            # 2. Bandwidth delta calculation
+            now = time.time()
+            dt = max(0.2, now - self.last_net_time)
+            down_str = "0.0 KB/s"
+            up_str = "0.0 KB/s"
+            curr_net = psutil.net_io_counters() if hasattr(psutil, 'net_io_counters') else None
+            if curr_net and self.last_net_bytes:
+                bytes_recv = max(0, curr_net.bytes_recv - self.last_net_bytes.bytes_recv)
+                bytes_sent = max(0, curr_net.bytes_sent - self.last_net_bytes.bytes_sent)
+                down_kb = (bytes_recv / 1024.0) / dt
+                up_kb = (bytes_sent / 1024.0) / dt
+                down_str = f"{down_kb / 1024.0:.1f} MB/s" if down_kb >= 1024 else f"{down_kb:.1f} KB/s"
+                up_str = f"{up_kb / 1024.0:.1f} MB/s" if up_kb >= 1024 else f"{up_kb:.1f} KB/s"
+                self.last_net_bytes = curr_net
+                self.last_net_time = now
+
             with self._lock:
-                self.state["timestamp"] = time.time()
+                self.state["timestamp"] = now
                 self.state["cpu_pct"] = round(cpu, 1)
                 self.state["ram_pct"] = round(mem.percent, 1)
                 self.state["ram_used_gb"] = round((mem.total - mem.available) / (1024**3), 1)
                 self.state["ram_total_gb"] = round(mem.total / (1024**3), 1)
+                self.state["down_str"] = down_str
+                self.state["up_str"] = up_str
+                try:
+                    self.state["active_processes"] = len(psutil.pids())
+                except Exception:
+                    pass
         except Exception:
             pass
 
-        # 2. Fast non-blocking socket ping sample (every 3 seconds)
+        # 3. Fast non-blocking socket ping sample (every 3 seconds)
         if time.time() % 3.0 < 1.5:
             self._sample_fast_socket_ping()
 
@@ -224,7 +254,7 @@ class TelemetryBus:
                     pass
 
     def _poll_medium_tier(self):
-        """Tier 2 (5s): GPU metrics cache query."""
+        """Tier 2 (3.5s - 5s): GPU metrics cache query & process list scan."""
         try:
             from gpu_sentinel import AntimagistGPUSentinel
             gpu = AntimagistGPUSentinel()
@@ -238,6 +268,35 @@ class TelemetryBus:
                         "vram_str": gm.get("vram_str", "0.0 / 0.0 GB"),
                         "status_color": gm.get("status_color", "#10B981")
                     }
+        except Exception:
+            pass
+
+        # Background process memory scan (Zero UI thread stutter)
+        try:
+            procs = []
+            for p in psutil.process_iter(['pid', 'name', 'memory_info']):
+                try:
+                    pinfo = p.info
+                    name = pinfo.get('name')
+                    if not name or name.lower() in ("system idle process", "system", "registry", "memory compression"):
+                        continue
+                    mem_info = pinfo.get('memory_info')
+                    rss_mb = round(mem_info.rss / (1024**2), 1) if mem_info else 0.0
+                    procs.append({
+                        "pid": pinfo['pid'],
+                        "name": name,
+                        "memory_mb": rss_mb
+                    })
+                except (psutil.NoSuchProcess, psutil.AccessDenied, Exception):
+                    continue
+
+            procs.sort(key=lambda x: x["memory_mb"], reverse=True)
+            top_8 = procs[:8]
+            top_5_tuples = [(x["name"], x["memory_mb"]) for x in procs[:5]]
+
+            with self._lock:
+                self.state["top_processes"] = top_8
+                self.state["top_5_memory_processes"] = top_5_tuples
         except Exception:
             pass
 
@@ -266,8 +325,9 @@ class TelemetryBus:
         self._running = False
 
 
-# Global Singleton Bus
+# Global Singleton Bus & Unified Worker Alias
 telemetry_bus = TelemetryBus()
+TelemetryWorker = TelemetryBus
 
 
 if __name__ == "__main__":

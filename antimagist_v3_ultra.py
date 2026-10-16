@@ -2305,63 +2305,65 @@ class AntimagistV3App(ctk.CTk):
         c.itemconfigure("cpu_val", text=f"{int(self.animated_cpu_pct)}%")
 
         # Render Micro-Sparklines
-        c.delete("spark_line_ram")
-        c.delete("spark_dot_ram")
-        c.delete("spark_line_cpu")
-        c.delete("spark_dot_cpu")
+        if getattr(self, '_sparklines_dirty', True) or rebuild:
+            self._sparklines_dirty = False
+            c.delete("spark_line_ram")
+            c.delete("spark_dot_ram")
+            c.delete("spark_line_cpu")
+            c.delete("spark_dot_cpu")
 
-        hw = w / 2.0
-        r1 = min(42, hw * 0.20)
-        cx1 = hw * 0.26
-        sx1 = cx1 + r1 + 18
-        sx2 = hw - 10
-        sy1 = 44
-        sy2 = 138
+            hw = w / 2.0
+            r1 = min(42, hw * 0.20)
+            cx1 = hw * 0.26
+            sx1 = cx1 + r1 + 18
+            sx2 = hw - 10
+            sy1 = 44
+            sy2 = 138
 
-        r2 = min(42, hw * 0.20)
-        cx2 = hw + hw * 0.26
-        sx3 = cx2 + r2 + 18
-        sx4 = w - 10
-        sy3 = 44
-        sy4 = 138
+            r2 = min(42, hw * 0.20)
+            cx2 = hw + hw * 0.26
+            sx3 = cx2 + r2 + 18
+            sx4 = w - 10
+            sy3 = 44
+            sy4 = 138
 
-        # RAM rolling sparkline
-        ram_pts = list(self.ram_history)
-        if len(ram_pts) >= 2:
-            poly_ram = []
-            for i, val in enumerate(ram_pts):
-                px = sx1 + 3 + (i / max(1, len(ram_pts) - 1)) * (sx2 - sx1 - 6)
-                clamped_v = max(0.0, min(100.0, float(val)))
-                py = sy2 - 3 - (clamped_v / 100.0) * (sy2 - sy1 - 6)
-                poly_ram.extend([px, py])
+            # RAM rolling sparkline
+            ram_pts = list(self.ram_history)
+            if len(ram_pts) >= 2:
+                poly_ram = []
+                for i, val in enumerate(ram_pts):
+                    px = sx1 + 3 + (i / max(1, len(ram_pts) - 1)) * (sx2 - sx1 - 6)
+                    clamped_v = max(0.0, min(100.0, float(val)))
+                    py = sy2 - 3 - (clamped_v / 100.0) * (sy2 - sy1 - 6)
+                    poly_ram.extend([px, py])
 
-            c.create_line(*poly_ram, fill=ram_color, width=2, smooth=True, tag="spark_line_ram")
-            last_rx, last_ry = poly_ram[-2], poly_ram[-1]
-            c.create_oval(last_rx - 3, last_ry - 3, last_rx + 3, last_ry + 3, fill=ram_color, outline="#FFFFFF", width=1, tag="spark_dot_ram")
-            try:
-                ram_dev = statistics.stdev(ram_pts) if len(ram_pts) > 1 else 0.0
-            except Exception:
-                ram_dev = 0.0
-            c.itemconfigure("spark_ram_readout", text=f"{int(ram_pts[-1])}% (±{ram_dev:.1f}%)", fill=ram_color)
+                c.create_line(*poly_ram, fill=ram_color, width=2, smooth=True, tag="spark_line_ram")
+                last_rx, last_ry = poly_ram[-2], poly_ram[-1]
+                c.create_oval(last_rx - 3, last_ry - 3, last_rx + 3, last_ry + 3, fill=ram_color, outline="#FFFFFF", width=1, tag="spark_dot_ram")
+                try:
+                    ram_dev = statistics.stdev(ram_pts) if len(ram_pts) > 1 else 0.0
+                except Exception:
+                    ram_dev = 0.0
+                c.itemconfigure("spark_ram_readout", text=f"{int(ram_pts[-1])}% (±{ram_dev:.1f}%)", fill=ram_color)
 
-        # CPU rolling sparkline
-        cpu_pts = list(self.cpu_history)
-        if len(cpu_pts) >= 2:
-            poly_cpu = []
-            for i, val in enumerate(cpu_pts):
-                px = sx3 + 3 + (i / max(1, len(cpu_pts) - 1)) * (sx4 - sx3 - 6)
-                clamped_v = max(0.0, min(100.0, float(val)))
-                py = sy4 - 3 - (clamped_v / 100.0) * (sy4 - sy3 - 6)
-                poly_cpu.extend([px, py])
+            # CPU rolling sparkline
+            cpu_pts = list(self.cpu_history)
+            if len(cpu_pts) >= 2:
+                poly_cpu = []
+                for i, val in enumerate(cpu_pts):
+                    px = sx3 + 3 + (i / max(1, len(cpu_pts) - 1)) * (sx4 - sx3 - 6)
+                    clamped_v = max(0.0, min(100.0, float(val)))
+                    py = sy4 - 3 - (clamped_v / 100.0) * (sy4 - sy3 - 6)
+                    poly_cpu.extend([px, py])
 
-            c.create_line(*poly_cpu, fill=cpu_color, width=2, smooth=True, tag="spark_line_cpu")
-            last_cx, last_cy = poly_cpu[-2], poly_cpu[-1]
-            c.create_oval(last_cx - 3, last_cy - 3, last_cx + 3, last_cy + 3, fill=cpu_color, outline="#FFFFFF", width=1, tag="spark_dot_cpu")
-            try:
-                cpu_dev = statistics.stdev(cpu_pts) if len(cpu_pts) > 1 else 0.0
-            except Exception:
-                cpu_dev = 0.0
-            c.itemconfigure("spark_cpu_readout", text=f"{int(cpu_pts[-1])}% (±{cpu_dev:.1f}%)", fill=cpu_color)
+                c.create_line(*poly_cpu, fill=cpu_color, width=2, smooth=True, tag="spark_line_cpu")
+                last_cx, last_cy = poly_cpu[-2], poly_cpu[-1]
+                c.create_oval(last_cx - 3, last_cy - 3, last_cx + 3, last_cy + 3, fill=cpu_color, outline="#FFFFFF", width=1, tag="spark_dot_cpu")
+                try:
+                    cpu_dev = statistics.stdev(cpu_pts) if len(cpu_pts) > 1 else 0.0
+                except Exception:
+                    cpu_dev = 0.0
+                c.itemconfigure("spark_cpu_readout", text=f"{int(cpu_pts[-1])}% (±{cpu_dev:.1f}%)", fill=cpu_color)
 
     def _render_radar_scanner(self):
         if not hasattr(self, 'radar_canvas') or not self.radar_canvas.winfo_exists():
@@ -2438,6 +2440,8 @@ class AntimagistV3App(ctk.CTk):
     # ========================================================================
     # TELEMETRY POLLING LOOP (OPTIMIZED)
     # ========================================================================
+    # TELEMETRY POLLING LOOP (DECOUPLED ZERO-OVERHEAD IN-MEMORY TICK)
+    # ========================================================================
     def _poll_telemetry_loop(self):
         try:
             if not hasattr(self, 'winfo_exists') or not self.winfo_exists():
@@ -2445,116 +2449,106 @@ class AntimagistV3App(ctk.CTk):
         except Exception:
             return
 
-        def worker():
-            try:
-                # Sample CPU with non-blocking recurring 1-second timer
-                m = self.optimizer.get_live_metrics(cpu_interval=None)
-                # Only scan top processes if currently on dashboard to save CPU
-                top_procs = self.optimizer.get_top_memory_processes(5) if getattr(self, 'current_pane', None) == "dash" else []
-                ping_stats = self.ping_optimizer.get_live_ping_telemetry()
-                bw_stats = self.bandwidth_meter.get_live_bandwidth_rates()
+        try:
+            from telemetry_bus import telemetry_bus
+            m = telemetry_bus.get_latest_metrics()
+            ram_pct = m.get("ram_pct", 0.0)
+            cpu_pct = m.get("cpu_pct", 0.0)
+            ram_used = m.get("ram_used_gb", 0.0)
+            ram_total = m.get("ram_total_gb", 0.0)
+            ping_ms = m.get("ping_ms", 12.0)
+            jitter_ms = m.get("jitter_ms", 1.0)
+            loss_pct = m.get("packet_loss_pct", 0.0)
+            down_str = m.get("down_str", "0.0 KB/s")
+            up_str = m.get("up_str", "0.0 KB/s")
+            active_procs = m.get("active_processes", 120)
+            top_procs = m.get("top_5_memory_processes", [])
 
-                def update_ui():
-                    if not hasattr(self, 'winfo_exists') or not self.winfo_exists():
-                        return
-                    self.target_ram_pct = m["ram_percentage"]
-                    self.target_cpu_pct = m["cpu_percentage"]
-                    self.ram_history.append(float(m["ram_percentage"]))
-                    self.cpu_history.append(float(m["cpu_percentage"]))
+            self.target_ram_pct = ram_pct
+            self.target_cpu_pct = cpu_pct
+            self.ram_history.append(float(ram_pct))
+            self.cpu_history.append(float(cpu_pct))
+            self._sparklines_dirty = True
 
-                    # Dynamic System Health Computation
-                    health = 100.0
-                    if m["ram_percentage"] > 85:
-                        health -= (m["ram_percentage"] - 85) * 1.5
-                    elif m["ram_percentage"] > 75:
-                        health -= (m["ram_percentage"] - 75) * 0.5
-                    if m["cpu_percentage"] > 80:
-                        health -= (m["cpu_percentage"] - 80) * 1.2
-                    if getattr(self, 'gpu_temp_val', 40.0) > 75:
-                        health -= (getattr(self, 'gpu_temp_val', 40.0) - 75) * 2.0
-                    self.system_health_pct = max(10.0, min(100.0, round(health, 1)))
+            # Dynamic System Health Computation
+            health = 100.0
+            if ram_pct > 85:
+                health -= (ram_pct - 85) * 1.5
+            elif ram_pct > 75:
+                health -= (ram_pct - 75) * 0.5
+            if cpu_pct > 80:
+                health -= (cpu_pct - 80) * 1.2
+            if getattr(self, 'gpu_temp_val', 40.0) > 75:
+                health -= (getattr(self, 'gpu_temp_val', 40.0) - 75) * 2.0
+            self.system_health_pct = max(10.0, min(100.0, round(health, 1)))
 
-                    # Apply strict conditional styling variables
-                    self._update_conditional_styling()
+            # Apply strict conditional styling variables
+            self._update_conditional_styling()
 
-                    # Update topbar pills with value-change guards
-                    ram_text = f"RAM: {m['used_ram_gb']} / {m['total_ram_gb']} GB"
-                    if getattr(self, '_last_pill_ram_text', None) != ram_text and hasattr(self, 'pill_ram'):
-                        self.pill_ram.configure(text=ram_text)
-                        self._last_pill_ram_text = ram_text
+            # Update topbar pills with value-change guards
+            ram_text = f"RAM: {ram_used:.1f} / {ram_total:.1f} GB"
+            if getattr(self, '_last_pill_ram_text', None) != ram_text and hasattr(self, 'pill_ram'):
+                self.pill_ram.configure(text=ram_text)
+                self._last_pill_ram_text = ram_text
 
-                    cpu_text = f"CPU: {m['cpu_percentage']}%"
-                    if getattr(self, '_last_pill_cpu_text', None) != cpu_text and hasattr(self, 'pill_cpu'):
-                        self.pill_cpu.configure(text=cpu_text)
-                        self._last_pill_cpu_text = cpu_text
+            cpu_text = f"CPU: {cpu_pct:.1f}%"
+            if getattr(self, '_last_pill_cpu_text', None) != cpu_text and hasattr(self, 'pill_cpu'):
+                self.pill_cpu.configure(text=cpu_text)
+                self._last_pill_cpu_text = cpu_text
 
-                    # Update topbar ping pill with rolling telemetry (Ping + Jitter + Packet Loss)
-                    p_ms = ping_stats["ping_ms"]
-                    p_jitter = ping_stats.get("jitter_ms", 0.8)
-                    p_loss = ping_stats.get("packet_loss_pct", 0.0)
-                    p_color = ping_stats["status_color"]
-                    ping_text = f"PING: {p_ms:.0f}ms | JITTER: +/-{p_jitter:.1f}ms | LOSS: {p_loss:.0f}%"
-                    if getattr(self, '_last_pill_ping_text', None) != ping_text and hasattr(self, 'pill_ping'):
-                        self.pill_ping.configure(text=ping_text, text_color=p_color)
-                        self._last_pill_ping_text = ping_text
+            # Update topbar ping pill
+            p_color = COLOR_EMERALD if ping_ms < 30 else (COLOR_AMBER if ping_ms < 80 else COLOR_CRIMSON)
+            ping_text = f"PING: {ping_ms:.0f}ms | JITTER: +/-{jitter_ms:.1f}ms | LOSS: {loss_pct:.0f}%"
+            if getattr(self, '_last_pill_ping_text', None) != ping_text and hasattr(self, 'pill_ping'):
+                self.pill_ping.configure(text=ping_text, text_color=p_color)
+                self._last_pill_ping_text = ping_text
 
-                    # Update Network Guard live telemetry if card exists
-                    if hasattr(self, 'net_lbl_ping_val') and self.net_lbl_ping_val.winfo_exists():
-                        self.net_lbl_ping_val.configure(text=f"{p_ms} ms", text_color=p_color)
-                        self.net_lbl_jitter_val.configure(text=f"{ping_stats['jitter_ms']} ms")
-                        self.net_lbl_loss_val.configure(text=f"{ping_stats['packet_loss_pct']}%")
-                        self.net_lbl_down_val.configure(text=bw_stats['down_str'])
-                        self.net_lbl_up_val.configure(text=bw_stats['up_str'])
+            # Update Network Guard live telemetry if card exists
+            if hasattr(self, 'net_lbl_ping_val') and self.net_lbl_ping_val.winfo_exists():
+                self.net_lbl_ping_val.configure(text=f"{ping_ms:.0f} ms", text_color=p_color)
+                self.net_lbl_jitter_val.configure(text=f"{jitter_ms:.1f} ms")
+                self.net_lbl_loss_val.configure(text=f"{loss_pct:.0f}%")
+                self.net_lbl_down_val.configure(text=down_str)
+                self.net_lbl_up_val.configure(text=up_str)
 
-                    # Update Gamer Mode ping if badge exists
-                    if hasattr(self, 'gamer_lbl_ping') and self.gamer_lbl_ping.winfo_exists():
-                        self.gamer_lbl_ping.configure(text=f"GAMING PING\n{p_ms} ms", text_color=p_color)
+            # Update Gamer Mode ping if badge exists
+            if hasattr(self, 'gamer_lbl_ping') and self.gamer_lbl_ping.winfo_exists():
+                self.gamer_lbl_ping.configure(text=f"GAMING PING\n{ping_ms:.0f} ms", text_color=p_color)
 
-                    # Update dashboard texts if active
-                    if hasattr(self, 'lbl_gauge_ram_text') and self.lbl_gauge_ram_text.winfo_exists():
-                        dash_ram = f"RAM: {m['used_ram_gb']} / {m['total_ram_gb']} GB ({m['ram_percentage']}%)"
-                        self.lbl_gauge_ram_text.configure(text=dash_ram)
-                        self.lbl_gauge_cpu_text.configure(text=f"CPU: {m['cpu_percentage']}% (Active: {m['active_processes']})")
+            # Update dashboard texts if active
+            if hasattr(self, 'lbl_gauge_ram_text') and self.lbl_gauge_ram_text.winfo_exists():
+                dash_ram = f"RAM: {ram_used:.1f} / {ram_total:.1f} GB ({ram_pct:.1f}%)"
+                if getattr(self, '_last_dash_ram_txt', None) != dash_ram:
+                    self.lbl_gauge_ram_text.configure(text=dash_ram)
+                    self._last_dash_ram_txt = dash_ram
 
-                    # Update top 5 processes list formatted to stretch cleanly across full width of container
-                    if top_procs and getattr(self, 'proc_list_box', None) and self.proc_list_box.winfo_exists():
-                        header = f"{'PROCESS NAME':<30} {'MEMORY USAGE':>16}\n"
-                        divider = "─" * 48 + "\n"
-                        lines = [header, divider]
-                        for name, mem_mb in top_procs:
-                            lines.append(f"{name[:28]:<30} {f'{mem_mb:.1f} MB':>16}\n")
-                        proc_text = "".join(lines)
-                        self._stream_terminal_output(self.proc_list_box, proc_text)
+                dash_cpu = f"CPU: {cpu_pct:.1f}% (Active: {active_procs})"
+                if getattr(self, '_last_dash_cpu_txt', None) != dash_cpu:
+                    self.lbl_gauge_cpu_text.configure(text=dash_cpu)
+                    self._last_dash_cpu_txt = dash_cpu
 
-                self.after(0, update_ui)
+            # Update top 5 processes list on dashboard
+            if top_procs and getattr(self, 'proc_list_box', None) and self.proc_list_box.winfo_exists():
+                header = f"{'PROCESS NAME':<30} {'MEMORY USAGE':>16}\n"
+                divider = "─" * 48 + "\n"
+                lines = [header, divider]
+                for name, mem_mb in top_procs:
+                    lines.append(f"{name[:28]:<30} {f'{mem_mb:.1f} MB':>16}\n")
+                proc_text = "".join(lines)
+                if getattr(self, '_last_proc_list_text', None) != proc_text:
+                    self._stream_terminal_output(self.proc_list_box, proc_text)
+                    self._last_proc_list_text = proc_text
 
-                # Auto-Pilot Guardian: If system RAM > 80%, automatically trigger Standby/Working Set flush
-                if getattr(self, 'auto_pilot_enabled', True):
-                    now = time.time()
-                    if m.get("ram_percentage", 0) >= 80.0 and (now - getattr(self, '_last_autopilot_flush_time', 0.0) > 30.0):
-                        self._last_autopilot_flush_time = now
-                        initial_used = psutil.virtual_memory().used
-                        self.optimizer.run_memory_boost(lambda res: None)
-                        time.sleep(0.5)
-                        final_used = psutil.virtual_memory().used
-                        freed_gb = max(0.05, (initial_used - final_used) / (1024**3))
-                        auto_log = f"[Auto-Pilot] RAM exceeded 80% — Cleared {freed_gb:.1f} GB standby memory"
-                        self.log_to_ai_feed(f"🤖 {auto_log}")
-                        if hasattr(self, 'show_toast_msg'):
-                            self.after(0, lambda msg=auto_log: self.show_toast_msg(msg))
-                        if hasattr(self, 'voice') and self.voice and getattr(self, 'voice_enabled', True):
-                            try:
-                                self.voice.speak(f"Auto-pilot cleared {freed_gb:.1f} gigabytes of memory.")
-                            except Exception:
-                                pass
-                        if hasattr(self, '_refresh_interactive_processes_ui'):
-                            self._refresh_interactive_processes_ui()
-            except Exception:
-                pass
+            # Non-blocking Auto-Pilot Guardian check
+            if getattr(self, 'auto_pilot_enabled', True):
+                now = time.time()
+                if ram_pct >= 80.0 and (now - getattr(self, '_last_autopilot_flush_time', 0.0) > 45.0):
+                    self._last_autopilot_flush_time = now
+                    threading.Thread(target=self._run_bg_autopilot_trim, daemon=True).start()
+        except Exception:
+            pass
 
-        threading.Thread(target=worker, daemon=True).start()
-
-        # Responsive recurring 1-second polling timer (1.0s visible, 3.0s minimized)
+        # Schedule next tick via single lightweight timer
         is_visible = True
         try:
             is_visible = self.winfo_viewable() and self.state() != "iconic"
@@ -2562,6 +2556,26 @@ class AntimagistV3App(ctk.CTk):
             pass
         delay = 1000 if is_visible else 3000
         self.after(delay, self._poll_telemetry_loop)
+
+    def _run_bg_autopilot_trim(self):
+        """Asynchronous memory trim that never blocks the GUI thread."""
+        try:
+            initial_used = psutil.virtual_memory().used
+            self.optimizer.run_memory_boost(lambda res: None)
+            time.sleep(0.3)
+            final_used = psutil.virtual_memory().used
+            freed_gb = max(0.05, (initial_used - final_used) / (1024**3))
+            auto_log = f"[Auto-Pilot] RAM exceeded 80% — Cleared {freed_gb:.1f} GB standby memory"
+            self.log_to_ai_feed(f"🤖 {auto_log}")
+            if hasattr(self, 'show_toast_msg'):
+                self.after(0, lambda msg=auto_log: self.show_toast_msg(msg))
+            if hasattr(self, 'voice') and self.voice and getattr(self, 'voice_enabled', True):
+                try:
+                    self.voice.speak(f"Auto-pilot cleared {freed_gb:.1f} gigabytes of memory.")
+                except Exception:
+                    pass
+        except Exception:
+            pass
 
     def toggle_auto_pilot_guardian(self):
         self.auto_pilot_enabled = not getattr(self, 'auto_pilot_enabled', True)
@@ -2659,15 +2673,17 @@ class AntimagistV3App(ctk.CTk):
                 )
                 self._last_health_badge_text = health_txt
 
-        # Dynamically shift 1px glassmorphic border colors across telemetry widget cards
-        border_col = accent if mode != "NORMAL" else COLOR_GLASS_BORDER
-        for widget_name in ["gauge_card", "proc_card", "bottom_bar"]:
-            w = getattr(self, widget_name, None)
-            if w and hasattr(w, "winfo_exists") and w.winfo_exists():
-                try:
-                    w.configure(border_color=border_col)
-                except Exception:
-                    pass
+        # Dynamically shift 1px glassmorphic border colors across telemetry widget cards (only when mode changes)
+        if getattr(self, '_last_theme_status_mode', None) != mode:
+            self._last_theme_status_mode = mode
+            border_col = accent if mode != "NORMAL" else COLOR_GLASS_BORDER
+            for widget_name in ["gauge_card", "proc_card", "bottom_bar"]:
+                w = getattr(self, widget_name, None)
+                if w and hasattr(w, "winfo_exists") and w.winfo_exists():
+                    try:
+                        w.configure(border_color=border_col)
+                    except Exception:
+                        pass
 
 
 # ============================================================================

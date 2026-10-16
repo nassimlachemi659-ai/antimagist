@@ -63,7 +63,7 @@ class AntimagistGPUSentinel:
         ]
         try:
             res = subprocess.run(
-                cmd, capture_output=True, text=True, timeout=1.5,
+                cmd, capture_output=True, text=True, timeout=2.0,
                 creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
             )
             if res.returncode == 0 and res.stdout.strip():
@@ -124,23 +124,29 @@ class AntimagistGPUSentinel:
 
     def _poll_gpu(self):
         now = time.time()
-        # Cache for at least 2.5s to prevent excessive polling
-        if now - self.last_poll_time < 2.5 and self.last_metrics.get("gpu_name") != "Detecting GPU...":
+        # Throttle to slow tier (5.0s) to completely eliminate subprocess spam
+        if now - self.last_poll_time < 5.0 and self.last_metrics.get("gpu_name") != "Detecting GPU...":
             return
 
-        nv = self._query_nvidia_smi()
-        if nv:
-            with self._lock:
-                self.last_metrics = nv
-                self.last_poll_time = now
-        else:
-            with self._lock:
-                self.last_metrics["gpu_name"] = "Standard Graphics Adapter"
-                self.last_metrics["is_available"] = False
-                self.last_poll_time = now
+        def _bg_worker():
+            try:
+                nv = self._query_nvidia_smi()
+                with self._lock:
+                    if nv:
+                        self.last_metrics = nv
+                    else:
+                        self.last_metrics["gpu_name"] = "Standard Graphics Adapter"
+                        self.last_metrics["is_available"] = False
+                    self.last_poll_time = time.time()
+            finally:
+                self._poll_in_progress = False
+
+        if not getattr(self, '_poll_in_progress', False):
+            self._poll_in_progress = True
+            threading.Thread(target=_bg_worker, name="GPUPollWorker", daemon=True).start()
 
     def get_live_gpu_metrics(self) -> Dict[str, Any]:
-        """Returns live cached GPU metrics."""
+        """Returns live cached GPU metrics instantly with zero UI thread blocking."""
         self._poll_gpu()
         with self._lock:
             return dict(self.last_metrics)

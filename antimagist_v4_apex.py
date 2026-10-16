@@ -592,6 +592,7 @@ class AntimagistV4ApexApp(AntimagistV3App):
             scrollbar_button_color=COLOR_BORDER, scrollbar_button_hover_color=COLOR_BORDER_GLOW
         )
         self.sidebar_scroll.pack(fill="both", expand=True, padx=4, pady=(2, 8))
+        self._setup_smooth_sidebar_scroll()
 
         # ── MALWAREBYTES-STYLE 5 CLEAN PRIMARY NAVIGATION TABS ──────────────
         nav_main_box = ctk.CTkFrame(self.sidebar_scroll, fg_color="transparent")
@@ -762,6 +763,28 @@ class AntimagistV4ApexApp(AntimagistV3App):
                 btn.pack(fill="x", padx=2, pady=1)
                 self.nav_buttons[key] = btn
 
+    def _setup_smooth_sidebar_scroll(self):
+        """Enables instant, lag-free mousewheel scrolling across all sidebar child widgets."""
+        canvas = getattr(self.sidebar_scroll, "_parent_canvas", None)
+        if not canvas:
+            return
+
+        def _on_wheel(e):
+            try:
+                delta = getattr(e, 'delta', 0)
+                if delta:
+                    # Windows mousewheel delta is typically +/- 120
+                    canvas.yview_scroll(int(-1 * (delta / 40)), "units")
+            except Exception:
+                pass
+            return "break"
+
+        try:
+            self.sidebar_scroll.bind("<Enter>", lambda e: self.sidebar_scroll.bind_all("<MouseWheel>", _on_wheel), add="+")
+            self.sidebar_scroll.bind("<Leave>", lambda e: self.sidebar_scroll.unbind_all("<MouseWheel>"), add="+")
+        except Exception:
+            pass
+
     def _toggle_category(self, cat_name: str):
         try: self.sfx.play_click()
         except Exception: pass
@@ -779,6 +802,15 @@ class AntimagistV4ApexApp(AntimagistV3App):
             if frame: frame.pack(fill="x", padx=2, pady=(2, 2))
             self.category_expanded[cat_name] = True
             if hdr: hdr.configure(text=f"▼  {icon} {cat_name} ({count})", text_color=COLOR_TEXT_PRIMARY)
+
+        # Instant canvas scroll region recomputation for lag-free accordion toggling
+        if hasattr(self, 'sidebar_scroll') and hasattr(self.sidebar_scroll, '_parent_canvas'):
+            try:
+                self.sidebar_scroll._parent_canvas.configure(
+                    scrollregion=self.sidebar_scroll._parent_canvas.bbox("all")
+                )
+            except Exception:
+                pass
 
     def _expand_category(self, cat_name: str):
         if not self.category_expanded.get(cat_name, False):
@@ -2209,65 +2241,131 @@ class AntimagistV4ApexApp(AntimagistV3App):
         self.sfx.play_click()
         self.optimizer.run_cache_sweep(self.show_toast_msg)
 
-    def _refresh_interactive_processes_ui(self):
+    def _ensure_proc_row_pool(self, max_rows: int = 8):
+        """Pre-allocates and pools interactive process row widgets to eliminate GC churn."""
+        if not hasattr(self, '_proc_row_pool'):
+            self._proc_row_pool = []
         if not hasattr(self, 'proc_scroll_frame') or not self.proc_scroll_frame or not hasattr(self.proc_scroll_frame, 'winfo_exists') or not self.proc_scroll_frame.winfo_exists():
             return
+
+        if not hasattr(self, '_proc_empty_label') or not self._proc_empty_label or not self._proc_empty_label.winfo_exists():
+            self._proc_empty_label = ctk.CTkLabel(
+                self.proc_scroll_frame, text="No active user processes detected.",
+                font=("Segoe UI", 9), text_color=COLOR_TEXT_MUTED
+            )
+
+        while len(self._proc_row_pool) < max_rows:
+            idx = len(self._proc_row_pool)
+            row_bg = "#11141D" if (idx % 2 == 0) else "#151924"
+            row = ctk.CTkFrame(self.proc_scroll_frame, fg_color=row_bg, corner_radius=6, height=28)
+            row.pack_propagate(False)
+
+            lbl_proc = ctk.CTkLabel(row, text="", font=(FONT_FAMILY_MONO, 9, "bold"), text_color=COLOR_TEXT_PRIMARY, anchor="w")
+            lbl_proc.pack(side="left", padx=(8, 4))
+
+            lbl_mem = ctk.CTkLabel(row, text="", font=(FONT_FAMILY_MONO, 9, "bold"), text_color=COLOR_EMERALD, width=65, anchor="e")
+            lbl_mem.pack(side="left", padx=2)
+
+            btn_kill = ctk.CTkButton(
+                row, text="Kill", font=(FONT_FAMILY_UI, 9, "bold"),
+                fg_color="#3B1219", hover_color="#7F1D1D", text_color="#FCA5A5",
+                border_color="#7F1D1D", border_width=1,
+                width=38, height=20, corner_radius=4,
+                command=lambda: None
+            )
+            btn_kill.pack(side="right", padx=(2, 6), pady=3)
+
+            btn_trim = ctk.CTkButton(
+                row, text="Trim RAM", font=(FONT_FAMILY_UI, 9, "bold"),
+                fg_color=COLOR_CARD_HOVER, hover_color=COLOR_BORDER_GLOW, text_color=COLOR_CYAN,
+                border_color=COLOR_BORDER, border_width=1,
+                width=64, height=20, corner_radius=4,
+                command=lambda: None
+            )
+            btn_trim.pack(side="right", padx=(2, 2), pady=3)
+
+            self._proc_row_pool.append({
+                "frame": row,
+                "lbl_proc": lbl_proc,
+                "lbl_mem": lbl_mem,
+                "btn_kill": btn_kill,
+                "btn_trim": btn_trim,
+                "last_text": "",
+                "last_mem": "",
+                "current_pid": None
+            })
+
+    def _render_interactive_processes(self, procs: List[Dict[str, Any]]):
+        """In-place updates the process rows with zero widget destruction."""
+        if not hasattr(self, 'proc_scroll_frame') or not self.proc_scroll_frame or not hasattr(self.proc_scroll_frame, 'winfo_exists') or not self.proc_scroll_frame.winfo_exists():
+            return
+
+        needed = max(8, len(procs))
+        self._ensure_proc_row_pool(needed)
+
+        if not procs:
+            for item in self._proc_row_pool:
+                item["frame"].pack_forget()
+            if hasattr(self, '_proc_empty_label') and self._proc_empty_label.winfo_exists():
+                self._proc_empty_label.pack(pady=10)
+            return
+
+        if hasattr(self, '_proc_empty_label') and self._proc_empty_label.winfo_exists():
+            self._proc_empty_label.pack_forget()
+
+        for idx, p in enumerate(procs):
+            if idx >= len(self._proc_row_pool):
+                break
+            item = self._proc_row_pool[idx]
+            pid = p.get('pid', 0)
+            name = p.get('name', 'Unknown')
+            mem_mb = p.get('memory_mb', 0.0)
+
+            disp_name = (name[:16] + "...") if len(name) > 18 else name
+            proc_text = f"{disp_name} ({pid})"
+            mem_text = f"{mem_mb:.1f} MB"
+
+            if item["last_text"] != proc_text:
+                item["lbl_proc"].configure(text=proc_text)
+                item["last_text"] = proc_text
+
+            if item["last_mem"] != mem_text:
+                item["lbl_mem"].configure(text=mem_text)
+                item["last_mem"] = mem_text
+
+            if item.get("current_pid") != pid:
+                item["btn_kill"].configure(command=lambda p_id=pid, p_name=name: self._kill_process_action(p_id, p_name))
+                item["btn_trim"].configure(command=lambda p_id=pid, p_name=name: self._trim_process_action(p_id, p_name))
+                item["current_pid"] = pid
+
+            item["frame"].pack(fill="x", pady=1, padx=2)
+
+        for idx in range(len(procs), len(self._proc_row_pool)):
+            self._proc_row_pool[idx]["frame"].pack_forget()
+
+    def _refresh_interactive_processes_ui(self):
+        """Fetches top processes non-blockingly from telemetry cache or background scan and updates rows in-place."""
+        if not hasattr(self, 'proc_scroll_frame') or not self.proc_scroll_frame or not hasattr(self.proc_scroll_frame, 'winfo_exists') or not self.proc_scroll_frame.winfo_exists():
+            return
+
+        # Instant read from central telemetry bus cache
+        try:
+            from telemetry_bus import telemetry_bus
+            procs = telemetry_bus.get_latest_metrics().get("top_processes", [])
+            if procs:
+                self._render_interactive_processes(procs)
+                return
+        except Exception:
+            procs = []
+
+        # Asynchronous background fallback if cache not yet populated
         def fetch_worker():
             try:
-                procs = self.optimizer.get_top_interactive_processes(8)
+                p_list = self.optimizer.get_top_interactive_processes(8)
             except Exception:
-                procs = []
-
-            def render():
-                if not hasattr(self, 'proc_scroll_frame') or not self.proc_scroll_frame or not hasattr(self.proc_scroll_frame, 'winfo_exists') or not self.proc_scroll_frame.winfo_exists():
-                    return
-                for w in self.proc_scroll_frame.winfo_children():
-                    w.destroy()
-
-                if not procs:
-                    ctk.CTkLabel(self.proc_scroll_frame, text="No active user processes detected.", font=("Segoe UI", 9), text_color=COLOR_TEXT_MUTED).pack(pady=10)
-                    return
-
-                for idx, p in enumerate(procs):
-                    pid = p['pid']
-                    name = p['name']
-                    mem_mb = p['memory_mb']
-
-                    # Alternating shaded rows (#11141D / #151924)
-                    row_bg = "#11141D" if (idx % 2 == 0) else "#151924"
-                    row = ctk.CTkFrame(self.proc_scroll_frame, fg_color=row_bg, corner_radius=6, height=28)
-                    row.pack(fill="x", pady=1, padx=2)
-                    row.pack_propagate(False)
-
-                    disp_name = (name[:16] + "...") if len(name) > 18 else name
-                    lbl_proc = ctk.CTkLabel(row, text=f"{disp_name} ({pid})", font=(FONT_FAMILY_MONO, 9, "bold"), text_color=COLOR_TEXT_PRIMARY, anchor="w")
-                    lbl_proc.pack(side="left", padx=(8, 4))
-
-                    lbl_mem = ctk.CTkLabel(row, text=f"{mem_mb:.1f} MB", font=(FONT_FAMILY_MONO, 9, "bold"), text_color=COLOR_EMERALD, width=65, anchor="e")
-                    lbl_mem.pack(side="left", padx=2)
-
-                    # Kill Button
-                    btn_kill = ctk.CTkButton(
-                        row, text="Kill", font=(FONT_FAMILY_UI, 9, "bold"),
-                        fg_color="#3B1219", hover_color="#7F1D1D", text_color="#FCA5A5",
-                        border_color="#7F1D1D", border_width=1,
-                        width=38, height=20, corner_radius=4,
-                        command=lambda p_id=pid, p_name=name: self._kill_process_action(p_id, p_name)
-                    )
-                    btn_kill.pack(side="right", padx=(2, 6), pady=3)
-
-                    # Trim RAM Button
-                    btn_trim = ctk.CTkButton(
-                        row, text="Trim RAM", font=(FONT_FAMILY_UI, 9, "bold"),
-                        fg_color=COLOR_CARD_HOVER, hover_color=COLOR_BORDER_GLOW, text_color=COLOR_CYAN,
-                        border_color=COLOR_BORDER, border_width=1,
-                        width=64, height=20, corner_radius=4,
-                        command=lambda p_id=pid, p_name=name: self._trim_process_action(p_id, p_name)
-                    )
-                    btn_trim.pack(side="right", padx=(2, 2), pady=3)
-
+                p_list = []
             try:
-                self.after(0, render)
+                self.after(0, lambda: self._render_interactive_processes(p_list))
             except Exception:
                 pass
         threading.Thread(target=fetch_worker, daemon=True).start()
@@ -5838,8 +5936,11 @@ composite hardware score and throughput ratings.
             gm = m.get("gpu", {})
             self.gpu_temp_val = float(gm.get("temperature_c", 42.0))
 
-            # Dynamically refresh conditional styling
-            self._update_conditional_styling()
+            # In-place process list update from telemetry cache (zero overhead)
+            if getattr(self, 'current_pane', None) == "dash" and hasattr(self, 'proc_scroll_frame') and self.proc_scroll_frame.winfo_exists():
+                top_p = m.get("top_processes", [])
+                if top_p:
+                    self._render_interactive_processes(top_p)
 
             if hasattr(self, 'pill_gpu') and self.pill_gpu.winfo_exists():
                 g_text = f"🎮 {gm.get('gpu_name', 'GPU')}: {gm.get('temperature_c', 40)}°C"

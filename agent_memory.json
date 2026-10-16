@@ -185,6 +185,36 @@
       "tool": "throttle_process",
       "success": true,
       "detail": "Successfully throttled 'python.exe' (PID: 8376) -> CPU: normal, I/O: normal, Affinity: None."
+    },
+    {
+      "timestamp": "2026-10-15T22:41:45",
+      "tool": "throttle_process",
+      "success": true,
+      "detail": "Successfully throttled 'python.exe' (PID: 4756) -> CPU: normal, I/O: normal, Affinity: None."
+    },
+    {
+      "timestamp": "2026-10-15T22:41:53",
+      "tool": "throttle_process",
+      "success": true,
+      "detail": "Successfully throttled 'python.exe' (PID: 10200) -> CPU: normal, I/O: normal, Affinity: None."
+    },
+    {
+      "timestamp": "2026-10-15T22:42:24",
+      "tool": "throttle_process",
+      "success": true,
+      "detail": "Successfully throttled 'python.exe' (PID: 2012) -> CPU: normal, I/O: normal, Affinity: None."
+    },
+    {
+      "timestamp": "2026-10-15T22:42:34",
+      "tool": "throttle_process",
+      "success": true,
+      "detail": "Successfully throttled 'python.exe' (PID: 5568) -> CPU: normal, I/O: normal, Affinity: None."
+    },
+    {
+      "timestamp": "2026-10-15T22:43:03",
+      "tool": "throttle_process",
+      "success": true,
+      "detail": "Successfully throttled 'python.exe' (PID: 19536) -> CPU: normal, I/O: normal, Affinity: None."
     }
   ],
   "circuit_breaker_events": [
