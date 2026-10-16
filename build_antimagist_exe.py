@@ -27,7 +27,8 @@ BUILD_DIR = os.path.join(PROJECT_ROOT, "build")
 ICON_PATH = os.path.join(PROJECT_ROOT, "antimagist.ico")
 ENTRY_POINT = os.path.join(PROJECT_ROOT, "antimagist_v4_apex.py")
 TARGET_EXE_NAME = "Antimagist_Enterprise.exe"
-TARGET_EXE_PATH = os.path.join(DIST_DIR, TARGET_EXE_NAME)
+TARGET_EXE_DIR = os.path.join(DIST_DIR, "Antimagist_Enterprise")
+TARGET_EXE_PATH = os.path.join(TARGET_EXE_DIR, TARGET_EXE_NAME)
 
 
 def check_and_install_pyinstaller():
@@ -90,14 +91,10 @@ def build_executable():
     if res.returncode != 0:
         raise RuntimeError(f"PyInstaller compilation failed with code {res.returncode}")
 
-    # Copy the main executable directly to dist/Antimagist_Enterprise.exe for 1-click execution
-    onedir_exe = os.path.join(DIST_DIR, "Antimagist_Enterprise", "Antimagist_Enterprise.exe")
-    if os.path.exists(onedir_exe):
-        shutil.copy2(onedir_exe, TARGET_EXE_PATH)
-        # Also copy runtime dependencies into dist root
-        print(f"  [✓] Standalone binary deployed to: {TARGET_EXE_PATH}")
+    if os.path.exists(TARGET_EXE_PATH):
+        print(f"  [✓] Standalone binary ready at: {TARGET_EXE_PATH}")
     else:
-        print(f"  [✓] Compiled binary directory ready at: {os.path.join(DIST_DIR, 'Antimagist_Enterprise')}")
+        print(f"  [✓] Compiled binary directory ready at: {TARGET_EXE_DIR}")
 
 
 def create_desktop_shortcut():
