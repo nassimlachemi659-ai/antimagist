@@ -238,6 +238,96 @@ class AntimagistDisplayReflex:
         except Exception:
             pass
 
+    def set_competitive_vibrance(self, boost: float = 1.35) -> Tuple[bool, str]:
+        """
+        Calibrates hardware display gamma ramp for high-visibility competitive gaming.
+        Lifts dark shadow details and increases dynamic contrast so enemies are instantly visible.
+        """
+        if os.name != 'nt':
+            return False, "Display gamma calibration requires Windows OS."
+        try:
+            hdc = ctypes.windll.user32.GetDC(0)
+            if not hdc:
+                return False, "Could not acquire desktop device context (DC)."
+
+            ramp = (ctypes.c_ushort * 768)()
+            for i in range(256):
+                norm = i / 255.0
+                val = (norm ** (1.0 / boost)) * 65535.0
+                clamped = min(65535, max(0, int(val)))
+                ramp[i] = clamped
+                ramp[256 + i] = clamped
+                ramp[512 + i] = clamped
+
+            success = ctypes.windll.gdi32.SetDeviceGammaRamp(hdc, ramp)
+            ctypes.windll.user32.ReleaseDC(0, hdc)
+            if success:
+                return True, f"🎯 Competitive Display Vibrance applied ({int(boost*100)}% dynamic range). Shadows lifted for target visibility."
+            return False, "SetDeviceGammaRamp failed or display driver rejected custom ramp."
+        except Exception as ex:
+            return False, f"Vibrance calibration error: {ex}"
+
+    def reset_display_vibrance(self) -> Tuple[bool, str]:
+        """Restores standard 1.0 linear gamma calibration ramp."""
+        if os.name != 'nt':
+            return False, "Display gamma calibration requires Windows OS."
+        try:
+            hdc = ctypes.windll.user32.GetDC(0)
+            if not hdc:
+                return False, "Could not acquire desktop DC."
+
+            ramp = (ctypes.c_ushort * 768)()
+            for i in range(256):
+                val = min(65535, int(i * 257))
+                ramp[i] = val
+                ramp[256 + i] = val
+                ramp[512 + i] = val
+
+            success = ctypes.windll.gdi32.SetDeviceGammaRamp(hdc, ramp)
+            ctypes.windll.user32.ReleaseDC(0, hdc)
+            if success:
+                return True, "Standard 1.0 linear display gamma calibration restored."
+            return False, "Failed to restore linear gamma ramp."
+        except Exception as ex:
+            return False, f"Reset vibrance error: {ex}"
+
+    def toggle_windows_hdr(self) -> Tuple[bool, str]:
+        """
+        Dispatches native Windows HDR toggle (Win + Alt + B).
+        Switches between SDR and HDR on HDR-compatible displays.
+        """
+        if os.name != 'nt':
+            return False, "Windows HDR shortcut requires Windows OS."
+        try:
+            user32 = ctypes.windll.user32
+            VK_LWIN = 0x5B
+            VK_MENU = 0x12  # Alt
+            VK_B = 0x42
+            KEYEVENTF_KEYUP = 0x0002
+
+            import time
+            user32.keybd_event(VK_LWIN, 0, 0, 0)
+            user32.keybd_event(VK_MENU, 0, 0, 0)
+            user32.keybd_event(VK_B, 0, 0, 0)
+            time.sleep(0.06)
+            user32.keybd_event(VK_B, 0, KEYEVENTF_KEYUP, 0)
+            user32.keybd_event(VK_MENU, 0, KEYEVENTF_KEYUP, 0)
+            user32.keybd_event(VK_LWIN, 0, KEYEVENTF_KEYUP, 0)
+
+            return True, "⚡ Windows HDR toggle signal dispatched (Win + Alt + B). Display color mode updated."
+        except Exception as ex:
+            return False, f"Failed to toggle Windows HDR: {ex}"
+
+    def get_hdr_status(self) -> Dict[str, Any]:
+        """Checks display color depth and HDR posture."""
+        tel = self.get_display_telemetry()
+        bpp = tel.get("color_depth_bpp", 32)
+        return {
+            "color_depth_bpp": bpp,
+            "hdr_capable_pipeline": bpp >= 32,
+            "hotkey": "Win + Alt + B"
+        }
+
 
 if __name__ == "__main__":
     print("[*] Testing Antimagist Display Reflex Engine...")
@@ -247,4 +337,12 @@ if __name__ == "__main__":
     print(f"  • HAGS Enabled: {tel['hags_enabled']} (Mode: {tel['hags_raw_code']})")
     print(f"  • DirectFlip Optimized: {tel['directflip_optimized']}")
     print(f"  • Classification: {tel['display_classification']}")
+
+    ok_v, msg_v = reflex.set_competitive_vibrance(1.35)
+    print(f"  • Competitive Vibrance: {ok_v} -> {msg_v}")
+    ok_r, msg_r = reflex.reset_display_vibrance()
+    print(f"  • Reset Vibrance: {ok_r} -> {msg_r}")
+    ok_h, msg_h = reflex.toggle_windows_hdr()
+    print(f"  • Toggle HDR: {ok_h} -> {msg_h}")
     print("[+] Display Reflex Engine PASSED.")
+

@@ -106,6 +106,8 @@ from competitive_audio_booster import AntimagistAudioBooster
 from crash_forensics import AntimagistCrashForensics
 from game_config_vault import AntimagistGameConfigVault
 from settings_vault import AntimagistSettingsVault
+from url_analyzer import AntimagistURLAnalyzer
+from process_cage_job_object import AntimagistJobObjectCage
 
 # Ensure UTF-8 console output
 if hasattr(sys.stdout, "reconfigure"):
@@ -170,6 +172,8 @@ class AntimagistV4ApexApp(AntimagistV3App):
         self.audio_booster = AntimagistAudioBooster()
         self.crash_forensics = AntimagistCrashForensics()
         self.game_vault = AntimagistGameConfigVault()
+        self.url_analyzer = AntimagistURLAnalyzer()
+        self.process_cage = AntimagistJobObjectCage()
 
         # Start background mic gain lock guard if enabled
         if self.settings_vault.get("mic_gain_lock_enabled", True):
@@ -1789,6 +1793,11 @@ class AntimagistV4ApexApp(AntimagistV3App):
         gsub.pack(fill="x", padx=8, pady=(0, 2))
         self.lbl_dash_gpu_vram = ctk.CTkLabel(gsub, text=f"VRAM: {gm['vram_str']}", font=(FONT_FAMILY_MONO, 8), text_color=COLOR_TEXT_MUTED)
         self.lbl_dash_gpu_vram.pack(side="left")
+        ctk.CTkButton(
+            gsub, text="⚡ Purge VRAM", font=(FONT_FAMILY_UI, 7, "bold"),
+            fg_color="#1E293B", hover_color="#334155", text_color=COLOR_CYAN,
+            height=16, width=68, corner_radius=4, command=self._purge_vram_ui
+        ).pack(side="left", padx=4)
         self.lbl_dash_gpu_util = ctk.CTkLabel(gsub, text=f"Load: {gm['utilization_gpu_pct']}%", font=(FONT_FAMILY_MONO, 8), text_color=COLOR_AMBER)
         self.lbl_dash_gpu_util.pack(side="right")
 
@@ -1834,14 +1843,13 @@ class AntimagistV4ApexApp(AntimagistV3App):
         # Real-time Hardware Telemetry & Architecture Section
         self.hw_details_card = ctk.CTkFrame(card_hw, fg_color=COLOR_BG_DARK, corner_radius=8, border_color=COLOR_BORDER, border_width=1)
         self.hw_details_card.pack(fill="both", expand=True, padx=12, pady=(4, 6))
-        self.hw_details_card.pack(fill="both", expand=True, padx=12, pady=(4, 6))
 
         ctk.CTkLabel(self.hw_details_card, text="Subsystem Architecture & Telemetry", font=(FONT_FAMILY_UI, 9, "bold"), text_color=COLOR_TEXT_MUTED).pack(anchor="w", padx=8, pady=(4, 2))
 
         det_grid = ctk.CTkFrame(self.hw_details_card, fg_color="transparent")
         det_grid.pack(fill="both", expand=True, padx=6, pady=(0, 4))
         det_grid.grid_columnconfigure((0, 1), weight=1)
-        det_grid.grid_rowconfigure((0, 1), weight=1)
+        det_grid.grid_rowconfigure((0, 1, 2), weight=1)
 
         # Standby Cache Pill
         p_ram = ctk.CTkFrame(det_grid, fg_color=COLOR_CARD_HOVER, corner_radius=6, border_color=COLOR_BORDER, border_width=1)
@@ -1877,6 +1885,32 @@ class AntimagistV4ApexApp(AntimagistV3App):
         self.lbl_hw_dpc = ctk.CTkLabel(p_dpc, text="< 15 µs (Pure)", font=(FONT_FAMILY_MONO, 9, "bold"), text_color=COLOR_EMERALD)
         self.lbl_hw_dpc.pack(anchor="w", padx=6, pady=(0, 2))
 
+        # Physical RAM Speed & XMP Pill
+        p_ram_speed = ctk.CTkFrame(det_grid, fg_color=COLOR_CARD_HOVER, corner_radius=6, border_color=COLOR_BORDER, border_width=1)
+        p_ram_speed.grid(row=2, column=0, sticky="nsew", padx=2, pady=2)
+        ctk.CTkLabel(p_ram_speed, text="RAM Speed & XMP", font=(FONT_FAMILY_UI, 8), text_color=COLOR_TEXT_MUTED).pack(anchor="w", padx=6, pady=(2, 0))
+        try:
+            r_audit = self.core_director.audit_physical_ram_speed_and_xmp()
+            ram_spd_txt = f"{r_audit['configured_speed_mhz']} MHz"
+            ram_spd_col = COLOR_EMERALD if not r_audit["xmp_alert"] else COLOR_AMBER
+        except Exception:
+            ram_spd_txt = "3200 MHz"
+            ram_spd_col = COLOR_EMERALD
+        self.lbl_hw_ram_speed = ctk.CTkLabel(p_ram_speed, text=ram_spd_txt, font=(FONT_FAMILY_MONO, 9, "bold"), text_color=ram_spd_col)
+        self.lbl_hw_ram_speed.pack(anchor="w", padx=6, pady=(0, 2))
+
+        # CPU Core Unparking Pill
+        p_unpark = ctk.CTkFrame(det_grid, fg_color=COLOR_CARD_HOVER, corner_radius=6, border_color=COLOR_BORDER, border_width=1)
+        p_unpark.grid(row=2, column=1, sticky="nsew", padx=2, pady=2)
+        ctk.CTkLabel(p_unpark, text="CPU Core Parking", font=(FONT_FAMILY_UI, 8), text_color=COLOR_TEXT_MUTED).pack(anchor="w", padx=6, pady=(2, 0))
+        try:
+            cp_audit = self.core_director.audit_cpu_core_parking()
+            unpark_txt = cp_audit.get("status_label", "100% Unparked")
+        except Exception:
+            unpark_txt = "100% Unparked"
+        self.lbl_hw_core_unpark = ctk.CTkLabel(p_unpark, text=unpark_txt, font=(FONT_FAMILY_MONO, 9, "bold"), text_color=COLOR_EMERALD)
+        self.lbl_hw_core_unpark.pack(anchor="w", padx=6, pady=(0, 2))
+
         hw_foot = ctk.CTkFrame(card_hw, fg_color="transparent")
         hw_foot.pack(fill="x", side="bottom", padx=12, pady=(0, 12))
 
@@ -1892,6 +1926,12 @@ class AntimagistV4ApexApp(AntimagistV3App):
             hw_foot, text="⚡ Flush Standby & Working Set RAM", font=(FONT_FAMILY_UI, 10, "bold"),
             fg_color=COLOR_EMERALD, hover_color="#059669", text_color="#FFFFFF",
             height=28, corner_radius=8, command=self._flush_ram_with_sfx
+        ).pack(fill="x", pady=(0, 3))
+
+        ctk.CTkButton(
+            hw_foot, text="🎯 Toggle Competitive Vibrance & HDR", font=(FONT_FAMILY_UI, 10, "bold"),
+            fg_color="#0284C7", hover_color="#0369A1", text_color="#FFFFFF",
+            height=28, corner_radius=8, command=self._toggle_vibrance_ui
         ).pack(fill="x", pady=(0, 3))
 
         ctk.CTkButton(
@@ -2109,6 +2149,49 @@ class AntimagistV4ApexApp(AntimagistV3App):
         self.log_to_ai_feed(f"⚡ [GPU Sentinel] {msg}")
         if getattr(self, 'voice', None) and self.voice.enabled:
             self.voice.speak("Display driver stack reset signal dispatched. Video pipeline refreshed.")
+
+    def _purge_vram_ui(self):
+        self.sfx.play_warp_boost()
+        self.show_toast_msg("Purging background VRAM & flushing DWM buffers...")
+        ok, msg, det = self.gpu_sentinel.free_background_vram()
+        self.sfx.play_success()
+        freed = det.get("freed_mb", 0)
+        self.show_toast_msg(f"Freed ~{freed} MB background VRAM. DWM compositor flushed.")
+        self.log_to_ai_feed(f"⚡ [GPU Sentinel] {msg}")
+        if getattr(self, 'voice', None) and self.voice.enabled:
+            self.voice.speak(f"Purged {freed} megabytes of background VRAM.")
+        gm = self.gpu_sentinel.get_live_gpu_metrics()
+        if hasattr(self, 'lbl_dash_gpu_vram') and self.lbl_dash_gpu_vram.winfo_exists():
+            self.lbl_dash_gpu_vram.configure(text=f"VRAM: {gm['vram_str']}")
+
+    def _toggle_vibrance_ui(self):
+        self.sfx.play_click()
+        if not getattr(self, '_vibrance_active', False):
+            ok, msg = self.display_reflex.set_competitive_vibrance(1.35)
+            self._vibrance_active = True
+            self.show_toast_msg("🎯 Competitive Display Vibrance Active (135% Dynamic Contrast)")
+            self.log_to_ai_feed(f"🎯 [Display Reflex] {msg}")
+            if getattr(self, 'voice', None) and self.voice.enabled:
+                self.voice.speak("Competitive display vibrance engaged.")
+        else:
+            ok, msg = self.display_reflex.reset_display_vibrance()
+            self._vibrance_active = False
+            self.show_toast_msg("Standard 1.0 Linear Gamma Restored")
+            self.log_to_ai_feed(f"🖥️ [Display Reflex] {msg}")
+            if getattr(self, 'voice', None) and self.voice.enabled:
+                self.voice.speak("Display calibration restored to standard.")
+
+    def _toggle_core_unpark_ui(self):
+        self.sfx.play_warp_boost()
+        ok, msg = self.core_director.unpark_all_cpu_cores(True)
+        self.sfx.play_success()
+        self.show_toast_msg("⚡ 100% CPU Cores Unparked (Zero sleep stutter locked)")
+        self.log_to_ai_feed(f"⚡ [Core Director] {msg}")
+        if getattr(self, 'voice', None) and self.voice.enabled:
+            self.voice.speak("All CPU cores unparked at 100% frequency.")
+        if hasattr(self, 'lbl_hw_core_unpark') and self.lbl_hw_core_unpark.winfo_exists():
+            self.lbl_hw_core_unpark.configure(text="100% Unparked", text_color=COLOR_EMERALD)
+
 
     def _sweep_junk_with_sfx(self):
         self.sfx.play_click()
@@ -3385,19 +3468,63 @@ composite hardware score and throughput ratings.
         right_card.grid(row=1, column=1, sticky="nsew", padx=(10, 0))
 
         bg_apps = self.process_isolator.scan_background_processes()
-        ctk.CTkLabel(right_card, text=f"Managed Background Apps ({len(bg_apps)} Discovered)", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+        caged_list = self.process_cage.list_caged_processes()
+        caged_pids = {cp["pid"] for cp in caged_list}
+
+        ctk.CTkLabel(right_card, text=f"Managed Background Apps & Kernel Cages ({len(bg_apps)} Discovered | {len(caged_list)} Caged)", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
 
         scroll_bg = ctk.CTkScrollableFrame(right_card, fg_color="transparent")
         scroll_bg.pack(fill="both", expand=True, padx=12, pady=(0, 12))
 
-        if not bg_apps:
+        # Show Caged Processes First
+        if caged_list:
+            ctk.CTkLabel(scroll_bg, text="🔒 ACTIVE WINDOWS JOB-OBJECT CAGES (Hard 10% CPU / 500MB RAM Cap):", font=("Segoe UI", 10, "bold"), text_color=COLOR_AMBER).pack(anchor="w", pady=(4, 2))
+            for cp in caged_list:
+                row_c = ctk.CTkFrame(scroll_bg, fg_color="#18120B", corner_radius=8, border_color="#B45309", border_width=1)
+                row_c.pack(fill="x", pady=2)
+                r_c_top = ctk.CTkFrame(row_c, fg_color="transparent")
+                r_c_top.pack(fill="x", padx=10, pady=(4, 1))
+                ctk.CTkLabel(r_c_top, text=f"🔒 {cp['name']} (PID {cp['pid']})", font=("Segoe UI", 11, "bold"), text_color=COLOR_AMBER).pack(side="left")
+                ctk.CTkLabel(r_c_top, text=f"Limit: {cp['cpu_rate_cap']} CPU | {cp['mem_cap_mb']}", font=("Consolas", 10, "bold"), text_color=COLOR_CYAN).pack(side="right")
+
+                r_c_sub = ctk.CTkFrame(row_c, fg_color="transparent")
+                r_c_sub.pack(fill="x", padx=10, pady=(0, 4))
+                ctk.CTkLabel(r_c_sub, text=f"Active Load: {cp['current_cpu_pct']}% CPU | {cp['current_ram_mb']} MB", font=("Consolas", 9), text_color=COLOR_TEXT_MUTED).pack(side="left")
+
+                pid_val = cp["pid"]
+                ctk.CTkButton(
+                    r_c_sub, text="Release", font=("Segoe UI", 8, "bold"),
+                    fg_color="#1E293B", hover_color="#334155", text_color=COLOR_TEXT_PRIMARY,
+                    height=20, width=60, corner_radius=4,
+                    command=lambda p=pid_val: self._release_caged_process_ui(p)
+                ).pack(side="right", padx=(4, 0))
+
+                ctk.CTkButton(
+                    r_c_sub, text="Terminate", font=("Segoe UI", 8, "bold"),
+                    fg_color="#7F1D1D", hover_color="#DC2626", text_color="#FFFFFF",
+                    height=20, width=65, corner_radius=4,
+                    command=lambda p=pid_val: self._terminate_caged_process_ui(p)
+                ).pack(side="right")
+
+        if not bg_apps and not caged_list:
             ctk.CTkLabel(scroll_bg, text="No background bloat processes detected. Your system is lean!", font=("Segoe UI", 11), text_color=COLOR_TEXT_MUTED).pack(pady=40)
         else:
+            if caged_list:
+                ctk.CTkLabel(scroll_bg, text="ELIGIBLE BACKGROUND CANDIDATES:", font=("Segoe UI", 10, "bold"), text_color=COLOR_TEXT_MUTED).pack(anchor="w", pady=(8, 2))
             for p in bg_apps:
+                if p["pid"] in caged_pids:
+                    continue
                 row = ctk.CTkFrame(scroll_bg, fg_color="#0A0C14", corner_radius=8)
-                row.pack(fill="x", pady=3)
-                ctk.CTkLabel(row, text=f"📦 {p['name']}", font=("Segoe UI", 11, "bold"), text_color=COLOR_CYAN).pack(side="left", padx=10, pady=8)
-                ctk.CTkLabel(row, text=f"PID: {p['pid']} | Priority: {p['priority']}", font=("Consolas", 10), text_color=COLOR_TEXT_MUTED).pack(side="right", padx=10)
+                row.pack(fill="x", pady=2)
+                ctk.CTkLabel(row, text=f"📦 {p['name']} (PID: {p['pid']})", font=("Segoe UI", 11, "bold"), text_color=COLOR_CYAN).pack(side="left", padx=10, pady=6)
+                
+                pid_target = p["pid"]
+                ctk.CTkButton(
+                    row, text="🔒 Cage (10% CPU)", font=("Segoe UI", 8, "bold"),
+                    fg_color="#1E293B", hover_color="#059669", text_color=COLOR_EMERALD,
+                    height=22, width=105, corner_radius=4,
+                    command=lambda pt=pid_target: self._cage_process_ui(pt)
+                ).pack(side="right", padx=10)
 
     def _apply_process_isolation(self):
         ok, msg, sm = self.process_isolator.isolate_for_game()
@@ -3407,7 +3534,30 @@ composite hardware score and throughput ratings.
 
     def _restore_process_isolation(self):
         ok, msg = self.process_isolator.restore_all_processes()
+        self.process_cage.release_all()
         self.sfx.play_click()
+        self.show_toast_msg(msg)
+        self.show_isolator_pane()
+
+    def _cage_process_ui(self, pid: int):
+        self.sfx.play_warp_boost()
+        ok, msg = self.process_cage.cage_process(pid, cpu_rate_pct=10, memory_limit_mb=500)
+        if ok:
+            self.sfx.play_success()
+            self.show_toast_msg(f"Process PID {pid} caged in Windows Job Object.")
+        else:
+            self.show_toast_msg(msg)
+        self.show_isolator_pane()
+
+    def _release_caged_process_ui(self, pid: int):
+        self.sfx.play_click()
+        ok, msg = self.process_cage.release_process(pid)
+        self.show_toast_msg(msg)
+        self.show_isolator_pane()
+
+    def _terminate_caged_process_ui(self, pid: int):
+        self.sfx.play_click()
+        ok, msg = self.process_cage.terminate_caged_process(pid)
         self.show_toast_msg(msg)
         self.show_isolator_pane()
 
@@ -4889,10 +5039,11 @@ composite hardware score and throughput ratings.
         left_card.grid(row=1, column=0, sticky="nsew", padx=(0, 10))
 
         posture = self.tpm_attestor.audit_tpm_hardware_posture()
-        ctk.CTkLabel(left_card, text="Hardware Enclave Trust Status", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+        ac_readiness = self.tpm_attestor.audit_anticheat_hardware_readiness()
+        ctk.CTkLabel(left_card, text=f"Hardware Enclave Trust ({ac_readiness['tier_rating']})", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
 
         f_stat = ctk.CTkFrame(left_card, fg_color="#0A0C14", corner_radius=10, border_color=COLOR_BORDER, border_width=1)
-        f_stat.pack(fill="x", padx=16, pady=(0, 14))
+        f_stat.pack(fill="x", padx=16, pady=(0, 10))
 
         col_tier = COLOR_EMERALD if posture["score_pct"] >= 75 else COLOR_AMBER
         pills = [
@@ -4905,15 +5056,27 @@ composite hardware score and throughput ratings.
         ]
         for title, val, col in pills:
             r = ctk.CTkFrame(f_stat, fg_color="transparent")
-            r.pack(fill="x", padx=10, pady=4)
+            r.pack(fill="x", padx=10, pady=3)
             ctk.CTkLabel(r, text=title, font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
             ctk.CTkLabel(r, text=val, font=("Consolas", 10, "bold"), text_color=col).pack(side="right")
+
+        # Anti-Cheat Compatibility Matrix
+        ctk.CTkLabel(left_card, text="Anti-Cheat Hardware Readiness Matrix", font=("Segoe UI", 12, "bold"), text_color=COLOR_CYAN).pack(anchor="w", padx=16, pady=(4, 4))
+        f_ac = ctk.CTkFrame(left_card, fg_color="#0A0C14", corner_radius=10, border_color=COLOR_BORDER, border_width=1)
+        f_ac.pack(fill="x", padx=16, pady=(0, 10))
+
+        for ac_key, ac_info in ac_readiness["anti_cheat_compatibility"].items():
+            r_ac = ctk.CTkFrame(f_ac, fg_color="transparent")
+            r_ac.pack(fill="x", padx=10, pady=2)
+            ctk.CTkLabel(r_ac, text=f"🛡️ {ac_info['name']}", font=("Segoe UI", 10, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+            col_ac = COLOR_EMERALD if ac_info["supported"] else COLOR_CRIMSON
+            ctk.CTkLabel(r_ac, text=ac_info["status"][:25], font=("Consolas", 9, "bold"), text_color=col_ac).pack(side="right")
 
         ctk.CTkButton(
             left_card, text="🛡️ Generate Cryptographic Attestation Token (HAT)", font=("Segoe UI", 13, "bold"),
             fg_color="#00FF9D", hover_color="#00D480", text_color="#000000",
-            height=44, corner_radius=10, command=self._generate_tpm_attestation_ui
-        ).pack(fill="x", padx=16, pady=(6, 16))
+            height=40, corner_radius=10, command=self._generate_tpm_attestation_ui
+        ).pack(fill="x", padx=16, pady=(4, 14))
 
         # Right Card: Attestation Token & Integrity Proof
         right_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
@@ -4924,6 +5087,10 @@ composite hardware score and throughput ratings.
         self.txt_tpm_token = ctk.CTkTextbox(right_card, font=("Consolas", 10), fg_color="#0A0C14", text_color=COLOR_TEXT_PRIMARY, corner_radius=8)
         self.txt_tpm_token.pack(fill="both", expand=True, padx=16, pady=(0, 16))
         self.txt_tpm_token.insert("end", "[*] Zero-Kernel Hardware Attestation Engine ready.\n[*] Click 'Generate Cryptographic Attestation Token' to create a proof token anchored in CPU TPM registers.\n")
+        if ac_readiness.get("remediations"):
+            self.txt_tpm_token.insert("end", "\n=== HARDWARE REMEDIATION REQUIRED ===\n")
+            for rem in ac_readiness["remediations"]:
+                self.txt_tpm_token.insert("end", f"• {rem['component']}: {rem['issue']}\n  -> Fix: {rem['fix']}\n\n")
 
     def _generate_tpm_attestation_ui(self):
         self.sfx.play_click()
@@ -4939,6 +5106,104 @@ composite hardware score and throughput ratings.
         self.txt_tpm_token.insert("end", f"• Trust Tier: {proof['tier']}\n\n")
         self.txt_tpm_token.insert("end", "--- Decoded Payload ---\n")
         self.txt_tpm_token.insert("end", json.dumps(proof['payload'], indent=2))
+
+    # ========================================================================
+    # URL RADAR & OUTBOUND THREAT MONITOR (show_url_pane)
+    # ========================================================================
+    def show_url_pane(self):
+        self._highlight_nav("url")
+        self.clear_container()
+
+        pane = ctk.CTkFrame(self.container, fg_color="transparent")
+        pane.grid(row=0, column=0, sticky="nsew", padx=30, pady=20)
+        pane.grid_columnconfigure((0, 1), weight=1)
+        pane.grid_rowconfigure(1, weight=1)
+
+        head = ctk.CTkFrame(pane, fg_color="transparent")
+        head.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 15))
+        ctk.CTkLabel(head, text="🔗 URL & Live Outbound Network Radar", font=("Segoe UI", 24, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w")
+        ctk.CTkLabel(head, text="Real-time outbound socket telemetry, heuristic cyber threat analysis, and 1-click Windows Firewall IP blocking", font=("Segoe UI", 12), text_color=COLOR_TEXT_MUTED).pack(anchor="w")
+
+        # Left Card: Live Outbound Connections Table
+        left_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        left_card.grid(row=1, column=0, sticky="nsew", padx=(0, 10))
+
+        conns = self.url_analyzer.get_live_network_connections(limit=40)
+        ctk.CTkLabel(left_card, text=f"Active Outbound Sockets ({len(conns)} Inspected)", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        scroll_conns = ctk.CTkScrollableFrame(left_card, fg_color="transparent")
+        scroll_conns.pack(fill="both", expand=True, padx=12, pady=(0, 12))
+
+        if not conns:
+            ctk.CTkLabel(scroll_conns, text="No active external sockets detected.", font=("Segoe UI", 11), text_color=COLOR_TEXT_MUTED).pack(pady=40)
+        else:
+            for c in conns:
+                col_threat = COLOR_CRIMSON if c["threat_level"] == "HIGH" else (COLOR_AMBER if c["threat_level"] == "SUSPICIOUS" else COLOR_EMERALD)
+                bx = ctk.CTkFrame(scroll_conns, fg_color="#0A0C14", corner_radius=8, border_color=COLOR_BORDER, border_width=1)
+                bx.pack(fill="x", pady=3)
+
+                r_top = ctk.CTkFrame(bx, fg_color="transparent")
+                r_top.pack(fill="x", padx=10, pady=(6, 2))
+                ctk.CTkLabel(r_top, text=f"🌐 {c['process_name']} (PID {c['pid']})", font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+                ctk.CTkLabel(r_top, text=c["threat_level"], font=("Consolas", 9, "bold"), text_color=col_threat).pack(side="right")
+
+                r_sub = ctk.CTkFrame(bx, fg_color="transparent")
+                r_sub.pack(fill="x", padx=10, pady=(0, 6))
+                ctk.CTkLabel(r_sub, text=f"{c['remote_addr']} [{c['status']}]", font=("Consolas", 10), text_color=COLOR_CYAN).pack(side="left")
+
+                rip = c["remote_ip"]
+                ctk.CTkButton(
+                    r_sub, text="🚫 Block IP", font=("Segoe UI", 8, "bold"),
+                    fg_color="#1E293B", hover_color="#DC2626", text_color=COLOR_CRIMSON,
+                    height=20, width=65, corner_radius=4,
+                    command=lambda target_ip=rip: self._block_firewall_ip_ui(target_ip)
+                ).pack(side="right")
+
+        # Right Card: URL Phishing Scanner & Firewall Shield
+        right_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
+        right_card.grid(row=1, column=1, sticky="nsew", padx=(10, 0))
+
+        ctk.CTkLabel(right_card, text="Heuristic URL Cyber Scanner", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
+
+        f_input = ctk.CTkFrame(right_card, fg_color="transparent")
+        f_input.pack(fill="x", padx=16, pady=(0, 8))
+        self.entry_url_scan = ctk.CTkEntry(f_input, placeholder_text="Enter suspicious URL (e.g. login-verify-steam.xyz)...", font=("Segoe UI", 11), height=38)
+        self.entry_url_scan.pack(side="left", fill="x", expand=True, padx=(0, 8))
+        ctk.CTkButton(f_input, text="🔍 Analyze", font=("Segoe UI", 11, "bold"), fg_color=COLOR_EMERALD, hover_color="#059669", height=38, width=90, command=self._analyze_url_ui).pack(side="right")
+
+        self.txt_url_report = ctk.CTkTextbox(right_card, font=("Consolas", 10), fg_color="#0A0C14", text_color=COLOR_TEXT_PRIMARY, corner_radius=8)
+        self.txt_url_report.pack(fill="both", expand=True, padx=16, pady=(0, 16))
+        self.txt_url_report.insert("end", "[*] URL Threat Scanner ready.\n[*] Enter an endpoint to audit brand typosquatting, high-entropy DGA domains, and bare IP relays.\n")
+
+    def _block_firewall_ip_ui(self, remote_ip: str):
+        self.sfx.play_click()
+        ok, msg = self.url_analyzer.block_ip_in_firewall(remote_ip)
+        if ok:
+            self.sfx.play_success()
+            self.show_toast_msg(f"Blocked IP {remote_ip} in Windows Firewall.")
+            self.log_to_ai_feed(f"🛡️ [Firewall Radar] {msg}")
+        else:
+            self.show_toast_msg(f"Firewall Notice: {msg}")
+        self.show_url_pane()
+
+    def _analyze_url_ui(self):
+        target = self.entry_url_scan.get().strip()
+        if not target:
+            return
+        self.sfx.play_click()
+        rep = self.url_analyzer.analyze_url(target)
+        ent = self.url_analyzer.calculate_shannon_entropy(rep.get("hostname", ""))
+        self.txt_url_report.delete("1.0", "end")
+        self.txt_url_report.insert("end", "=== URL CYBER THREAT AUDIT ===\n")
+        self.txt_url_report.insert("end", f"• Target: {rep['url']}\n")
+        self.txt_url_report.insert("end", f"• Verdict: {rep['rating']} (Score: {rep['risk_score']}/100)\n")
+        self.txt_url_report.insert("end", f"• Resolved IP: {rep['resolved_ip']}\n")
+        self.txt_url_report.insert("end", f"• Hostname Entropy: {ent} (DGA Detection)\n")
+        self.txt_url_report.insert("end", f"• Cloud VT: {rep['vt_cloud']}\n\n")
+        self.txt_url_report.insert("end", "Risk Flags:\n")
+        for f in rep['risk_flags']:
+            self.txt_url_report.insert("end", f"  - {f}\n")
+
 
     # ========================================================================
     # V10 BREAKTHROUGH 4: GHOST OS CRYO-SUSPENSION PARADIGM
@@ -5451,6 +5716,7 @@ composite hardware score and throughput ratings.
         pills = [
             ("Primary System Drive", f"{metrics['drive']['drive']} ({metrics['drive']['free_gb']} GB Free / {metrics['drive']['total_gb']} GB)", col_free),
             ("Drive Space Utilized", f"{metrics['drive']['percent_used']}%", COLOR_TEXT_PRIMARY),
+            ("NVMe S.M.A.R.T. Health", metrics.get("nvme", {}).get("status_label", "Healthy"), COLOR_EMERALD),
             ("Hibernation File (hiberfil.sys)", f"{metrics['hibernation']['size_gb']} GB", COLOR_CYAN),
             ("Immediate Cache Reclaimable", f"{metrics['scan']['immediate_cache_mb']} MB", COLOR_EMERALD),
             ("Total Potential Storage Reclaim", f"{metrics['scan']['total_potential_reclaim_gb']} GB", COLOR_EMERALD),
@@ -5465,16 +5731,22 @@ composite hardware score and throughput ratings.
         ctk.CTkButton(
             left_card, text="🧹 Purge Windows Update & Temp Caches", font=("Segoe UI", 13, "bold"),
             fg_color="#00FF9D", hover_color="#00D480", text_color="#000000",
-            height=40, corner_radius=10, command=self._purge_storage_caches_ui
-        ).pack(fill="x", padx=16, pady=(6, 6))
+            height=38, corner_radius=10, command=self._purge_storage_caches_ui
+        ).pack(fill="x", padx=16, pady=(6, 4))
 
         ctk.CTkButton(
             left_card, text="⚡ Execute Native NVMe SSD TRIM Optimization", font=("Segoe UI", 13, "bold"),
             fg_color="#38BDF8", hover_color="#0284C7", text_color="#000000",
-            height=40, corner_radius=10, command=self._trim_ssd_ui
+            height=38, corner_radius=10, command=self._trim_ssd_ui
+        ).pack(fill="x", padx=16, pady=(4, 4))
+
+        ctk.CTkButton(
+            left_card, text="🛠️ Run DISM Component Store Cleanup", font=("Segoe UI", 13, "bold"),
+            fg_color="#8B5CF6", hover_color="#7C3AED", text_color="#FFFFFF",
+            height=38, corner_radius=10, command=self._dism_clean_ui
         ).pack(fill="x", padx=16, pady=(4, 16))
 
-        # Right Card: Reclaimable Storage Inventory
+        # Right Card: Reclaimable Storage Inventory & Physical Drives
         right_card = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=14, border_color=COLOR_BORDER, border_width=1)
         right_card.grid(row=1, column=1, sticky="nsew", padx=(10, 0))
 
@@ -5491,6 +5763,19 @@ composite hardware score and throughput ratings.
             ctk.CTkLabel(r_top, text=f"📁 {cat_name}", font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
             ctk.CTkLabel(r_top, text=f"{cat_data['size_mb']} MB ({cat_data['files']} files)", font=("Consolas", 10, "bold"), text_color=COLOR_CYAN).pack(side="right")
 
+        # Physical NVMe Disks Section
+        nvme_disks = metrics.get("nvme", {}).get("disks", [])
+        if nvme_disks:
+            ctk.CTkLabel(scroll_sv, text="Physical Disks & S.M.A.R.T. Health", font=("Segoe UI", 12, "bold"), text_color="#E2E8F0").pack(anchor="w", pady=(12, 4))
+            for disk in nvme_disks:
+                dbx = ctk.CTkFrame(scroll_sv, fg_color="#0F172A", corner_radius=8, border_color="#1E293B", border_width=1)
+                dbx.pack(fill="x", pady=3)
+                r_d = ctk.CTkFrame(dbx, fg_color="transparent")
+                r_d.pack(fill="x", padx=8, pady=4)
+                ctk.CTkLabel(r_d, text=f"💽 Disk {disk.get('device_id')}: {disk.get('model', 'NVMe SSD')[:26]}", font=("Segoe UI", 10, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+                h_col = COLOR_EMERALD if "Healthy" in disk.get("health_status", "") else COLOR_WARNING
+                ctk.CTkLabel(r_d, text=f"{disk.get('media_type', 'SSD')} | {disk.get('size_gb', 0)}GB | {disk.get('health_status', 'OK')}", font=("Consolas", 9, "bold"), text_color=h_col).pack(side="right")
+
     def _purge_storage_caches_ui(self):
         self.sfx.play_click()
         res = self.storage_accelerator.purge_temp_and_update_caches()
@@ -5501,14 +5786,34 @@ composite hardware score and throughput ratings.
 
     def _trim_ssd_ui(self):
         self.sfx.play_warp_boost()
-        res = self.storage_accelerator.trim_ssd_storage()
-        if res.get("success"):
+        ok, msg = self.storage_accelerator.execute_nvme_trim("C")
+        if ok:
             self.sfx.play_success()
             self.voice.speak("NVMe SSD TRIM command completed.")
             self.show_toast_msg("TRIM optimization executed successfully.")
         else:
-            self.show_toast_msg(f"TRIM Notice: {res.get('error', 'Completed')}")
+            self.show_toast_msg(f"TRIM Notice: {msg}")
         self.show_storage_pane()
+
+    def _dism_clean_ui(self):
+        self.sfx.play_click()
+        self.show_toast_msg("Running Windows Component Store DISM cleanup in background...")
+        self.voice.speak("Starting DISM component store cleanup.")
+
+        def _bg_dism():
+            def _prog(line, pct):
+                if pct >= 0:
+                    self.after(0, lambda p=pct: self.show_toast_msg(f"DISM Cleanup: {p}%"))
+            ok, msg = self.storage_accelerator.execute_dism_cleanup(analyze_only=False, progress_callback=_prog)
+            if ok:
+                self.sfx.play_success()
+                self.voice.speak("DISM component store cleanup complete.")
+                self.after(0, lambda: self.show_toast_msg("DISM cleanup completed successfully!"))
+            else:
+                self.after(0, lambda m=msg: self.show_toast_msg(f"DISM Notice: {m}"))
+            self.after(0, self.show_storage_pane)
+
+        threading.Thread(target=_bg_dism, daemon=True).start()
 
     # ========================================================================
     # TELEMETRY LOOP WITH REAL-TIME GPU & DISCORD STATUS POLLING

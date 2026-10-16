@@ -23,6 +23,8 @@ if hasattr(sys.stdout, "reconfigure"):
         pass
 
 
+from process_cage_job_object import AntimagistJobObjectCage
+
 class AntimagistProcessIsolator:
     """Manages CPU core allocation, background process deprioritization, and game thread dedication."""
 
@@ -37,6 +39,7 @@ class AntimagistProcessIsolator:
         self.is_isolated = False
         self.saved_states: Dict[int, Dict[str, Any]] = {}
         self.managed_game_pid: Optional[int] = None
+        self.cage = AntimagistJobObjectCage()
 
     def get_core_allocation_topology(self) -> Dict[str, Any]:
         """Calculates physical P-Core masks and dedicated game vs background core assignments."""
@@ -182,7 +185,24 @@ class AntimagistProcessIsolator:
         self.saved_states.clear()
         self.is_isolated = False
         self.managed_game_pid = None
+        self.cage.release_all()
         return True, f"Process isolation restored: {restored_count} process(es) reset to default scheduling."
+
+    def cage_process(self, pid: int, cpu_rate_pct: int = 10, memory_limit_mb: int = 500) -> Tuple[bool, str]:
+        """Cages a process in a real Windows Kernel Job Object."""
+        return self.cage.cage_process(pid, cpu_rate_pct, memory_limit_mb)
+
+    def release_caged_process(self, pid: int) -> Tuple[bool, str]:
+        """Releases a process from the Job Object cage."""
+        return self.cage.release_process(pid)
+
+    def terminate_caged_process(self, pid: int) -> Tuple[bool, str]:
+        """Terminates a caged process and frees resources."""
+        return self.cage.terminate_caged_process(pid)
+
+    def get_caged_processes(self) -> List[Dict[str, Any]]:
+        """Returns list of active caged processes."""
+        return self.cage.list_caged_processes()
 
 
 if __name__ == "__main__":
