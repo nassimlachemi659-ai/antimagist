@@ -16,7 +16,7 @@ Architectural Additions in Version 5 (Singularity):
   6. Counter-Strike 2 & FPS Tournament Auto-Tuner (cs2_optimizer.py)
      - Injects sub-tick autoexec with NVIDIA Reflex low-latency sleep.
   7. Two-Way Voice Copilot & Speech Dispatcher (voice_listener.py)
-     - Push-to-Talk HUD (Ctrl + Space) or Topbar 🎙️ MIC button.
+     - Push-to-Talk HUD (Ctrl + Space) or Topbar 🎙 MIC button.
   8. Windows Context Menu Shell Integrator (context_menu_v4.py)
      - Adds Explorer right-click "🧪 Detonate with Chamber" and "🚀 Launch with Apex Boost".
   9. Dedicated GPU Sentinel (Universal GPU Engine) & Steam Library Auto-Launcher.
@@ -367,7 +367,7 @@ class AntimagistV4ApexApp(AntimagistV3App):
 
         # 3. Two-Way Voice Mic Dialogue (Right Zone Uniform #171B26 Tile)
         self.btn_mic = ctk.CTkButton(
-            parent_bar, text="🎙️ MIC",
+            parent_bar, text="🎙 MIC",
             font=(FONT_FAMILY_UI, 10, "bold"), text_color=COLOR_CYAN,
             fg_color=COLOR_CARD_HOVER, hover_color=COLOR_BORDER_GLOW,
             border_color=COLOR_BORDER, border_width=1,
@@ -378,7 +378,7 @@ class AntimagistV4ApexApp(AntimagistV3App):
 
         # 4. In-Game HUD Overlay Button (Right Zone Uniform #171B26 Tile)
         self.btn_hud_nav = ctk.CTkButton(
-            parent_bar, text="🖥️ HUD",
+            parent_bar, text="🖥 HUD",
             font=(FONT_FAMILY_UI, 10, "bold"), text_color=COLOR_TEXT_PRIMARY,
             fg_color=COLOR_CARD_HOVER, hover_color=COLOR_BORDER_GLOW,
             border_color=COLOR_BORDER, border_width=1,
@@ -412,10 +412,9 @@ class AntimagistV4ApexApp(AntimagistV3App):
         # 7. Live GPU Sentinel Pill Badge (Inside Center Telemetry Container)
         if hasattr(self, 'telemetry_pill_container') and self.telemetry_pill_container.winfo_exists():
             gm = self.gpu_sentinel.get_live_gpu_metrics()
-            gpu_short = gm['gpu_name'].replace("NVIDIA ", "").replace("GeForce ", "")
             ctk.CTkLabel(self.telemetry_pill_container, text="|", font=(FONT_FAMILY_UI, 10), text_color=COLOR_BORDER_GLOW).pack(side="left", padx=2)
             self.pill_gpu = ctk.CTkLabel(
-                self.telemetry_pill_container, text=f"🎮 {gpu_short}: {gm['temperature_c']}°C",
+                self.telemetry_pill_container, text=f"🎮 GPU {gm['temperature_c']}°C",
                 font=(FONT_FAMILY_MONO, 10, "bold"), text_color=gm['status_color']
             )
             self.pill_gpu.pack(side="left", padx=4)
@@ -457,9 +456,9 @@ class AntimagistV4ApexApp(AntimagistV3App):
                 if hasattr(self, 'btn_mobile_nav') and self.btn_mobile_nav.winfo_exists():
                     self.btn_mobile_nav.configure(text="📱 MOBILE", width=62)
                 if hasattr(self, 'btn_mic') and self.btn_mic.winfo_exists():
-                    self.btn_mic.configure(text="🎙️ MIC", width=52)
+                    self.btn_mic.configure(text="🎙 MIC", width=52)
                 if hasattr(self, 'btn_hud_nav') and self.btn_hud_nav.winfo_exists():
-                    self.btn_hud_nav.configure(text="🖥️ HUD", width=52)
+                    self.btn_hud_nav.configure(text="🖥 HUD", width=52)
             else:
                 if hasattr(self, 'btn_turbo') and self.btn_turbo.winfo_exists():
                     self.btn_turbo.configure(text="⚡ Turbo Boost", width=120)
@@ -474,9 +473,9 @@ class AntimagistV4ApexApp(AntimagistV3App):
                 if hasattr(self, 'btn_mobile_nav') and self.btn_mobile_nav.winfo_exists():
                     self.btn_mobile_nav.configure(text="📱 MOBILE", width=70)
                 if hasattr(self, 'btn_mic') and self.btn_mic.winfo_exists():
-                    self.btn_mic.configure(text="🎙️ MIC", width=54)
+                    self.btn_mic.configure(text="🎙 MIC", width=54)
                 if hasattr(self, 'btn_hud_nav') and self.btn_hud_nav.winfo_exists():
-                    self.btn_hud_nav.configure(text="🖥️ HUD", width=54)
+                    self.btn_hud_nav.configure(text="🖥 HUD", width=54)
         except Exception:
             pass
 
@@ -491,7 +490,7 @@ class AntimagistV4ApexApp(AntimagistV3App):
 
         st = self.license_manager.get_status_summary()
 
-        ctk.CTkLabel(dlg, text="🛡️ ANTIMAGIST COMMUNITY EDITION", font=("Segoe UI", 14, "bold"), text_color="#00F0FF").pack(pady=(16, 4))
+        ctk.CTkLabel(dlg, text="🛡 ANTIMAGIST COMMUNITY EDITION", font=("Segoe UI", 14, "bold"), text_color="#00F0FF").pack(pady=(16, 4))
         ctk.CTkLabel(dlg, text="100% Free Forever • All Features Unlocked For Competitive Gamers", font=("Segoe UI", 10), text_color="#94A3B8").pack(pady=(0, 10))
 
         # HWID Display
@@ -602,9 +601,9 @@ class AntimagistV4ApexApp(AntimagistV3App):
         primary_tabs = [
             ("🏠  Dashboard",            "dash",       self.show_dashboard_pane),
             ("🤖  Neural AI Copilot",    "ai_tab",     self.show_ai_agent_pane),
-            ("🛡️  Security Suite",       "sec_suite",  self.show_security_suite_pane),
+            ("🛡  Security Suite",       "sec_suite",  self.show_security_suite_pane),
             ("⚡  Performance Suite",    "perf_suite", self.show_performance_suite_pane),
-            ("⚙️  Settings & Tools",      "settings_tab", self.show_settings_pane),
+            ("⚙  Settings & Tools",      "settings_tab", self.show_settings_pane),
         ]
 
         for text, key, cmd in primary_tabs:
@@ -630,7 +629,7 @@ class AntimagistV4ApexApp(AntimagistV3App):
                     ("📊 Dashboard", "dash", self.show_dashboard_pane),
                     ("📈 Match History", "analytics", self.show_analytics_pane),
                     ("📼 Match Recorder", "recorder", self.show_match_recorder_pane),
-                    ("🖼️ Benchmark Card", "card", self.show_benchmark_card_pane),
+                    ("🖼 Benchmark Card", "card", self.show_benchmark_card_pane),
                     ("💬 Community Review", "review", self.show_review_pane),
                 ]
             },
@@ -651,37 +650,37 @@ class AntimagistV4ApexApp(AntimagistV3App):
                     ("⚡ PC Optimizer", "opt", self.show_optimizer_pane),
                     ("⚡ Latency Stripper", "stripper", self.show_stripper_pane),
                     ("🎮 Esports Vault", "esports", self.show_esports_pane),
-                    ("🖥️ Display Reflex", "reflex", self.show_display_reflex_pane),
+                    ("🖥 Display Reflex", "reflex", self.show_display_reflex_pane),
                     ("🎮 Gamer Mode", "gamer", self.show_gamer_pane),
                     ("🎯 CS2 Tuner", "cs2", self.show_cs2_pane),
-                    ("⚙️ Profile Switcher", "switcher", self.show_profile_switcher_pane),
+                    ("⚙ Profile Switcher", "switcher", self.show_profile_switcher_pane),
                     ("⚡ MSI-X IRQ Director", "msi", self.show_msi_pane),
                     ("🎮 Shader Sentinel", "shader", self.show_shader_pane),
                     ("⚡ Stutter Interceptor", "interceptor", self.show_predictive_interceptor_pane),
-                    ("🏎️ Packet Racer", "packetracer", self.show_packet_racer_pane),
+                    ("🏎 Packet Racer", "packetracer", self.show_packet_racer_pane),
                     ("💻 DevOps Turbo", "devops", self.show_devops_pane),
                     ("🔋 Battery Whisper", "battery", self.show_battery_pane),
                     ("🎵 Studio DAW & Video", "studio", self.show_studio_pane),
                     ("💽 Storage Reclaimer", "storage", self.show_storage_pane),
                     ("🧠 Memory Pacer", "mempacer", self.show_memory_pacer_pane),
-                    ("⏱️ DPC Latency", "dpc", self.show_dpc_pane),
-                    ("🖱️ USB Polling", "usb", self.show_usb_polling_pane),
+                    ("⏱ DPC Latency", "dpc", self.show_dpc_pane),
+                    ("🖱 USB Polling", "usb", self.show_usb_polling_pane),
                     ("🔥 Throttle Watchdog", "throttle", self.show_throttle_pane),
                 ]
             },
             "Zero-Trust Security": {
-                "icon": "🛡️",
+                "icon": "🛡",
                 "accent": "#EF4444",
                 "items": [
-                    ("👁️ Active Shield", "shield", self.show_shield_pane),
+                    ("👁 Active Shield", "shield", self.show_shield_pane),
                     ("🔍 Threat Radar", "scanner", self.show_scanner_pane),
-                    ("🛡️ Anti-Cheat Guard", "acguard", self.show_anticheat_pane),
+                    ("🛡 Anti-Cheat Guard", "acguard", self.show_anticheat_pane),
                     ("🔒 Tournament Lock", "tourneylock", self.show_tournament_lock_pane),
-                    ("🛡️ TPM Attestation", "tpm_attest", self.show_tpm_attestation_pane),
+                    ("🛡 TPM Attestation", "tpm_attest", self.show_tpm_attestation_pane),
                     ("🧊 Ghost OS Cryo", "ghost_cryo", self.show_ghost_cryo_pane),
                     ("🪟 Win11 AI Stripper", "recall", self.show_recall_stripper_pane),
-                    ("🕵️ Privacy Scrubber", "privacy", self.show_privacy_pane),
-                    ("🛡️ Mod Guard", "modguard", self.show_mod_guard_pane),
+                    ("🕵 Privacy Scrubber", "privacy", self.show_privacy_pane),
+                    ("🛡 Mod Guard", "modguard", self.show_mod_guard_pane),
                     ("🧪 Detonation Room", "detonate", self.show_detonation_pane),
                 ]
             },
@@ -696,7 +695,7 @@ class AntimagistV4ApexApp(AntimagistV3App):
                     ("🔗 URL Radar", "url", self.show_url_pane),
                     ("🚀 Startup Apps", "startup", self.show_startup_pane),
                     ("🔄 Auto-Updater", "updater", self.show_updater_pane),
-                    ("⚙️ Settings", "settings", self.show_settings_pane),
+                    ("⚙ Settings", "settings", self.show_settings_pane),
                 ]
             },
             "✨ Custom AI Plugins": {
@@ -745,11 +744,10 @@ class AntimagistV4ApexApp(AntimagistV3App):
 
             for text, key, cmd in cat_data["items"]:
                 self.item_to_category[key] = cat_name
-                def make_cmd(orig_cmd=cmd):
-                    self.sfx.play_click()
-                    orig_cmd()
 
-                parts = text.strip().split(maxsplit=1)
+                # Strip variation selector \ufe0f from emoji icon to eliminate wide glyph spacing
+                clean_raw_text = text.replace("\ufe0f", "")
+                parts = clean_raw_text.strip().split(maxsplit=1)
                 icon = parts[0]
                 label = parts[1] if len(parts) > 1 else ""
                 clean_btn_text = f"  {icon}  {label}"
@@ -758,10 +756,21 @@ class AntimagistV4ApexApp(AntimagistV3App):
                     cat_frame, text=clean_btn_text, font=(FONT_FAMILY_UI, 11),
                     fg_color="transparent", text_color=COLOR_TEXT_SUBTLE,
                     hover_color=COLOR_CARD_HOVER, anchor="w",
-                    height=28, corner_radius=6, command=make_cmd
+                    height=28, corner_radius=6,
+                    command=lambda k=key, fn=cmd: self._on_sidebar_item_clicked(k, fn)
                 )
                 btn.pack(fill="x", padx=2, pady=1)
                 self.nav_buttons[key] = btn
+
+    def _on_sidebar_item_clicked(self, key: str, cmd_fn):
+        """Immediately switches the active view, clearing container to eliminate view desync."""
+        self.sfx.play_click()
+        self.clear_container()
+        self._highlight_nav(key)
+        try:
+            cmd_fn()
+        except Exception as e:
+            print(f"[Sidebar Navigation Error] {key}: {e}")
 
     def _setup_smooth_sidebar_scroll(self):
         """Enables instant, lag-free mousewheel scrolling across all sidebar child widgets."""
@@ -916,18 +925,18 @@ class AntimagistV4ApexApp(AntimagistV3App):
 
         head = ctk.CTkFrame(pane, fg_color="transparent")
         head.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 14))
-        ctk.CTkLabel(head, text="🛡️ Security & Protection Suite", font=("Segoe UI", 22, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w")
+        ctk.CTkLabel(head, text="🛡 Security & Protection Suite", font=("Segoe UI", 22, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w")
         ctk.CTkLabel(head, text="Zero-Trust kernel defense, deep threat scanning, and anti-cheat compliance", font=("Segoe UI", 11), text_color=COLOR_TEXT_MUTED).pack(anchor="w")
 
         sec_tools = [
             ("🔍 Threat Radar & Scanner", "VirusTotal cloud API + local YARA signature threat scanner", "Scan Files", self.show_scanner_pane, "#7C3AED"),
-            ("👁️ Active Shield", "Real-time file system watchdog & kernel tamper prevention", "Shield Status", self.show_shield_pane, "#059669"),
-            ("🛡️ Anti-Cheat Guard", "VAC, Vanguard, BattlEye & EAC zero-injection audit", "Audit Anti-Cheat", self.show_anticheat_pane, "#0284C7"),
+            ("👁 Active Shield", "Real-time file system watchdog & kernel tamper prevention", "Shield Status", self.show_shield_pane, "#059669"),
+            ("🛡 Anti-Cheat Guard", "VAC, Vanguard, BattlEye & EAC zero-injection audit", "Audit Anti-Cheat", self.show_anticheat_pane, "#0284C7"),
             ("🔑 TPM 2.0 Attestation", "Hardware root-of-trust & Secure Boot cryptographic ledger", "Attest TPM", self.show_tpm_attestation_pane, "#0D9488"),
             ("🔒 Tournament System Lock", "Anti-tamper configuration lockdown for competitive matches", "Lockdown Mode", self.show_tournament_lock_pane, "#D97706"),
             ("🧊 Ghost OS Cryo", "Suspend background OS daemons without crashing core services", "Cryo Freeze", self.show_ghost_cryo_pane, "#2563EB"),
             ("🪟 Win11 AI Stripper", "Strip background Windows Copilot, Recall telemetry & indexing", "Strip Telemetry", self.show_recall_stripper_pane, "#DB2777"),
-            ("🕵️ Privacy Scrubber", "Sovereign telemetry blocker & sinkhole DNS firewall", "Scrub Privacy", self.show_privacy_pane, "#7C2D12"),
+            ("🕵 Privacy Scrubber", "Sovereign telemetry blocker & sinkhole DNS firewall", "Scrub Privacy", self.show_privacy_pane, "#7C2D12"),
             ("🧪 Detonation Chamber", "Isolated virtual sandbox to safely analyze suspicious files", "Detonation Room", self.show_detonation_pane, "#DC2626"),
             ("🧠 Process Isolator", "Assign dedicated CPU affinities and isolate volatile tasks", "Isolate Task", self.show_isolator_pane, "#4F46E5"),
         ]
@@ -966,13 +975,13 @@ class AntimagistV4ApexApp(AntimagistV3App):
         perf_tools = [
             ("⚡ PC Optimizer", "Working set trim, cache sweep, and memory compaction", "Optimize PC", self.show_optimizer_pane, "#059669"),
             ("🎯 CS2 & Esports Tuner", "Counter-Strike 2 high-priority class and P-Core affinity lock", "CS2 Turbo", self.show_cs2_pane, "#D97706"),
-            ("⏱️ DPC Latency Diagnostician", "Isolate driver latency spikes (ndis.sys, nvlddmkm.sys)", "Audit Latency", self.show_dpc_pane, "#0284C7"),
-            ("🖱️ USB Polling Sentinel", "Verify 1000Hz+ mouse rate and suppress USB packet drop", "Check Polling", self.show_usb_polling_pane, "#7C3AED"),
+            ("⏱ DPC Latency Diagnostician", "Isolate driver latency spikes (ndis.sys, nvlddmkm.sys)", "Audit Latency", self.show_dpc_pane, "#0284C7"),
+            ("🖱 USB Polling Sentinel", "Verify 1000Hz+ mouse rate and suppress USB packet drop", "Check Polling", self.show_usb_polling_pane, "#7C3AED"),
             ("🎮 Shader Sentinel", "DirectX and Vulkan shader cache cleaner to fix micro-stutter", "Clear Shader", self.show_shader_pane, "#DB2777"),
             ("🧠 Deep Memory Pacer", "Contextually suspend XboxApp, NVidia Share background bloat", "Pace Memory", self.show_memory_pacer_pane, "#2563EB"),
-            ("🖥️ Display Reflex", "Eliminate display buffer queues and enable G-Sync latency sync", "Display Reflex", self.show_display_reflex_pane, "#0D9488"),
+            ("🖥 Display Reflex", "Eliminate display buffer queues and enable G-Sync latency sync", "Display Reflex", self.show_display_reflex_pane, "#0D9488"),
             ("⚡ Stutter Interceptor", "Predictive AI neural frame-drop detection and thread boosting", "Intercept Stutter", self.show_predictive_interceptor_pane, "#7C2D12"),
-            ("🏎️ Packet Racer & QoS", "Dual-path network packet racing & DSCP esports priority", "Race Packets", self.show_packet_racer_pane, "#EA580C"),
+            ("🏎 Packet Racer & QoS", "Dual-path network packet racing & DSCP esports priority", "Race Packets", self.show_packet_racer_pane, "#EA580C"),
             ("💽 Storage Reclaimer", "Deep SSD TRIM and component store compaction for NVMe drives", "Reclaim Storage", self.show_storage_pane, "#4F46E5"),
         ]
 
@@ -1072,7 +1081,7 @@ class AntimagistV4ApexApp(AntimagistV3App):
 
         explanations = [
             ("🎮 GameDVR Background Recording", "Windows silently records recent gameplay to NVMe disk in a 60fps loop. This causes micro-stutters and frame drops in CS2 and Valorant. Disabling it completely frees rendering pipelines."),
-            ("🖱️ True 1:1 Raw Mouse Tracking", "Windows applies an artificial non-linear pointer speed curve by default. Setting MouseSpeed and threshold keys to 0 delivers pure hardware mouse sensor raw input."),
+            ("🖱 True 1:1 Raw Mouse Tracking", "Windows applies an artificial non-linear pointer speed curve by default. Setting MouseSpeed and threshold keys to 0 delivers pure hardware mouse sensor raw input."),
             ("📶 Gaming Network Throttling", "Windows network throttling restricts non-multimedia network throughput during intensive I/O. Disabling it ensures game packets bypass kernel rate limiters.")
         ]
         for t, d in explanations:
@@ -1149,10 +1158,10 @@ class AntimagistV4ApexApp(AntimagistV3App):
                 ctk.CTkLabel(r_head, text=f"🎮 {g_title}", font=(FONT_FAMILY_UI, 13, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
 
                 dur_str = rec.get("duration_str", "0s")
-                ctk.CTkLabel(r_head, text=f"⏱️ {dur_str}", font=(FONT_FAMILY_MONO, 10, "bold"), text_color=COLOR_CYAN, fg_color="#14243B", corner_radius=6, padx=8, pady=2).pack(side="left", padx=10)
+                ctk.CTkLabel(r_head, text=f"⏱ {dur_str}", font=(FONT_FAMILY_MONO, 10, "bold"), text_color=COLOR_CYAN, fg_color="#14243B", corner_radius=6, padx=8, pady=2).pack(side="left", padx=10)
 
                 stab_str = rec.get("stability_rating", "99.2% (Esports Grade)")
-                ctk.CTkLabel(r_head, text=f"🛡️ {stab_str}", font=(FONT_FAMILY_UI, 10, "bold"), text_color=COLOR_EMERALD, fg_color="#0F2E22", corner_radius=6, padx=8, pady=2).pack(side="left")
+                ctk.CTkLabel(r_head, text=f"🛡 {stab_str}", font=(FONT_FAMILY_UI, 10, "bold"), text_color=COLOR_EMERALD, fg_color="#0F2E22", corner_radius=6, padx=8, pady=2).pack(side="left")
 
                 t_stamp = rec.get("date", "")
                 ctk.CTkLabel(r_head, text=t_stamp, font=(FONT_FAMILY_MONO, 9), text_color=COLOR_TEXT_MUTED).pack(side="right")
@@ -1196,7 +1205,7 @@ class AntimagistV4ApexApp(AntimagistV3App):
         ).pack(side="left")
 
         ctk.CTkButton(
-            foot, text="🗑️ Clear History", font=(FONT_FAMILY_UI, 11),
+            foot, text="🗑 Clear History", font=(FONT_FAMILY_UI, 11),
             fg_color="#261014", hover_color="#3B1219", text_color=COLOR_CRIMSON,
             border_color=COLOR_BORDER, border_width=1, height=32, corner_radius=8,
             command=self._clear_match_history_action
@@ -1520,7 +1529,7 @@ class AntimagistV4ApexApp(AntimagistV3App):
         ).pack(fill="x", padx=16, pady=3)
 
         ctk.CTkButton(
-            left_card, text="🖥️ Toggle In-Game Overlay (Ctrl+Shift+O)", font=("Segoe UI", 11, "bold"),
+            left_card, text="🖥 Toggle In-Game Overlay (Ctrl+Shift+O)", font=("Segoe UI", 11, "bold"),
             fg_color="#1E2433", hover_color="#2A3245", text_color=COLOR_TEXT_PRIMARY,
             border_color=COLOR_BORDER, border_width=1,
             height=32, corner_radius=8, command=self.hud_overlay.toggle_overlay
@@ -1622,7 +1631,7 @@ class AntimagistV4ApexApp(AntimagistV3App):
             f_v4.grid(row=2, column=0, sticky="ew", pady=(12, 0))
 
             is_reg = self.context_menu_v4.is_registered()
-            btn_txt = "🗑️ Remove Apex V4 Shell Menus" if is_reg else "🖱️ Add Apex V4 Shell Menus (Detonate & Apex Boost)"
+            btn_txt = "🗑 Remove Apex V4 Shell Menus" if is_reg else "🖱 Add Apex V4 Shell Menus (Detonate & Apex Boost)"
             btn_col = "#3B1219" if is_reg else "#1E293B"
 
             ctk.CTkButton(
@@ -1633,7 +1642,7 @@ class AntimagistV4ApexApp(AntimagistV3App):
             ).pack(side="left", padx=(0, 10))
 
             is_daemon = self.auto_updater.is_silent_autostart_enabled()
-            d_txt = "🛡️ Disable Zero-UAC Admin Boot Daemon" if is_daemon else "🛡️ Start Antimagist Silently with Windows (Ring-0 / Admin Mode)"
+            d_txt = "🛡 Disable Zero-UAC Admin Boot Daemon" if is_daemon else "🛡 Start Antimagist Silently with Windows (Ring-0 / Admin Mode)"
             d_col = "#065F46" if is_daemon else "#1E293B"
             ctk.CTkButton(
                 f_v4, text=d_txt, font=("Segoe UI", 12, "bold"),
@@ -1648,7 +1657,7 @@ class AntimagistV4ApexApp(AntimagistV3App):
 
             h_top = ctk.CTkFrame(hk_card, fg_color="transparent")
             h_top.pack(fill="x", padx=16, pady=(12, 6))
-            ctk.CTkLabel(h_top, text="⌨️ Global In-Game Hotkeys Active (Fullscreen / Borderless)", font=(FONT_FAMILY_UI, 13, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+            ctk.CTkLabel(h_top, text="⌨ Global In-Game Hotkeys Active (Fullscreen / Borderless)", font=(FONT_FAMILY_UI, 13, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
             ctk.CTkLabel(h_top, text="● LOW-LATENCY HOOKS ARMED", font=(FONT_FAMILY_UI, 9, "bold"), text_color=COLOR_EMERALD, fg_color="#0F2E22", corner_radius=6, padx=8, pady=2).pack(side="right")
 
             hk_grid = ctk.CTkFrame(hk_card, fg_color="#121724", corner_radius=8, border_color=COLOR_BORDER, border_width=1)
@@ -1745,9 +1754,10 @@ class AntimagistV4ApexApp(AntimagistV3App):
         card_sec.grid(row=1, column=0, sticky="nsew", padx=(0, 6), pady=(0, 10))
 
         sec_hdr = ctk.CTkFrame(card_sec, fg_color="transparent")
-        sec_hdr.pack(fill="x", padx=14, pady=(12, 6))
-        ctk.CTkLabel(sec_hdr, text="🛡️ Real-Time Protection", font=(FONT_FAMILY_UI, 13, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
-        ctk.CTkLabel(sec_hdr, text="● ACTIVE", font=(FONT_FAMILY_UI, 9, "bold"), text_color=COLOR_EMERALD, fg_color="#06281E", corner_radius=6, padx=6, pady=2).pack(side="right")
+        sec_hdr.pack(fill="x", padx=10, pady=(10, 4))
+        clean_sec_title = "🛡 Real-Time Protection".replace("\ufe0f", "")
+        ctk.CTkLabel(sec_hdr, text=clean_sec_title, font=(FONT_FAMILY_UI, 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+        ctk.CTkLabel(sec_hdr, text="● ACTIVE", font=(FONT_FAMILY_UI, 8, "bold"), text_color=COLOR_EMERALD, fg_color="#06281E", corner_radius=6, padx=5, pady=2).pack(side="right")
 
         shields = [
             ("🧠 Standby Memory Guard", "Purges memory leaks & isolates bloat"),
@@ -1757,9 +1767,15 @@ class AntimagistV4ApexApp(AntimagistV3App):
         ]
         for name, desc in shields:
             s_box = ctk.CTkFrame(card_sec, fg_color=COLOR_CARD_HOVER, corner_radius=8, border_color=COLOR_BORDER, border_width=1)
-            s_box.pack(fill="x", padx=12, pady=2)
-            ctk.CTkLabel(s_box, text=f"✓  {name}", font=(FONT_FAMILY_UI, 10, "bold"), text_color=COLOR_EMERALD).pack(anchor="w", padx=10, pady=(3, 1))
-            ctk.CTkLabel(s_box, text=desc, font=(FONT_FAMILY_UI, 8), text_color=COLOR_TEXT_MUTED).pack(anchor="w", padx=10, pady=(0, 3))
+            s_box.pack(fill="x", padx=10, pady=2)
+            lbl_title = ctk.CTkLabel(s_box, text=f"✓  {name}", font=(FONT_FAMILY_UI, 9, "bold"), text_color=COLOR_EMERALD, wraplength=200, justify="left")
+            lbl_title.pack(anchor="w", padx=8, pady=(3, 1))
+            lbl_desc = ctk.CTkLabel(s_box, text=desc, font=(FONT_FAMILY_UI, 8), text_color=COLOR_TEXT_MUTED, wraplength=200, justify="left")
+            lbl_desc.pack(anchor="w", padx=8, pady=(0, 3))
+            s_box.bind("<Configure>", lambda e, lt=lbl_title, ld=lbl_desc: [
+                lt.configure(wraplength=max(120, e.width - 16)),
+                ld.configure(wraplength=max(120, e.width - 16))
+            ])
 
         # Interactive Zero-Trust Monitored Processes Table
         proc_hdr_box = ctk.CTkFrame(card_sec, fg_color="transparent")
@@ -1793,7 +1809,7 @@ class AntimagistV4ApexApp(AntimagistV3App):
         ).pack(fill="x", pady=(0, 4))
 
         ctk.CTkButton(
-            sec_foot, text="🛡️ Open Security Suite →", font=(FONT_FAMILY_UI, 10, "bold"),
+            sec_foot, text="🛡 Open Security Suite →", font=(FONT_FAMILY_UI, 10, "bold"),
             fg_color=COLOR_CARD_HOVER, hover_color=COLOR_BORDER_GLOW, text_color=COLOR_TEXT_PRIMARY,
             border_color=COLOR_BORDER, border_width=1,
             height=30, corner_radius=8, command=self.show_security_suite_pane
@@ -1807,7 +1823,7 @@ class AntimagistV4ApexApp(AntimagistV3App):
         hw_hdr.pack(fill="x", padx=14, pady=(12, 2))
         ctk.CTkLabel(hw_hdr, text="⚡ Hardware Telemetry", font=(FONT_FAMILY_UI, 13, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
         self.lbl_dash_health_badge = ctk.CTkLabel(
-            hw_hdr, text=f"❤️ HEALTH: {getattr(self, 'system_health_pct', 98.0):.0f}%",
+            hw_hdr, text=f"❤ HEALTH: {getattr(self, 'system_health_pct', 98.0):.0f}%",
             font=(FONT_FAMILY_MONO, 9, "bold"), text_color=COLOR_CYAN
         )
         self.lbl_dash_health_badge.pack(side="right")
@@ -1817,11 +1833,12 @@ class AntimagistV4ApexApp(AntimagistV3App):
         self.gauge_canvas.pack(fill="x", padx=6, pady=1)
 
         stats_box = ctk.CTkFrame(card_hw, fg_color="transparent")
-        stats_box.pack(fill="x", padx=14, pady=(0, 3))
-        self.lbl_gauge_ram_text = ctk.CTkLabel(stats_box, text="RAM: Fetching...", font=(FONT_FAMILY_MONO, 10, "bold"), text_color=COLOR_CYAN)
-        self.lbl_gauge_ram_text.pack(side="left")
-        self.lbl_gauge_cpu_text = ctk.CTkLabel(stats_box, text="CPU: Fetching...", font=(FONT_FAMILY_MONO, 10, "bold"), text_color=COLOR_EMERALD)
-        self.lbl_gauge_cpu_text.pack(side="right")
+        stats_box.pack(fill="x", padx=12, pady=(0, 2))
+        stats_box.grid_columnconfigure((0, 1), weight=1)
+        self.lbl_gauge_ram_text = ctk.CTkLabel(stats_box, text="RAM: Fetching...", font=(FONT_FAMILY_MONO, 8, "bold"), text_color=COLOR_CYAN, anchor="w")
+        self.lbl_gauge_ram_text.grid(row=0, column=0, sticky="w")
+        self.lbl_gauge_cpu_text = ctk.CTkLabel(stats_box, text="CPU: Fetching...", font=(FONT_FAMILY_MONO, 8, "bold"), text_color=COLOR_EMERALD, anchor="e")
+        self.lbl_gauge_cpu_text.grid(row=0, column=1, sticky="e")
 
         # GPU metrics strip (Full GPU Model Name - No Truncation)
         gm = self.gpu_sentinel.get_live_gpu_metrics()
@@ -1870,14 +1887,14 @@ class AntimagistV4ApexApp(AntimagistV3App):
             cur_hz, max_hz, is_max = 60, 60, True
 
         if not is_max:
-            ctk.CTkLabel(hz_strip, text=f"⚠️ Display: {cur_hz}Hz (Max: {max_hz}Hz)", font=(FONT_FAMILY_UI, 8, "bold"), text_color=COLOR_WARNING).pack(side="left", padx=6, pady=2)
+            ctk.CTkLabel(hz_strip, text=f"⚠ Display: {cur_hz}Hz (Max: {max_hz}Hz)", font=(FONT_FAMILY_UI, 8, "bold"), text_color=COLOR_WARNING).pack(side="left", padx=6, pady=2)
             ctk.CTkButton(
                 hz_strip, text=f"⚡ Lock {max_hz}Hz", font=(FONT_FAMILY_UI, 8, "bold"),
                 fg_color=COLOR_EMERALD, hover_color="#059669", height=20, width=85,
                 command=self._lock_max_display_hz_ui
             ).pack(side="right", padx=6, pady=2)
         else:
-            ctk.CTkLabel(hz_strip, text=f"🖥️ Display: {cur_hz}Hz (Locked Maximum)", font=(FONT_FAMILY_UI, 8, "bold"), text_color=COLOR_EMERALD).pack(side="left", padx=6, pady=2)
+            ctk.CTkLabel(hz_strip, text=f"🖥 Display: {cur_hz}Hz (Locked Maximum)", font=(FONT_FAMILY_UI, 8, "bold"), text_color=COLOR_EMERALD).pack(side="left", padx=6, pady=2)
             ctk.CTkButton(
                 hz_strip, text="⚡ Suspend Bloat", font=(FONT_FAMILY_UI, 8, "bold"),
                 fg_color="#0369A1", hover_color="#0284C7", height=20, width=85,
@@ -1886,53 +1903,53 @@ class AntimagistV4ApexApp(AntimagistV3App):
 
         # Real-time Hardware Telemetry & Architecture Section
         self.hw_details_card = ctk.CTkFrame(card_hw, fg_color=COLOR_BG_DARK, corner_radius=8, border_color=COLOR_BORDER, border_width=1)
-        self.hw_details_card.pack(fill="both", expand=True, padx=12, pady=(4, 6))
+        self.hw_details_card.pack(fill="x", expand=False, padx=12, pady=(2, 4))
 
-        ctk.CTkLabel(self.hw_details_card, text="Subsystem Architecture & Telemetry", font=(FONT_FAMILY_UI, 9, "bold"), text_color=COLOR_TEXT_MUTED).pack(anchor="w", padx=8, pady=(4, 2))
+        ctk.CTkLabel(self.hw_details_card, text="Subsystem Architecture & Telemetry", font=(FONT_FAMILY_UI, 9, "bold"), text_color=COLOR_TEXT_MUTED).pack(anchor="w", padx=8, pady=(3, 1))
 
         det_grid = ctk.CTkFrame(self.hw_details_card, fg_color="transparent")
-        det_grid.pack(fill="both", expand=True, padx=6, pady=(0, 4))
+        det_grid.pack(fill="both", expand=True, padx=6, pady=(0, 3))
         det_grid.grid_columnconfigure((0, 1), weight=1)
         det_grid.grid_rowconfigure((0, 1, 2), weight=1)
 
         # Standby Cache Pill
         p_ram = ctk.CTkFrame(det_grid, fg_color=COLOR_CARD_HOVER, corner_radius=6, border_color=COLOR_BORDER, border_width=1)
-        p_ram.grid(row=0, column=0, sticky="nsew", padx=2, pady=2)
-        ctk.CTkLabel(p_ram, text="Standby Cache", font=(FONT_FAMILY_UI, 8), text_color=COLOR_TEXT_MUTED).pack(anchor="w", padx=6, pady=(2, 0))
-        self.lbl_hw_standby = ctk.CTkLabel(p_ram, text="Optimized", font=(FONT_FAMILY_MONO, 9, "bold"), text_color=COLOR_EMERALD)
-        self.lbl_hw_standby.pack(anchor="w", padx=6, pady=(0, 2))
+        p_ram.grid(row=0, column=0, sticky="nsew", padx=2, pady=1)
+        ctk.CTkLabel(p_ram, text="Standby Cache", font=(FONT_FAMILY_UI, 7), text_color=COLOR_TEXT_MUTED).pack(anchor="w", padx=6, pady=(1, 0))
+        self.lbl_hw_standby = ctk.CTkLabel(p_ram, text="Optimized", font=(FONT_FAMILY_MONO, 8, "bold"), text_color=COLOR_EMERALD)
+        self.lbl_hw_standby.pack(anchor="w", padx=6, pady=(0, 1))
 
         # Storage IO Pill
         p_disk = ctk.CTkFrame(det_grid, fg_color=COLOR_CARD_HOVER, corner_radius=6, border_color=COLOR_BORDER, border_width=1)
-        p_disk.grid(row=0, column=1, sticky="nsew", padx=2, pady=2)
-        ctk.CTkLabel(p_disk, text="NVMe System Disk", font=(FONT_FAMILY_UI, 8), text_color=COLOR_TEXT_MUTED).pack(anchor="w", padx=6, pady=(2, 0))
+        p_disk.grid(row=0, column=1, sticky="nsew", padx=2, pady=1)
+        ctk.CTkLabel(p_disk, text="NVMe System Disk", font=(FONT_FAMILY_UI, 7), text_color=COLOR_TEXT_MUTED).pack(anchor="w", padx=6, pady=(1, 0))
         try:
             d_usage = psutil.disk_usage("C:\\")
             d_free_gb = d_usage.free / (1024 ** 3)
             disk_str = f"{d_free_gb:.1f} GB Free"
         except Exception:
             disk_str = "Healthy (C:)"
-        self.lbl_hw_disk = ctk.CTkLabel(p_disk, text=disk_str, font=(FONT_FAMILY_MONO, 9, "bold"), text_color=COLOR_CYAN)
-        self.lbl_hw_disk.pack(anchor="w", padx=6, pady=(0, 2))
+        self.lbl_hw_disk = ctk.CTkLabel(p_disk, text=disk_str, font=(FONT_FAMILY_MONO, 8, "bold"), text_color=COLOR_CYAN)
+        self.lbl_hw_disk.pack(anchor="w", padx=6, pady=(0, 1))
 
         # Timer Resolution Pill
         p_timer = ctk.CTkFrame(det_grid, fg_color=COLOR_CARD_HOVER, corner_radius=6, border_color=COLOR_BORDER, border_width=1)
-        p_timer.grid(row=1, column=0, sticky="nsew", padx=2, pady=2)
-        ctk.CTkLabel(p_timer, text="HPET / Timer Res", font=(FONT_FAMILY_UI, 8), text_color=COLOR_TEXT_MUTED).pack(anchor="w", padx=6, pady=(2, 0))
-        self.lbl_hw_timer = ctk.CTkLabel(p_timer, text="0.500 ms (Apex)", font=(FONT_FAMILY_MONO, 9, "bold"), text_color="#A78BFA")
-        self.lbl_hw_timer.pack(anchor="w", padx=6, pady=(0, 2))
+        p_timer.grid(row=1, column=0, sticky="nsew", padx=2, pady=1)
+        ctk.CTkLabel(p_timer, text="HPET / Timer Res", font=(FONT_FAMILY_UI, 7), text_color=COLOR_TEXT_MUTED).pack(anchor="w", padx=6, pady=(1, 0))
+        self.lbl_hw_timer = ctk.CTkLabel(p_timer, text="0.500 ms (Apex)", font=(FONT_FAMILY_MONO, 8, "bold"), text_color="#A78BFA")
+        self.lbl_hw_timer.pack(anchor="w", padx=6, pady=(0, 1))
 
         # DPC Interrupt Health Pill
         p_dpc = ctk.CTkFrame(det_grid, fg_color=COLOR_CARD_HOVER, corner_radius=6, border_color=COLOR_BORDER, border_width=1)
-        p_dpc.grid(row=1, column=1, sticky="nsew", padx=2, pady=2)
-        ctk.CTkLabel(p_dpc, text="DPC Interrupt Jitter", font=(FONT_FAMILY_UI, 8), text_color=COLOR_TEXT_MUTED).pack(anchor="w", padx=6, pady=(2, 0))
-        self.lbl_hw_dpc = ctk.CTkLabel(p_dpc, text="< 15 µs (Pure)", font=(FONT_FAMILY_MONO, 9, "bold"), text_color=COLOR_EMERALD)
-        self.lbl_hw_dpc.pack(anchor="w", padx=6, pady=(0, 2))
+        p_dpc.grid(row=1, column=1, sticky="nsew", padx=2, pady=1)
+        ctk.CTkLabel(p_dpc, text="DPC Interrupt Jitter", font=(FONT_FAMILY_UI, 7), text_color=COLOR_TEXT_MUTED).pack(anchor="w", padx=6, pady=(1, 0))
+        self.lbl_hw_dpc = ctk.CTkLabel(p_dpc, text="< 15 µs (Pure)", font=(FONT_FAMILY_MONO, 8, "bold"), text_color=COLOR_EMERALD)
+        self.lbl_hw_dpc.pack(anchor="w", padx=6, pady=(0, 1))
 
         # Physical RAM Speed & XMP Pill
         p_ram_speed = ctk.CTkFrame(det_grid, fg_color=COLOR_CARD_HOVER, corner_radius=6, border_color=COLOR_BORDER, border_width=1)
-        p_ram_speed.grid(row=2, column=0, sticky="nsew", padx=2, pady=2)
-        ctk.CTkLabel(p_ram_speed, text="RAM Speed & XMP", font=(FONT_FAMILY_UI, 8), text_color=COLOR_TEXT_MUTED).pack(anchor="w", padx=6, pady=(2, 0))
+        p_ram_speed.grid(row=2, column=0, sticky="nsew", padx=2, pady=1)
+        ctk.CTkLabel(p_ram_speed, text="RAM Speed & XMP", font=(FONT_FAMILY_UI, 7), text_color=COLOR_TEXT_MUTED).pack(anchor="w", padx=6, pady=(1, 0))
         try:
             r_audit = self.core_director.audit_physical_ram_speed_and_xmp()
             ram_spd_txt = f"{r_audit['configured_speed_mhz']} MHz"
@@ -1940,55 +1957,55 @@ class AntimagistV4ApexApp(AntimagistV3App):
         except Exception:
             ram_spd_txt = "3200 MHz"
             ram_spd_col = COLOR_EMERALD
-        self.lbl_hw_ram_speed = ctk.CTkLabel(p_ram_speed, text=ram_spd_txt, font=(FONT_FAMILY_MONO, 9, "bold"), text_color=ram_spd_col)
-        self.lbl_hw_ram_speed.pack(anchor="w", padx=6, pady=(0, 2))
+        self.lbl_hw_ram_speed = ctk.CTkLabel(p_ram_speed, text=ram_spd_txt, font=(FONT_FAMILY_MONO, 8, "bold"), text_color=ram_spd_col)
+        self.lbl_hw_ram_speed.pack(anchor="w", padx=6, pady=(0, 1))
 
         # CPU Core Unparking Pill
         p_unpark = ctk.CTkFrame(det_grid, fg_color=COLOR_CARD_HOVER, corner_radius=6, border_color=COLOR_BORDER, border_width=1)
-        p_unpark.grid(row=2, column=1, sticky="nsew", padx=2, pady=2)
-        ctk.CTkLabel(p_unpark, text="CPU Core Parking", font=(FONT_FAMILY_UI, 8), text_color=COLOR_TEXT_MUTED).pack(anchor="w", padx=6, pady=(2, 0))
+        p_unpark.grid(row=2, column=1, sticky="nsew", padx=2, pady=1)
+        ctk.CTkLabel(p_unpark, text="CPU Core Parking", font=(FONT_FAMILY_UI, 7), text_color=COLOR_TEXT_MUTED).pack(anchor="w", padx=6, pady=(1, 0))
         try:
             cp_audit = self.core_director.audit_cpu_core_parking()
             unpark_txt = cp_audit.get("status_label", "100% Unparked")
         except Exception:
             unpark_txt = "100% Unparked"
-        self.lbl_hw_core_unpark = ctk.CTkLabel(p_unpark, text=unpark_txt, font=(FONT_FAMILY_MONO, 9, "bold"), text_color=COLOR_EMERALD)
-        self.lbl_hw_core_unpark.pack(anchor="w", padx=6, pady=(0, 2))
+        self.lbl_hw_core_unpark = ctk.CTkLabel(p_unpark, text=unpark_txt, font=(FONT_FAMILY_MONO, 8, "bold"), text_color=COLOR_EMERALD)
+        self.lbl_hw_core_unpark.pack(anchor="w", padx=6, pady=(0, 1))
 
         hw_foot = ctk.CTkFrame(card_hw, fg_color="transparent")
-        hw_foot.pack(fill="x", side="bottom", padx=12, pady=(0, 12))
+        hw_foot.pack(fill="x", side="bottom", padx=12, pady=(0, 6))
 
         # GPU Live Clocks, Power & Thermal Headroom Row
         gm = self.gpu_sentinel.get_live_gpu_metrics()
         gpu_stat_str = f"GPU: {gm.get('core_clock_mhz', 0)}MHz Core | {gm.get('power_draw_w', 0.0)}W | Headroom: {gm.get('thermal_headroom_c', 83)}°C"
         p_gpu_diag = ctk.CTkFrame(hw_foot, fg_color=COLOR_CARD_HOVER, corner_radius=6, border_color=COLOR_BORDER, border_width=1)
-        p_gpu_diag.pack(fill="x", pady=(0, 4))
-        self.lbl_hw_gpu_stat = ctk.CTkLabel(p_gpu_diag, text=gpu_stat_str, font=(FONT_FAMILY_MONO, 9, "bold"), text_color=COLOR_CYAN)
-        self.lbl_hw_gpu_stat.pack(padx=6, pady=3)
+        p_gpu_diag.pack(fill="x", pady=(0, 3))
+        self.lbl_hw_gpu_stat = ctk.CTkLabel(p_gpu_diag, text=gpu_stat_str, font=(FONT_FAMILY_MONO, 8, "bold"), text_color=COLOR_CYAN)
+        self.lbl_hw_gpu_stat.pack(padx=6, pady=2)
 
         ctk.CTkButton(
-            hw_foot, text="⚡ Flush Standby & Working Set RAM", font=(FONT_FAMILY_UI, 10, "bold"),
+            hw_foot, text="⚡ Flush Standby & Working Set RAM", font=(FONT_FAMILY_UI, 9, "bold"),
             fg_color=COLOR_EMERALD, hover_color="#059669", text_color="#FFFFFF",
-            height=28, corner_radius=8, command=self._flush_ram_with_sfx
-        ).pack(fill="x", pady=(0, 3))
+            height=24, corner_radius=6, command=self._flush_ram_with_sfx
+        ).pack(fill="x", pady=(0, 2))
 
         ctk.CTkButton(
-            hw_foot, text="🎯 Toggle Competitive Vibrance & HDR", font=(FONT_FAMILY_UI, 10, "bold"),
+            hw_foot, text="🎯 Toggle Competitive Vibrance & HDR", font=(FONT_FAMILY_UI, 9, "bold"),
             fg_color="#0284C7", hover_color="#0369A1", text_color="#FFFFFF",
-            height=28, corner_radius=8, command=self._toggle_vibrance_ui
-        ).pack(fill="x", pady=(0, 3))
+            height=24, corner_radius=6, command=self._toggle_vibrance_ui
+        ).pack(fill="x", pady=(0, 2))
 
         ctk.CTkButton(
-            hw_foot, text="🔄 Reset GPU Driver Stack (Win+Ctrl+Shift+B)", font=(FONT_FAMILY_UI, 10, "bold"),
+            hw_foot, text="🔄 Reset GPU Driver Stack (Win+Ctrl+Shift+B)", font=(FONT_FAMILY_UI, 9, "bold"),
             fg_color="#4F46E5", hover_color="#4338CA", text_color="#FFFFFF",
-            height=28, corner_radius=8, command=self._reset_gpu_driver_ui
-        ).pack(fill="x", pady=(0, 3))
+            height=24, corner_radius=6, command=self._reset_gpu_driver_ui
+        ).pack(fill="x", pady=(0, 2))
 
         ctk.CTkButton(
-            hw_foot, text="⚡ Open Performance Suite →", font=(FONT_FAMILY_UI, 10, "bold"),
+            hw_foot, text="⚡ Open Performance Suite →", font=(FONT_FAMILY_UI, 9, "bold"),
             fg_color=COLOR_CARD_HOVER, hover_color=COLOR_BORDER_GLOW, text_color=COLOR_TEXT_PRIMARY,
             border_color=COLOR_BORDER, border_width=1,
-            height=28, corner_radius=8, command=self.show_performance_suite_pane
+            height=24, corner_radius=6, command=self.show_performance_suite_pane
         ).pack(fill="x")
 
         # ═══ COLUMN 3 (RIGHT): NEURAL AI COPILOT (CURSOR/LINEAR STYLE) ═══
@@ -2017,22 +2034,25 @@ class AntimagistV4ApexApp(AntimagistV3App):
         )
         self.dash_ai_chat_box.configure(state="disabled")
 
-        # Quick Action Chips
+        # Quick Action Chips (4-Column Responsive Grid with Zero Text Clipping)
         chips_bar = ctk.CTkFrame(card_ai, fg_color="transparent")
-        chips_bar.pack(fill="x", padx=12, pady=(0, 4))
+        chips_bar.pack(fill="x", padx=10, pady=(0, 4))
+        chips_bar.grid_columnconfigure((0, 1, 2, 3), weight=1)
         chips = [
             ("🧹 Flush RAM", "Flush standby RAM pages"),
             ("🎯 CS2 Turbo", "Optimize PC for Counter-Strike 2 tournament"),
             ("📉 DPC Audit", "Audit DPC latency and check device interrupt drivers"),
-            ("🛡️ Pre-Flight", "Verify 5-point sandbox preflight checklist"),
+            ("🛡 Pre-Flight", "Verify 5-point sandbox preflight checklist"),
         ]
-        for lbl, prompt in chips:
-            ctk.CTkButton(
-                chips_bar, text=lbl, font=(FONT_FAMILY_UI, 8, "bold"),
+        for idx, (lbl, prompt) in enumerate(chips):
+            clean_lbl = lbl.replace("\ufe0f", "")
+            btn = ctk.CTkButton(
+                chips_bar, text=clean_lbl, font=(FONT_FAMILY_UI, 7, "bold"),
                 fg_color=COLOR_CARD_HOVER, hover_color=COLOR_BORDER_GLOW, text_color=COLOR_TEXT_SUBTLE,
                 border_color=COLOR_BORDER, border_width=1, height=22, corner_radius=11,
-                command=lambda p=prompt: self._execute_dash_ai_prompt(p)
-            ).pack(side="left", padx=1)
+                width=0, command=lambda p=prompt: self._execute_dash_ai_prompt(p)
+            )
+            btn.grid(row=0, column=idx, sticky="ew", padx=1)
 
         # Direct AI Input Bar (Modern rounded)
         input_bar = ctk.CTkFrame(card_ai, fg_color="transparent")
@@ -2221,7 +2241,7 @@ class AntimagistV4ApexApp(AntimagistV3App):
             ok, msg = self.display_reflex.reset_display_vibrance()
             self._vibrance_active = False
             self.show_toast_msg("Standard 1.0 Linear Gamma Restored")
-            self.log_to_ai_feed(f"🖥️ [Display Reflex] {msg}")
+            self.log_to_ai_feed(f"🖥 [Display Reflex] {msg}")
             if getattr(self, 'voice', None) and self.voice.enabled:
                 self.voice.speak("Display calibration restored to standard.")
 
@@ -2257,32 +2277,35 @@ class AntimagistV4ApexApp(AntimagistV3App):
         while len(self._proc_row_pool) < max_rows:
             idx = len(self._proc_row_pool)
             row_bg = "#11141D" if (idx % 2 == 0) else "#151924"
-            row = ctk.CTkFrame(self.proc_scroll_frame, fg_color=row_bg, corner_radius=6, height=28)
-            row.pack_propagate(False)
+            row = ctk.CTkFrame(self.proc_scroll_frame, fg_color=row_bg, corner_radius=6, height=26)
+            row.grid_columnconfigure(0, weight=1)
+            row.grid_columnconfigure(1, weight=0)
+            row.grid_columnconfigure(2, weight=0)
+            row.grid_columnconfigure(3, weight=0)
 
-            lbl_proc = ctk.CTkLabel(row, text="", font=(FONT_FAMILY_MONO, 9, "bold"), text_color=COLOR_TEXT_PRIMARY, anchor="w")
-            lbl_proc.pack(side="left", padx=(8, 4))
+            lbl_proc = ctk.CTkLabel(row, text="", font=(FONT_FAMILY_MONO, 8, "bold"), text_color=COLOR_TEXT_PRIMARY, anchor="w")
+            lbl_proc.grid(row=0, column=0, sticky="w", padx=(6, 2), pady=2)
 
-            lbl_mem = ctk.CTkLabel(row, text="", font=(FONT_FAMILY_MONO, 9, "bold"), text_color=COLOR_EMERALD, width=65, anchor="e")
-            lbl_mem.pack(side="left", padx=2)
-
-            btn_kill = ctk.CTkButton(
-                row, text="Kill", font=(FONT_FAMILY_UI, 9, "bold"),
-                fg_color="#3B1219", hover_color="#7F1D1D", text_color="#FCA5A5",
-                border_color="#7F1D1D", border_width=1,
-                width=38, height=20, corner_radius=4,
-                command=lambda: None
-            )
-            btn_kill.pack(side="right", padx=(2, 6), pady=3)
+            lbl_mem = ctk.CTkLabel(row, text="", font=(FONT_FAMILY_MONO, 8, "bold"), text_color=COLOR_EMERALD, width=46, anchor="e")
+            lbl_mem.grid(row=0, column=1, sticky="e", padx=2, pady=2)
 
             btn_trim = ctk.CTkButton(
-                row, text="Trim RAM", font=(FONT_FAMILY_UI, 9, "bold"),
+                row, text="Trim", font=(FONT_FAMILY_UI, 8, "bold"),
                 fg_color=COLOR_CARD_HOVER, hover_color=COLOR_BORDER_GLOW, text_color=COLOR_CYAN,
                 border_color=COLOR_BORDER, border_width=1,
-                width=64, height=20, corner_radius=4,
+                width=38, height=18, corner_radius=4,
                 command=lambda: None
             )
-            btn_trim.pack(side="right", padx=(2, 2), pady=3)
+            btn_trim.grid(row=0, column=2, sticky="e", padx=2, pady=2)
+
+            btn_kill = ctk.CTkButton(
+                row, text="Kill", font=(FONT_FAMILY_UI, 8, "bold"),
+                fg_color="#3B1219", hover_color="#7F1D1D", text_color="#FCA5A5",
+                border_color="#7F1D1D", border_width=1,
+                width=30, height=18, corner_radius=4,
+                command=lambda: None
+            )
+            btn_kill.grid(row=0, column=3, sticky="e", padx=(2, 4), pady=2)
 
             self._proc_row_pool.append({
                 "frame": row,
@@ -2321,9 +2344,9 @@ class AntimagistV4ApexApp(AntimagistV3App):
             name = p.get('name', 'Unknown')
             mem_mb = p.get('memory_mb', 0.0)
 
-            disp_name = (name[:16] + "...") if len(name) > 18 else name
-            proc_text = f"{disp_name} ({pid})"
-            mem_text = f"{mem_mb:.1f} MB"
+            disp_name = (name[:11] + "..") if len(name) > 13 else name
+            proc_text = f"{disp_name}"
+            mem_text = f"{mem_mb:.0f} MB"
 
             if item["last_text"] != proc_text:
                 item["lbl_proc"].configure(text=proc_text)
@@ -2394,7 +2417,7 @@ class AntimagistV4ApexApp(AntimagistV3App):
                 p = psutil.Process(pid)
                 p.terminate()
                 self.show_toast_msg(f"Safely terminated {name} (PID {pid}).")
-                self.log_to_ai_feed(f"🛡️ [Process Manager] Terminated process {name} (PID {pid}).")
+                self.log_to_ai_feed(f"🛡 [Process Manager] Terminated process {name} (PID {pid}).")
             except Exception as ex:
                 self.show_toast_msg(f"Kill notice: {ex}")
             self._refresh_interactive_processes_ui()
@@ -2415,7 +2438,7 @@ class AntimagistV4ApexApp(AntimagistV3App):
         if hasattr(self, 'health_badge') and hasattr(self.health_badge, 'winfo_exists') and self.health_badge.winfo_exists():
             health = getattr(self, 'system_health_pct', 98.0)
             self.health_badge.configure(
-                text=f"❤️ SYSTEM HEALTH: {health:.0f}% OPTIMAL",
+                text=f"❤ SYSTEM HEALTH: {health:.0f}% OPTIMAL",
                 fg_color="#06281E",
                 text_color=COLOR_EMERALD
             )
@@ -2809,8 +2832,8 @@ class AntimagistV4ApexApp(AntimagistV3App):
         ctk.CTkLabel(right_card, text="Presentation Pipeline Architecture", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 10))
 
         breakdowns = [
-            ("🖥️ DirectFlip & Multi-Plane Overlay (MPO)", "In standard windowed mode, Windows Desktop Window Manager copies frames via BitBlt, adding 1-2 frames of compositor delay. DirectFlip hands the game buffer straight to the display scanout hardware."),
-            ("⚙️ Hardware Accelerated GPU Scheduling (HAGS)", "Offloads frame command scheduling from the CPU to dedicated GPU microcode. Essential for high refresh rate monitors (144Hz - 360Hz) to eliminate CPU submission bottlenecks."),
+            ("🖥 DirectFlip & Multi-Plane Overlay (MPO)", "In standard windowed mode, Windows Desktop Window Manager copies frames via BitBlt, adding 1-2 frames of compositor delay. DirectFlip hands the game buffer straight to the display scanout hardware."),
+            ("⚙ Hardware Accelerated GPU Scheduling (HAGS)", "Offloads frame command scheduling from the CPU to dedicated GPU microcode. Essential for high refresh rate monitors (144Hz - 360Hz) to eliminate CPU submission bottlenecks."),
             ("🎯 Fullscreen Optimization (FSO) Bypass", "Windows 10/11 injects hybrid overlays that can cause frametime jitter. Antimagist enforces true independent flip while retaining quick Alt-Tab responsiveness.")
         ]
         for t, d in breakdowns:
@@ -2887,7 +2910,7 @@ class AntimagistV4ApexApp(AntimagistV3App):
             height=34, corner_radius=8, command=self._lock_mic_now_ui
         ).pack(fill="x", padx=16, pady=3)
 
-        lock_btn_txt = "🛡️ Disable 24/7 Mic Gain Lock Watcher" if is_mic_locked else "🛡️ Arm 24/7 Mic Gain Lock Watcher"
+        lock_btn_txt = "🛡 Disable 24/7 Mic Gain Lock Watcher" if is_mic_locked else "🛡 Arm 24/7 Mic Gain Lock Watcher"
         lock_btn_col = "#3B1219" if is_mic_locked else "#1E293B"
         ctk.CTkButton(
             left_card, text=lock_btn_txt, font=("Segoe UI", 11, "bold"),
@@ -2931,8 +2954,8 @@ class AntimagistV4ApexApp(AntimagistV3App):
 
         explanations = [
             ("🎧 Footstep Audio Latency in CS2 & Valorant", "Windows audio processing shares CPU cores with game rendering threads. In heavy firefights or smoke grenade rendering, audio buffers starve, causing footstep cues to lag behind by 20-50ms."),
-            ("🛡️ audiodg.exe Physical P-Core Isolation", "Binding the audio pipeline exclusively to an isolated physical P-Core guarantees real-time buffer processing with zero context-switching contention."),
-            ("🎙️ Mic 100% Gain Lock Guard", "Prevents Discord, Steam, CS2, or Valorant from automatically adjusting or degrading your recording volume mid-round.")
+            ("🛡 audiodg.exe Physical P-Core Isolation", "Binding the audio pipeline exclusively to an isolated physical P-Core guarantees real-time buffer processing with zero context-switching contention."),
+            ("🎙 Mic 100% Gain Lock Guard", "Prevents Discord, Steam, CS2, or Valorant from automatically adjusting or degrading your recording volume mid-round.")
         ]
         for t, d in explanations:
             bx = ctk.CTkFrame(right_card, fg_color="#0A0C14", corner_radius=8, border_color=COLOR_BORDER, border_width=1)
@@ -3325,7 +3348,7 @@ composite hardware score and throughput ratings.
         ).pack(fill="x", padx=16, pady=6)
 
         ctk.CTkButton(
-            left_card, text="🛡️ Sanitize & Neutralize Threats Safely", font=("Segoe UI", 12, "bold"),
+            left_card, text="🛡 Sanitize & Neutralize Threats Safely", font=("Segoe UI", 12, "bold"),
             fg_color="#A855F7", hover_color="#9333EA", text_color="#FFFFFF",
             height=38, corner_radius=8, command=self._sanitize_mod_file
         ).pack(fill="x", padx=16, pady=(6, 12))
@@ -3470,7 +3493,7 @@ composite hardware score and throughput ratings.
         ).pack(fill="x", padx=16, pady=(6, 4))
 
         ctk.CTkButton(
-            left_card, text="🛡️ Enable Gaming MSI-X Vector Mode", font=("Segoe UI", 12, "bold"),
+            left_card, text="🛡 Enable Gaming MSI-X Vector Mode", font=("Segoe UI", 12, "bold"),
             fg_color="#06B6D4", hover_color="#0891B2", text_color="#000000",
             height=36, corner_radius=8, command=self._enable_gaming_msi_ui
         ).pack(fill="x", padx=16, pady=4)
@@ -3495,7 +3518,7 @@ composite hardware score and throughput ratings.
             bx.pack(fill="x", pady=3)
             hdr = ctk.CTkFrame(bx, fg_color="transparent")
             hdr.pack(fill="x", padx=10, pady=(6, 2))
-            ctk.CTkLabel(hdr, text=f"⚙️ {drv['driver_file']} — {drv['name']}", font=("Segoe UI", 11, "bold"), text_color=COLOR_CYAN).pack(side="left")
+            ctk.CTkLabel(hdr, text=f"⚙ {drv['driver_file']} — {drv['name']}", font=("Segoe UI", 11, "bold"), text_color=COLOR_CYAN).pack(side="left")
             ctk.CTkLabel(hdr, text=f"[{drv['type']}]", font=("Consolas", 10, "bold"), text_color=COLOR_EMERALD).pack(side="right")
             ctk.CTkLabel(bx, text=drv["advice"], font=("Segoe UI", 10), text_color=COLOR_TEXT_MUTED, wraplength=420, justify="left").pack(anchor="w", padx=10, pady=(0, 6))
 
@@ -3813,7 +3836,7 @@ composite hardware score and throughput ratings.
             ctk.CTkLabel(r, text=val, font=("Consolas", 10, "bold"), text_color=col).pack(side="right")
 
         ctk.CTkButton(
-            left_card, text="🖱️ Sample Live Mouse Polling (Move Mouse Continuously)", font=("Segoe UI", 13, "bold"),
+            left_card, text="🖱 Sample Live Mouse Polling (Move Mouse Continuously)", font=("Segoe UI", 13, "bold"),
             fg_color="#00FF9D", hover_color="#00D480", text_color="#000000",
             height=44, corner_radius=10, command=self._sample_usb_polling_now
         ).pack(fill="x", padx=16, pady=6)
@@ -3843,7 +3866,7 @@ composite hardware score and throughput ratings.
             ("⚡ 1000Hz vs 4000Hz vs 8000Hz Demystified", "1000Hz mouse delivers a packet every 1.00 ms. 4000Hz delivers every 0.25 ms. 8000Hz delivers every 0.125 ms. While 8000Hz reduces input delay by ~0.87ms, it generates 8x interrupt requests per second, requiring high single-core CPU headroom and isolated P-Cores to prevent frametime spikes."),
             ("🛑 USB Selective Suspend & Sleep Penalty", "Windows default power profiles enable USB Selective Suspend, allowing the xHCI USB host controller to enter low-power sleep states during idle moments. When rapidly starting a flick shot, waking the controller can introduce a 2ms - 15ms packet delay. Disabling selective suspend keeps the bus permanently hot."),
             ("🎯 Jitter Standard Deviation & Consistency", "Even on 1000Hz mice, poorly tuned Windows timer resolution or conflicting DPC drivers can cause polling jitter where packets bundle together. Antimagist microsecond QPC analysis verifies true packet pacing."),
-            ("🛡️ Anti-Cheat & Tournament Compliance", "Antimagist USB Polling Sentinel operates strictly in user-mode via Win32 hardware timers and OS power configurations. It does not inject into mouse firmware or modify hardware drivers.")
+            ("🛡 Anti-Cheat & Tournament Compliance", "Antimagist USB Polling Sentinel operates strictly in user-mode via Win32 hardware timers and OS power configurations. It does not inject into mouse firmware or modify hardware drivers.")
         ]
         for title, desc in guides:
             bx = ctk.CTkFrame(scroll_usb, fg_color="#0A0C14", corner_radius=8, border_color=COLOR_BORDER, border_width=1)
@@ -3947,9 +3970,9 @@ composite hardware score and throughput ratings.
 
         m_guides = [
             ("🧠 What Is Windows Memory Compression?", "Windows 10/11 introduced kernel memory compression (handled by the 'System' process). When RAM gets full, Windows compresses inactive pages in RAM instead of writing them to disk. This is a blessing for 8GB laptops, but for 16GB, 32GB, and 64GB gaming rigs, uncompressing pages on-demand steals CPU cycles and causes micro-stutter in open-world titles."),
-            ("⚖️ The Technical Truth: When to Disable?", "If you have >= 16 GB of physical RAM, disabling Memory Compression ensures that zero CPU interrupts are spent decompressing memory buffers during gaming. If you have under 16 GB of RAM, you should leave it ENABLED to avoid slower disk paging."),
+            ("⚖ The Technical Truth: When to Disable?", "If you have >= 16 GB of physical RAM, disabling Memory Compression ensures that zero CPU interrupts are spent decompressing memory buffers during gaming. If you have under 16 GB of RAM, you should leave it ENABLED to avoid slower disk paging."),
             ("📑 Page Combining Overhead", "Page Combining scans physical memory to de-duplicate identical memory pages across processes. In high-performance esports environments, this continuous hash-scanning is unnecessary overhead."),
-            ("🛡️ Standby Cache Pacing", "Windows keeps cached files in standby RAM. Antimagist safely trims unneeded working sets without killing processes or inducing out-of-memory faults.")
+            ("🛡 Standby Cache Pacing", "Windows keeps cached files in standby RAM. Antimagist safely trims unneeded working sets without killing processes or inducing out-of-memory faults.")
         ]
         for title, desc in m_guides:
             bx = ctk.CTkFrame(scroll_mem, fg_color="#0A0C14", corner_radius=8, border_color=COLOR_BORDER, border_width=1)
@@ -4025,7 +4048,7 @@ composite hardware score and throughput ratings.
         ).pack(fill="x", padx=16, pady=6)
 
         ctk.CTkButton(
-            left_card, text="🗑️ Clear Throttle Event History", font=("Segoe UI", 11),
+            left_card, text="🗑 Clear Throttle Event History", font=("Segoe UI", 11),
             fg_color="#1E293B", hover_color="#334155", text_color=COLOR_TEXT_MUTED,
             height=34, corner_radius=8, command=self._clear_throttle_events
         ).pack(fill="x", padx=16, pady=(6, 16))
@@ -4048,7 +4071,7 @@ composite hardware score and throughput ratings.
                 bx.pack(fill="x", pady=3)
                 hdr = ctk.CTkFrame(bx, fg_color="transparent")
                 hdr.pack(fill="x", padx=10, pady=(6, 2))
-                ctk.CTkLabel(hdr, text=f"⚠️ {ev['timestamp']} — {ev['source']} Throttle", font=("Segoe UI", 11, "bold"), text_color=COLOR_AMBER).pack(side="left")
+                ctk.CTkLabel(hdr, text=f"⚠ {ev['timestamp']} — {ev['source']} Throttle", font=("Segoe UI", 11, "bold"), text_color=COLOR_AMBER).pack(side="left")
                 ctk.CTkLabel(hdr, text=f"{ev['temperature_c']}°C | {ev['clock_mhz']} MHz", font=("Consolas", 10, "bold"), text_color=COLOR_CRIMSON).pack(side="right")
 
     def _refresh_throttle_pane(self):
@@ -4229,7 +4252,7 @@ composite hardware score and throughput ratings.
             hdr = ctk.CTkFrame(bx, fg_color="transparent")
             hdr.pack(fill="x", padx=10, pady=(6, 2))
             col = COLOR_EMERALD if d["msi_supported"] else COLOR_AMBER
-            ctk.CTkLabel(hdr, text=f"⚙️ {d['name'][:36]}", font=("Segoe UI", 11, "bold"), text_color=COLOR_CYAN).pack(side="left")
+            ctk.CTkLabel(hdr, text=f"⚙ {d['name'][:36]}", font=("Segoe UI", 11, "bold"), text_color=COLOR_CYAN).pack(side="left")
             ctk.CTkLabel(hdr, text=f"[{d['status']}]", font=("Consolas", 10, "bold"), text_color=col).pack(side="right")
             ctk.CTkLabel(bx, text=f"Class: {d['class']} | Service: {d['service']} | Limit: {d['msi_limit']}", font=("Consolas", 9), text_color=COLOR_TEXT_MUTED).pack(anchor="w", padx=10, pady=(0, 6))
 
@@ -4403,7 +4426,7 @@ composite hardware score and throughput ratings.
             hdr = ctk.CTkFrame(bx, fg_color="transparent")
             hdr.pack(fill="x", padx=10, pady=(6, 2))
             col = COLOR_EMERALD if ac["running"] else (COLOR_CYAN if ac["installed"] else COLOR_TEXT_MUTED)
-            ctk.CTkLabel(hdr, text=f"🛡️ {ac['name']}", font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+            ctk.CTkLabel(hdr, text=f"🛡 {ac['name']}", font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
             drv_name = ac.get('driver', 'kernel')
             ctk.CTkLabel(bx, text=f"Service: {ac['service']} | Driver: {drv_name}", font=("Consolas", 9), text_color=COLOR_TEXT_MUTED).pack(anchor="w", padx=10, pady=(0, 6))
 
@@ -4505,7 +4528,7 @@ composite hardware score and throughput ratings.
         self.sfx.play_warp_boost()
         self.voice.speak(f"{prof['name']} active.")
         self.show_toast_msg(f"Profile: {prof['name']}")
-        self.log_to_ai_feed(f"🎛️ [Hardware Profile Switcher] {msg}")
+        self.log_to_ai_feed(f"🎛 [Hardware Profile Switcher] {msg}")
 
     def _on_profile_switched_hook(self, profile_key: str, prof: Dict[str, Any]):
         """Executed automatically when a profile is changed via global hotkey or UI."""
@@ -4517,7 +4540,7 @@ composite hardware score and throughput ratings.
         self.sfx.play_warp_boost()
         self.voice.speak(f"Antimagist Profile: {prof['name']} engaged.")
         self.show_toast_msg(f"Active Profile: {prof['name']}")
-        self.log_to_ai_feed(f"🎛️ [Hardware Profile Hook] {prof['name']} engaged ({prof.get('description', '')})")
+        self.log_to_ai_feed(f"🎛 [Hardware Profile Hook] {prof['name']} engaged ({prof.get('description', '')})")
 
     # ========================================================================
     # V9 APEX PREDATOR PILLAR 1: ESPORTS MATCH RECORDER & SESSION REPLAY
@@ -4565,7 +4588,7 @@ composite hardware score and throughput ratings.
             ctk.CTkLabel(r, text=title, font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
             ctk.CTkLabel(r, text=val, font=("Consolas", 10, "bold"), text_color=col).pack(side="right")
 
-        btn_txt = "⏹️ Stop Session & Compile Report" if st["is_recording"] else "🔴 Start Match Telemetry Recording"
+        btn_txt = "⏹ Stop Session & Compile Report" if st["is_recording"] else "🔴 Start Match Telemetry Recording"
         btn_col = COLOR_CRIMSON if st["is_recording"] else "#00FF9D"
         btn_txt_col = "#FFFFFF" if st["is_recording"] else "#000000"
 
@@ -4604,7 +4627,7 @@ composite hardware score and throughput ratings.
                 bx.pack(fill="x", pady=4)
                 top_r = ctk.CTkFrame(bx, fg_color="transparent")
                 top_r.pack(fill="x", padx=10, pady=(6, 2))
-                ctk.CTkLabel(top_r, text=f"⚠️ {s['frametime_ms']} ms Spike @ {s['timestamp_sec']}s", font=("Segoe UI", 11, "bold"), text_color=COLOR_CRIMSON).pack(side="left")
+                ctk.CTkLabel(top_r, text=f"⚠ {s['frametime_ms']} ms Spike @ {s['timestamp_sec']}s", font=("Segoe UI", 11, "bold"), text_color=COLOR_CRIMSON).pack(side="left")
                 ctk.CTkLabel(top_r, text=s["severity"], font=("Consolas", 10, "bold"), text_color=COLOR_AMBER).pack(side="right")
                 
                 bot_r = ctk.CTkFrame(bx, fg_color="transparent")
@@ -4980,7 +5003,7 @@ composite hardware score and throughput ratings.
             ctk.CTkLabel(r, text=title, font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
             ctk.CTkLabel(r, text=val, font=("Consolas", 10, "bold"), text_color=col).pack(side="right")
 
-        btn_txt = "⏹️ Disengage Predictive Shield" if tel["is_active"] else "⚡ Engage Predictive Quantum Interceptor"
+        btn_txt = "⏹ Disengage Predictive Shield" if tel["is_active"] else "⚡ Engage Predictive Quantum Interceptor"
         btn_col = COLOR_CRIMSON if tel["is_active"] else "#00FF9D"
         btn_txt_col = "#FFFFFF" if tel["is_active"] else "#000000"
 
@@ -5013,7 +5036,7 @@ composite hardware score and throughput ratings.
                 bx.pack(fill="x", pady=4)
                 r_top = ctk.CTkFrame(bx, fg_color="transparent")
                 r_top.pack(fill="x", padx=10, pady=(6, 2))
-                ctk.CTkLabel(r_top, text=f"🛡️ PRE-EMPTED: {item['culprit_process']} (PID {item['culprit_pid']})", font=("Segoe UI", 11, "bold"), text_color=COLOR_EMERALD).pack(side="left")
+                ctk.CTkLabel(r_top, text=f"🛡 PRE-EMPTED: {item['culprit_process']} (PID {item['culprit_pid']})", font=("Segoe UI", 11, "bold"), text_color=COLOR_EMERALD).pack(side="left")
                 ctk.CTkLabel(r_top, text=f"+{item['latency_prevented_ms']}ms Saved", font=("Consolas", 10, "bold"), text_color=COLOR_CYAN).pack(side="right")
 
                 r_bot = ctk.CTkFrame(bx, fg_color="transparent")
@@ -5080,7 +5103,7 @@ composite hardware score and throughput ratings.
             ctk.CTkLabel(r, text=title, font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
             ctk.CTkLabel(r, text=val, font=("Consolas", 10, "bold"), text_color=col).pack(side="right")
 
-        btn_txt = "⏹️ Stop Packet Racing" if tel["is_racing"] else "🚀 Start Zero-Loss Dual-Path Packet Racing"
+        btn_txt = "⏹ Stop Packet Racing" if tel["is_racing"] else "🚀 Start Zero-Loss Dual-Path Packet Racing"
         btn_col = COLOR_CRIMSON if tel["is_racing"] else "#00FF9D"
         btn_txt_col = "#FFFFFF" if tel["is_racing"] else "#000000"
 
@@ -5097,12 +5120,15 @@ composite hardware score and throughput ratings.
 
         ctk.CTkLabel(right_card, text="Discovered Network Adapters", font=("Segoe UI", 14, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w", padx=16, pady=(16, 8))
 
-        scroll_ad = ctk.CTkScrollableFrame(right_card, fg_color="transparent")
-        scroll_ad.pack(fill="both", expand=True, padx=12, pady=(0, 12))
-
         adapters = self.packet_racer.audit_network_adapters()
+        if len(adapters) > 4:
+            ad_parent = ctk.CTkScrollableFrame(right_card, fg_color="transparent")
+        else:
+            ad_parent = ctk.CTkFrame(right_card, fg_color="transparent")
+        ad_parent.pack(fill="both", expand=True, padx=12, pady=(0, 12))
+
         for idx, a in enumerate(adapters):
-            bx = ctk.CTkFrame(scroll_ad, fg_color="#0A0C14", corner_radius=8, border_color="#334155", border_width=1)
+            bx = ctk.CTkFrame(ad_parent, fg_color="#0A0C14", corner_radius=8, border_color="#334155", border_width=1)
             bx.pack(fill="x", pady=4)
             r_top = ctk.CTkFrame(bx, fg_color="transparent")
             r_top.pack(fill="x", padx=10, pady=(6, 2))
@@ -5178,12 +5204,12 @@ composite hardware score and throughput ratings.
         for ac_key, ac_info in ac_readiness["anti_cheat_compatibility"].items():
             r_ac = ctk.CTkFrame(f_ac, fg_color="transparent")
             r_ac.pack(fill="x", padx=10, pady=2)
-            ctk.CTkLabel(r_ac, text=f"🛡️ {ac_info['name']}", font=("Segoe UI", 10, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+            ctk.CTkLabel(r_ac, text=f"🛡 {ac_info['name']}", font=("Segoe UI", 10, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
             col_ac = COLOR_EMERALD if ac_info["supported"] else COLOR_CRIMSON
             ctk.CTkLabel(r_ac, text=ac_info["status"][:25], font=("Consolas", 9, "bold"), text_color=col_ac).pack(side="right")
 
         ctk.CTkButton(
-            left_card, text="🛡️ Generate Cryptographic Attestation Token (HAT)", font=("Segoe UI", 13, "bold"),
+            left_card, text="🛡 Generate Cryptographic Attestation Token (HAT)", font=("Segoe UI", 13, "bold"),
             fg_color="#00FF9D", hover_color="#00D480", text_color="#000000",
             height=40, corner_radius=10, command=self._generate_tpm_attestation_ui
         ).pack(fill="x", padx=16, pady=(4, 14))
@@ -5291,7 +5317,7 @@ composite hardware score and throughput ratings.
         if ok:
             self.sfx.play_success()
             self.show_toast_msg(f"Blocked IP {remote_ip} in Windows Firewall.")
-            self.log_to_ai_feed(f"🛡️ [Firewall Radar] {msg}")
+            self.log_to_ai_feed(f"🛡 [Firewall Radar] {msg}")
         else:
             self.show_toast_msg(f"Firewall Notice: {msg}")
         self.show_url_pane()
@@ -5359,7 +5385,7 @@ composite hardware score and throughput ratings.
             ctk.CTkLabel(r, text=title, font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
             ctk.CTkLabel(r, text=val, font=("Consolas", 10, "bold"), text_color=col).pack(side="right")
 
-        btn_txt = "☀️ Thaw & Restore All Background Services" if status["is_frozen"] else "🧊 Engage Ghost OS Cryo-Freeze (0% CPU)"
+        btn_txt = "☀ Thaw & Restore All Background Services" if status["is_frozen"] else "🧊 Engage Ghost OS Cryo-Freeze (0% CPU)"
         btn_col = "#38BDF8" if status["is_frozen"] else "#00FF9D"
         btn_txt_col = "#000000"
 
@@ -5386,7 +5412,7 @@ composite hardware score and throughput ratings.
             r_top.pack(fill="x", padx=10, pady=(5, 2))
             st_text = f"Running (PID {s['pid']})" if s["is_running"] else "Inactive"
             col_s = COLOR_CYAN if s["is_running"] else COLOR_TEXT_MUTED
-            ctk.CTkLabel(r_top, text=f"⚙️ {s['display']}", font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+            ctk.CTkLabel(r_top, text=f"⚙ {s['display']}", font=("Segoe UI", 11, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
             ctk.CTkLabel(r_top, text=st_text, font=("Consolas", 10, "bold"), text_color=col_s).pack(side="right")
 
             ctk.CTkLabel(bx, text=s["desc"], font=("Segoe UI", 10), text_color=COLOR_TEXT_MUTED, wraplength=420, justify="left").pack(anchor="w", padx=10, pady=(0, 5))
@@ -5567,7 +5593,7 @@ composite hardware score and throughput ratings.
         if not apps:
             ctk.CTkLabel(scroll_sv, text="✨ dGPU is idle or sleeping. Zero power-hungry background apps keeping the discrete GPU awake.", font=("Segoe UI", 11), text_color=COLOR_EMERALD).pack(pady=20)
         else:
-            ctk.CTkLabel(scroll_sv, text=f"⚠️ {len(apps)} processes holding dGPU wake lock:", font=("Segoe UI", 11, "bold"), text_color=COLOR_WARNING).pack(anchor="w", pady=(0, 6))
+            ctk.CTkLabel(scroll_sv, text=f"⚠ {len(apps)} processes holding dGPU wake lock:", font=("Segoe UI", 11, "bold"), text_color=COLOR_WARNING).pack(anchor="w", pady=(0, 6))
             for a in apps:
                 bx = ctk.CTkFrame(scroll_sv, fg_color="#0A0C14", corner_radius=8, border_color="#334155", border_width=1)
                 bx.pack(fill="x", pady=3)
@@ -5640,7 +5666,7 @@ composite hardware score and throughput ratings.
             ctk.CTkLabel(r, text=val, font=("Consolas", 10, "bold"), text_color=col).pack(side="right")
 
         ctk.CTkButton(
-            left_card, text="🎚️ Configure MMCSS for 0-Dropout Pro Audio", font=("Segoe UI", 13, "bold"),
+            left_card, text="🎚 Configure MMCSS for 0-Dropout Pro Audio", font=("Segoe UI", 13, "bold"),
             fg_color="#00FF9D", hover_color="#00D480", text_color="#000000",
             height=40, corner_radius=10, command=self._optimize_mmcss_ui
         ).pack(fill="x", padx=16, pady=(6, 5))
@@ -5728,7 +5754,7 @@ composite hardware score and throughput ratings.
 
         head = ctk.CTkFrame(pane, fg_color="transparent")
         head.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 16))
-        ctk.CTkLabel(head, text="🕵️ Sovereign Privacy & Enterprise Telemetry Scrubber", font=("Segoe UI", 24, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w")
+        ctk.CTkLabel(head, text="🕵 Sovereign Privacy & Enterprise Telemetry Scrubber", font=("Segoe UI", 24, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(anchor="w")
         ctk.CTkLabel(head, text="Disables DiagTrack, WAP push routing, Windows CEIP, Advertising ID, Timeline tracking, and audits telemetry hosts sinkholes", font=("Segoe UI", 12), text_color=COLOR_TEXT_MUTED).pack(anchor="w")
 
         metrics = self.privacy_scrubber.get_summary_metrics()
@@ -5758,7 +5784,7 @@ composite hardware score and throughput ratings.
             ctk.CTkLabel(r, text=val, font=("Consolas", 10, "bold"), text_color=col).pack(side="right")
 
         ctk.CTkButton(
-            left_card, text="🛡️ Enforce Sovereign Privacy Policies (Zero Telemetry)", font=("Segoe UI", 13, "bold"),
+            left_card, text="🛡 Enforce Sovereign Privacy Policies (Zero Telemetry)", font=("Segoe UI", 13, "bold"),
             fg_color="#00FF9D", hover_color="#00D480", text_color="#000000",
             height=44, corner_radius=10, command=self._apply_privacy_hardening_ui
         ).pack(fill="x", padx=16, pady=(6, 16))
@@ -5851,7 +5877,7 @@ composite hardware score and throughput ratings.
         ).pack(fill="x", padx=16, pady=(4, 4))
 
         ctk.CTkButton(
-            left_card, text="🛠️ Run DISM Component Store Cleanup", font=("Segoe UI", 13, "bold"),
+            left_card, text="🛠 Run DISM Component Store Cleanup", font=("Segoe UI", 13, "bold"),
             fg_color="#8B5CF6", hover_color="#7C3AED", text_color="#FFFFFF",
             height=38, corner_radius=10, command=self._dism_clean_ui
         ).pack(fill="x", padx=16, pady=(4, 16))
@@ -5943,7 +5969,7 @@ composite hardware score and throughput ratings.
                     self._render_interactive_processes(top_p)
 
             if hasattr(self, 'pill_gpu') and self.pill_gpu.winfo_exists():
-                g_text = f"🎮 {gm.get('gpu_name', 'GPU')}: {gm.get('temperature_c', 40)}°C"
+                g_text = f"🎮 GPU {gm.get('temperature_c', 40)}°C"
                 if getattr(self, '_last_pill_gpu_text', None) != g_text:
                     self.pill_gpu.configure(
                         text=g_text,

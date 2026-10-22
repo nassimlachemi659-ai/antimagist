@@ -30,7 +30,20 @@ if hasattr(sys.stdout, "reconfigure"):
 class AntimagistGPUSentinel:
     """Monitors dedicated GPU metrics and manages display driver stack recovery."""
 
+    _instance = None
+    _singleton_lock = threading.Lock()
+
+    def __new__(cls, *args, **kwargs):
+        with cls._singleton_lock:
+            if cls._instance is None:
+                cls._instance = super().__new__(cls)
+                cls._instance._initialized = False
+            return cls._instance
+
     def __init__(self):
+        if getattr(self, '_initialized', False):
+            return
+
         self._lock = threading.Lock()
         self.last_metrics: Dict[str, Any] = {
             "gpu_name": "Detecting GPU...",
@@ -51,8 +64,15 @@ class AntimagistGPUSentinel:
         }
         self.last_poll_time = 0.0
 
-        # Run initial poll
-        self._poll_gpu()
+        # Perform immediate synchronous hardware probe so metrics are valid on load
+        initial_nv = self._query_nvidia_smi()
+        if initial_nv:
+            self.last_metrics = initial_nv
+            self.last_poll_time = time.time()
+        else:
+            self._poll_gpu()
+
+        self._initialized = True
 
     def _query_nvidia_smi(self) -> Optional[Dict[str, Any]]:
         """Queries nvidia-smi for ultra-fast native hardware metrics."""

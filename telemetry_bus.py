@@ -92,6 +92,22 @@ class TelemetryBus:
         self.k32 = ctypes.windll.kernel32 if os.name == 'nt' else None
         self.psapi = ctypes.windll.psapi if os.name == 'nt' else None
 
+        # Pre-seed GPU sentinel singleton
+        try:
+            from gpu_sentinel import AntimagistGPUSentinel
+            self.gpu_sentinel = AntimagistGPUSentinel()
+            initial_gm = self.gpu_sentinel.get_live_gpu_metrics()
+            if initial_gm and initial_gm.get("is_available"):
+                self.state["gpu"] = {
+                    "gpu_name": initial_gm.get("gpu_name", "NVIDIA GPU"),
+                    "temperature_c": initial_gm.get("temperature_c", 40),
+                    "utilization_gpu_pct": initial_gm.get("utilization_gpu_pct", 0),
+                    "vram_str": initial_gm.get("vram_str", "0.0 / 0.0 GB"),
+                    "status_color": initial_gm.get("status_color", "#10B981")
+                }
+        except Exception:
+            self.gpu_sentinel = None
+
         # Pre-seed CPU percentage (needs initial sample for interval=None)
         try:
             psutil.cpu_percent(interval=None)
@@ -256,9 +272,10 @@ class TelemetryBus:
     def _poll_medium_tier(self):
         """Tier 2 (3.5s - 5s): GPU metrics cache query & process list scan."""
         try:
-            from gpu_sentinel import AntimagistGPUSentinel
-            gpu = AntimagistGPUSentinel()
-            gm = gpu.get_live_gpu_metrics()
+            if not getattr(self, 'gpu_sentinel', None):
+                from gpu_sentinel import AntimagistGPUSentinel
+                self.gpu_sentinel = AntimagistGPUSentinel()
+            gm = self.gpu_sentinel.get_live_gpu_metrics()
             if gm and gm.get("is_available"):
                 with self._lock:
                     self.state["gpu"] = {

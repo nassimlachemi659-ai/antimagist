@@ -415,7 +415,7 @@ class AntimagistScanner:
                     suspicious_hits = stats.get('suspicious', 0)
                     total_hits = malicious_hits + suspicious_hits
                     if total_hits > 0:
-                        ui_callback({"status": "danger", "message": f"⚠️ Threat Detected! Malicious: {malicious_hits}, Suspicious: {suspicious_hits}", "is_malicious": True, "file_path": file_path, "hash": file_hash})
+                        ui_callback({"status": "danger", "message": f"⚠ Threat Detected! Malicious: {malicious_hits}, Suspicious: {suspicious_hits}", "is_malicious": True, "file_path": file_path, "hash": file_hash})
                     else:
                         ui_callback({"status": "secure", "message": f"✅ File is Clean and Verified (0 Detections). Hash: {file_hash[:16]}...", "is_malicious": False, "hash": file_hash})
                 elif response.status_code == 404:
@@ -471,12 +471,12 @@ class AntimagistSentinelDaemon:
     def start_sentinel(self, ram_threshold: float = 80.0):
         with self._lock:
             if self.is_running:
-                return "ℹ️ Sentinel already active."
+                return "ℹ Sentinel already active."
             self.is_running = True
 
         def loop():
             try:
-                self.toast.show_toast("Antimagist Enterprise", "Sentinel Auto-Pilot Mode Activated 🛡️", duration=3, threaded=True)
+                self.toast.show_toast("Antimagist Enterprise", "Sentinel Auto-Pilot Mode Activated 🛡", duration=3, threaded=True)
             except Exception:
                 pass
             if self.on_alert:
@@ -500,12 +500,12 @@ class AntimagistSentinelDaemon:
                 time.sleep(5)
 
         threading.Thread(target=loop, daemon=True).start()
-        return "Sentinel Auto-Pilot Mode Activated 🛡️"
+        return "Sentinel Auto-Pilot Mode Activated 🛡"
 
     def stop_sentinel(self):
         with self._lock:
             if not self.is_running:
-                return "ℹ️ Sentinel is not active."
+                return "ℹ Sentinel is not active."
             self.is_running = False
             try:
                 self.toast.show_toast("Antimagist Enterprise", "Sentinel Shield Deactivated 🛑", duration=3, threaded=True)
@@ -661,11 +661,11 @@ class AntimagistV3App(ctk.CTk):
         self.topbar.pack(fill="x", side="top")
         self.topbar.pack_propagate(False)
 
-        # Zone 1 (Left): Sleek modern app badge: 🛡️ ANTIMAGIST with subtle version tag PRO V11 in an elevated #171B26 pill.
+        # Zone 1 (Left): Sleek modern app badge: 🛡 ANTIMAGIST with subtle version tag PRO V11 in an elevated #171B26 pill.
         brand_frame = ctk.CTkFrame(self.topbar, fg_color="transparent")
         brand_frame.pack(side="left", padx=(16, 8), pady=10)
 
-        ctk.CTkLabel(brand_frame, text="🛡️ ANTIMAGIST", font=(FONT_FAMILY_UI, 15, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
+        ctk.CTkLabel(brand_frame, text="🛡 ANTIMAGIST", font=(FONT_FAMILY_UI, 15, "bold"), text_color=COLOR_TEXT_PRIMARY).pack(side="left")
         self.lbl_app_version_tag = ctk.CTkLabel(
             brand_frame, text="PRO V11", font=(FONT_FAMILY_UI, 10, "bold"), 
             text_color=COLOR_EMERALD, fg_color=COLOR_CARD_HOVER, corner_radius=6, padx=8, pady=2
@@ -703,25 +703,25 @@ class AntimagistV3App(ctk.CTk):
 
         ctk.CTkLabel(self.telemetry_pill_container, text="|", font=(FONT_FAMILY_UI, 10), text_color=COLOR_BORDER_GLOW).pack(side="left", padx=2)
 
-        self.pill_cpu = ctk.CTkLabel(self.telemetry_pill_container, text="CPU: 0.0%", font=(FONT_FAMILY_MONO, 10, "bold"), text_color=COLOR_TEXT_PRIMARY)
+        self.pill_cpu = ctk.CTkLabel(self.telemetry_pill_container, text="CPU 0%", font=(FONT_FAMILY_MONO, 10, "bold"), text_color=COLOR_TEXT_PRIMARY)
         self.pill_cpu.pack(side="left", padx=4)
 
         ctk.CTkLabel(self.telemetry_pill_container, text="|", font=(FONT_FAMILY_UI, 10), text_color=COLOR_BORDER_GLOW).pack(side="left", padx=2)
 
-        # Pre-seed initial RAM & CPU metrics immediately at t=0 so '-- / --' is never displayed
+        # Pre-seed initial RAM & CPU metrics immediately at t=0 with compact formatting
         try:
             import psutil
             _vm = psutil.virtual_memory()
-            init_ram_txt = f"RAM: {_vm.used / (1024**3):.1f} / {_vm.total / (1024**3):.1f} GB"
+            init_ram_txt = f"RAM {_vm.used / (1024**3):.1f}G"
         except Exception:
-            init_ram_txt = "RAM: 0.0 / 0.0 GB"
+            init_ram_txt = "RAM 0.0G"
 
         self.pill_ram = ctk.CTkLabel(self.telemetry_pill_container, text=init_ram_txt, font=(FONT_FAMILY_MONO, 10, "bold"), text_color=COLOR_TEXT_PRIMARY)
         self.pill_ram.pack(side="left", padx=4)
 
         ctk.CTkLabel(self.telemetry_pill_container, text="|", font=(FONT_FAMILY_UI, 10), text_color=COLOR_BORDER_GLOW).pack(side="left", padx=2)
 
-        self.pill_ping = ctk.CTkLabel(self.telemetry_pill_container, text="PING: 12ms", font=(FONT_FAMILY_MONO, 10, "bold"), text_color=COLOR_CYAN)
+        self.pill_ping = ctk.CTkLabel(self.telemetry_pill_container, text="PING 12ms ±1.0ms", font=(FONT_FAMILY_MONO, 10, "bold"), text_color=COLOR_CYAN)
         self.pill_ping.pack(side="left", padx=(4, 8))
 
     # ========================================================================
@@ -740,14 +740,14 @@ class AntimagistV3App(ctk.CTk):
         nav_items = [
             ("📊 Dashboard",     "dash",     self.show_dashboard_pane),
             ("🔍 Threat Radar",   "scanner",  self.show_scanner_pane),
-            ("👁️ Active Shield",  "shield",   self.show_shield_pane),
+            ("👁 Active Shield",  "shield",   self.show_shield_pane),
             ("🌐 Network Guard",  "net",      self.show_network_pane),
             ("🚀 Startup Apps",   "startup",  self.show_startup_pane),
             ("🎮 Gamer Mode",     "gamer",    self.show_gamer_pane),
             ("🔗 URL Radar",      "url",      self.show_url_pane),
             ("⚡ PC Optimizer",   "opt",      self.show_optimizer_pane),
             ("🤖 Sentient AI",    "ai",       self.show_ai_agent_pane),
-            ("⚙️ Settings",       "settings", self.show_settings_pane),
+            ("⚙ Settings",       "settings", self.show_settings_pane),
         ]
 
         self.nav_buttons = {}
@@ -857,7 +857,7 @@ class AntimagistV3App(ctk.CTk):
         self.proc_pid_entry.pack(side="left", padx=(0, 8))
 
         self.btn_throttle_proc = ctk.CTkButton(
-            proc_ctrl_row, text="🛡️ Throttle / Sandbox Task", font=("Segoe UI", 11, "bold"),
+            proc_ctrl_row, text="🛡 Throttle / Sandbox Task", font=("Segoe UI", 11, "bold"),
             fg_color="#0E2F38", hover_color="#154B5A", text_color=COLOR_CYAN,
             border_color=COLOR_CYAN, border_width=1, height=30,
             command=self._throttle_selected_process_ui
@@ -884,14 +884,14 @@ class AntimagistV3App(ctk.CTk):
         ).pack(side="left", padx=8)
 
         ctk.CTkButton(
-            bottom_bar, text="🛡️ Throttle Volatile Task", font=("Segoe UI", 12, "bold"),
+            bottom_bar, text="🛡 Throttle Volatile Task", font=("Segoe UI", 12, "bold"),
             fg_color="#0E2F38", hover_color="#154B5A", text_color=COLOR_CYAN,
             border_color=COLOR_CYAN, border_width=1, height=36,
             command=self._throttle_top_process_ui
         ).pack(side="left", padx=8)
 
         ctk.CTkButton(
-            bottom_bar, text="🛡️ Full Radar Audit", font=("Segoe UI", 12, "bold"),
+            bottom_bar, text="🛡 Full Radar Audit", font=("Segoe UI", 12, "bold"),
             fg_color="#6D28D9", hover_color="#7C3AED", height=36,
             command=self.show_scanner_pane
         ).pack(side="left", padx=8)
@@ -1003,7 +1003,7 @@ class AntimagistV3App(ctk.CTk):
         self.btn_quarantine.pack(side="left", padx=6)
 
         ctk.CTkButton(
-            btn_row, text="🛡️ Vault Folder", font=("Segoe UI", 13, "bold"),
+            btn_row, text="🛡 Vault Folder", font=("Segoe UI", 13, "bold"),
             fg_color="#334155", hover_color="#475569", height=42, width=130,
             command=lambda: os.startfile(self.scanner.quarantine_dir) if os.path.exists(self.scanner.quarantine_dir) else None
         ).pack(side="left", padx=6)
@@ -1042,7 +1042,7 @@ class AntimagistV3App(ctk.CTk):
         self._log_scanner(f"[*] Result: {msg}")
         if res.get("is_malicious", False):
             self.btn_quarantine.configure(state="normal")
-            self.radar_status_lbl.configure(text="⚠️ THREAT DETECTED ON RADAR", text_color=COLOR_CRIMSON)
+            self.radar_status_lbl.configure(text="⚠ THREAT DETECTED ON RADAR", text_color=COLOR_CRIMSON)
             messagebox.showwarning("Threat Detected!", f"Warning: {msg}\nSpecimen can now be quarantined into the locked vault.")
         else:
             self.btn_quarantine.configure(state="disabled")
@@ -1161,7 +1161,7 @@ class AntimagistV3App(ctk.CTk):
 
         self.btn_canary_toggle = ctk.CTkButton(
             canary_box,
-            text="DISARM TRIPWIRES" if self.canary_guard.is_running else "🛡️ ARM RANSOMWARE TRIPWIRES",
+            text="DISARM TRIPWIRES" if self.canary_guard.is_running else "🛡 ARM RANSOMWARE TRIPWIRES",
             font=("Segoe UI", 12, "bold"),
             fg_color=COLOR_CRIMSON if self.canary_guard.is_running else "#0D9488",
             hover_color="#DC2626" if self.canary_guard.is_running else "#0F766E",
@@ -1188,7 +1188,7 @@ class AntimagistV3App(ctk.CTk):
         else:
             msg = self.canary_guard.stop_guard()
             self.show_toast_msg(msg)
-            self.btn_canary_toggle.configure(text="🛡️ ARM RANSOMWARE TRIPWIRES", fg_color="#0D9488", hover_color="#0F766E")
+            self.btn_canary_toggle.configure(text="🛡 ARM RANSOMWARE TRIPWIRES", fg_color="#0D9488", hover_color="#0F766E")
             self.lbl_canary_status.configure(text="● RANSOMWARE TRIPWIRES: DISARMED", text_color=COLOR_TEXT_MUTED)
 
     def _on_ransomware_breach(self, ev: dict):
@@ -1201,7 +1201,7 @@ class AntimagistV3App(ctk.CTk):
                 pass
 
     def _on_usb_threat(self, ev: dict):
-        msg = f"⚠️ USB Threat Intercepted on Drive {ev['drive']} ({len(ev['threats'])} threats neutralized)!"
+        msg = f"⚠ USB Threat Intercepted on Drive {ev['drive']} ({len(ev['threats'])} threats neutralized)!"
         self.show_toast_msg(msg)
 
     def _start_scan_from_cli(self, file_path: str):
@@ -1217,7 +1217,7 @@ class AntimagistV3App(ctk.CTk):
             self.show_toast_msg(msg)
             if hasattr(self, 'btn_context_menu'):
                 self.btn_context_menu.configure(
-                    text="🗑️ Remove Windows Context Menu",
+                    text="🗑 Remove Windows Context Menu",
                     fg_color="#3B1219", hover_color="#881337", text_color=COLOR_CRIMSON
                 )
         else:
@@ -1225,7 +1225,7 @@ class AntimagistV3App(ctk.CTk):
             self.show_toast_msg(msg)
             if hasattr(self, 'btn_context_menu'):
                 self.btn_context_menu.configure(
-                    text="🖱️ Add to Windows Context Menu ('Scan with Antimagist')",
+                    text="🖱 Add to Windows Context Menu ('Scan with Antimagist')",
                     fg_color="#1E293B", hover_color="#334155", text_color=COLOR_CYAN
                 )
 
@@ -1335,7 +1335,7 @@ class AntimagistV3App(ctk.CTk):
         ).pack(side="left", padx=(0, 8))
 
         ctk.CTkButton(
-            action_bar, text="↩️ Reset Defaults", font=("Segoe UI", 11, "bold"),
+            action_bar, text="↩ Reset Defaults", font=("Segoe UI", 11, "bold"),
             fg_color="#334155", hover_color="#475569", text_color="#E2E8F0",
             height=30, width=130, command=self._restore_network_ui
         ).pack(side="left", padx=(0, 10))
@@ -1833,7 +1833,7 @@ class AntimagistV3App(ctk.CTk):
         actions = [
             ("⚡ Memory Boost", "#006666", "#008080", lambda: self.optimizer.run_memory_boost(self._log_opt), 0, 0),
             ("🧹 Cache Sweep", "#4D7C0F", "#65A30D", lambda: self.optimizer.run_cache_sweep(self._log_opt), 0, 1),
-            ("🗄️ DISM Deep Sweep", "#C2410C", "#EA580C", lambda: self.optimizer.run_deep_sweep(self._log_opt), 0, 2),
+            ("🗄 DISM Deep Sweep", "#C2410C", "#EA580C", lambda: self.optimizer.run_deep_sweep(self._log_opt), 0, 2),
             ("⚡ NVMe SSD TRIM", "#0F766E", "#0D9488", lambda: self.optimizer.run_nvme_trim(self._log_opt), 1, 0),
             ("🌐 Flush DNS Cache", "#1D4ED8", "#2563EB", lambda: self._flush_dns(), 1, 1),
             ("📊 Task Manager", "#6D28D9", "#7C3AED", lambda: subprocess.Popen(["taskmgr"]), 1, 2),
@@ -1908,7 +1908,7 @@ class AntimagistV3App(ctk.CTk):
             ("🧹 Clean Cache", "clean temporary junk cache"),
             ("📶 Check Ping", "what is my ping"),
             ("🚀 Low-Latency Network", "optimize ping and boost gaming network"),
-            ("🗄️ DISM Clean", "deep clean component store"),
+            ("🗄 DISM Clean", "deep clean component store"),
             ("⚡ NVMe TRIM", "optimize my nvme ssd"),
             ("📊 Hardware Stats", "what are my current hardware metrics"),
         ]
@@ -2095,7 +2095,7 @@ class AntimagistV3App(ctk.CTk):
 
         self.btn_context_menu = ctk.CTkButton(
             shell_row,
-            text="🗑️ Remove Windows Context Menu" if self.context_menu.is_installed() else "🖱️ Add to Windows Context Menu ('Scan with Antimagist')",
+            text="🗑 Remove Windows Context Menu" if self.context_menu.is_installed() else "🖱 Add to Windows Context Menu ('Scan with Antimagist')",
             font=("Segoe UI", 12, "bold"),
             fg_color="#3B1219" if self.context_menu.is_installed() else "#1E293B",
             hover_color="#881337" if self.context_menu.is_installed() else "#334155",
@@ -2242,7 +2242,8 @@ class AntimagistV3App(ctk.CTk):
             c.create_arc(cx1 - r1, cy1 - r1, cx1 + r1, cy1 + r1, start=90, extent=-360, style='arc', width=12, outline=COLOR_CARD_HOVER, tag="ram_bg")
             c.create_arc(cx1 - r1, cy1 - r1, cx1 + r1, cy1 + r1, start=90, extent=0, style='arc', width=12, outline=default_ram_col, tag="ram_fg")
             c.create_text(cx1, cy1 - 10, text="0%", fill=COLOR_TEXT_PRIMARY, font=(FONT_FAMILY_MONO, 18, "bold"), tag="ram_val")
-            c.create_text(cx1, cy1 + 16, text="MEMORY", fill=COLOR_TEXT_MUTED, font=(FONT_FAMILY_UI, 9, "bold"), tag="ram_lbl")
+            c.create_text(cx1, cy1 + 14, text="MEMORY", fill=COLOR_TEXT_MUTED, font=(FONT_FAMILY_UI, 9, "bold"), tag="ram_lbl")
+            c.create_text(cx1, cy1 + 27, text="±0.0%", fill=COLOR_TEXT_MUTED, font=(FONT_FAMILY_MONO, 8), tag="spark_ram_readout")
 
             # RAM Micro-Sparkline Frame (Rolling 60-Second Volatility History)
             sx1 = cx1 + r1 + 18
@@ -2252,9 +2253,8 @@ class AntimagistV3App(ctk.CTk):
 
             c.create_rectangle(sx1, sy1, sx2, sy2, fill=COLOR_BG_DARK, outline=COLOR_BORDER, width=1, tag="spark_ram_box")
             c.create_line(sx1, (sy1 + sy2) / 2, sx2, (sy1 + sy2) / 2, fill="#151A28", dash=(2, 2), tag="spark_ram_mid")
-            # Clean two-column header row (Left: 60S TREND, Right: Percentage Stats)
-            c.create_text(sx1 + 2, sy1 - 8, text="60S TREND", fill=COLOR_TEXT_MUTED, font=(FONT_FAMILY_MONO, 8, "bold"), anchor="w", tag="spark_ram_title")
-            c.create_text(sx2 - 2, sy1 - 8, text="--%", fill=default_ram_col, font=(FONT_FAMILY_MONO, 8, "bold"), anchor="e", tag="spark_ram_readout")
+            # Dedicated single header above graph (No horizontal collision with readout)
+            c.create_text((sx1 + sx2) / 2, sy1 - 8, text="60S TREND", fill=COLOR_TEXT_MUTED, font=(FONT_FAMILY_MONO, 8, "bold"), anchor="center", tag="spark_ram_title")
             c.create_text(sx1 - 2, sy1 + 4, text="100%", fill=COLOR_TEXT_MUTED, font=(FONT_FAMILY_MONO, 7), anchor="e", tag="spark_ram_max")
             c.create_text(sx1 - 2, sy2 - 4, text="0%", fill=COLOR_TEXT_MUTED, font=(FONT_FAMILY_MONO, 7), anchor="e", tag="spark_ram_min")
 
@@ -2266,7 +2266,8 @@ class AntimagistV3App(ctk.CTk):
             c.create_arc(cx2 - r2, cy2 - r2, cx2 + r2, cy2 + r2, start=90, extent=-360, style='arc', width=12, outline=COLOR_CARD_HOVER, tag="cpu_bg")
             c.create_arc(cx2 - r2, cy2 - r2, cx2 + r2, cy2 + r2, start=90, extent=0, style='arc', width=12, outline=default_cpu_col, tag="cpu_fg")
             c.create_text(cx2, cy2 - 10, text="0%", fill=COLOR_TEXT_PRIMARY, font=(FONT_FAMILY_MONO, 18, "bold"), tag="cpu_val")
-            c.create_text(cx2, cy2 + 16, text="CPU LOAD", fill=COLOR_TEXT_MUTED, font=(FONT_FAMILY_UI, 9, "bold"), tag="cpu_lbl")
+            c.create_text(cx2, cy2 + 14, text="CPU LOAD", fill=COLOR_TEXT_MUTED, font=(FONT_FAMILY_UI, 9, "bold"), tag="cpu_lbl")
+            c.create_text(cx2, cy2 + 27, text="±0.0%", fill=COLOR_TEXT_MUTED, font=(FONT_FAMILY_MONO, 8), tag="spark_cpu_readout")
 
             # CPU Micro-Sparkline Frame (Rolling 60-Second Volatility History)
             sx3 = cx2 + r2 + 18
@@ -2276,9 +2277,8 @@ class AntimagistV3App(ctk.CTk):
 
             c.create_rectangle(sx3, sy3, sx4, sy4, fill=COLOR_BG_DARK, outline=COLOR_BORDER, width=1, tag="spark_cpu_box")
             c.create_line(sx3, (sy3 + sy4) / 2, sx4, (sy3 + sy4) / 2, fill="#151A28", dash=(2, 2), tag="spark_cpu_mid")
-            # Clean two-column header row (Left: 60S TREND, Right: Percentage Stats)
-            c.create_text(sx3 + 2, sy3 - 8, text="60S TREND", fill=COLOR_TEXT_MUTED, font=(FONT_FAMILY_MONO, 8, "bold"), anchor="w", tag="spark_cpu_title")
-            c.create_text(sx4 - 2, sy3 - 8, text="--%", fill=default_cpu_col, font=(FONT_FAMILY_MONO, 8, "bold"), anchor="e", tag="spark_cpu_readout")
+            # Dedicated single header above graph (No horizontal collision with readout)
+            c.create_text((sx3 + sx4) / 2, sy3 - 8, text="60S TREND", fill=COLOR_TEXT_MUTED, font=(FONT_FAMILY_MONO, 8, "bold"), anchor="center", tag="spark_cpu_title")
             c.create_text(sx3 - 2, sy3 + 4, text="100%", fill=COLOR_TEXT_MUTED, font=(FONT_FAMILY_MONO, 7), anchor="e", tag="spark_cpu_max")
             c.create_text(sx3 - 2, sy4 - 4, text="0%", fill=COLOR_TEXT_MUTED, font=(FONT_FAMILY_MONO, 7), anchor="e", tag="spark_cpu_min")
 
@@ -2354,7 +2354,7 @@ class AntimagistV3App(ctk.CTk):
                     ram_dev = statistics.stdev(ram_pts) if len(ram_pts) > 1 else 0.0
                 except Exception:
                     ram_dev = 0.0
-                c.itemconfigure("spark_ram_readout", text=f"{int(ram_pts[-1])}% (±{ram_dev:.1f}%)", fill=ram_color)
+                c.itemconfigure("spark_ram_readout", text=f"±{ram_dev:.1f}%", fill=ram_color)
 
             # CPU rolling sparkline
             cpu_pts = list(self.cpu_history)
@@ -2373,7 +2373,7 @@ class AntimagistV3App(ctk.CTk):
                     cpu_dev = statistics.stdev(cpu_pts) if len(cpu_pts) > 1 else 0.0
                 except Exception:
                     cpu_dev = 0.0
-                c.itemconfigure("spark_cpu_readout", text=f"{int(cpu_pts[-1])}% (±{cpu_dev:.1f}%)", fill=cpu_color)
+                c.itemconfigure("spark_cpu_readout", text=f"±{cpu_dev:.1f}%", fill=cpu_color)
 
     def _render_radar_scanner(self):
         if not hasattr(self, 'radar_canvas') or not self.radar_canvas.winfo_exists():
@@ -2495,20 +2495,20 @@ class AntimagistV3App(ctk.CTk):
             # Apply strict conditional styling variables
             self._update_conditional_styling()
 
-            # Update topbar pills with value-change guards
-            ram_text = f"RAM: {ram_used:.1f} / {ram_total:.1f} GB"
+            # Update topbar pills with compact formatting (CPU 15% | RAM 10.1G | PING 6ms ±0.2ms)
+            ram_text = f"RAM {ram_used:.1f}G"
             if getattr(self, '_last_pill_ram_text', None) != ram_text and hasattr(self, 'pill_ram'):
                 self.pill_ram.configure(text=ram_text)
                 self._last_pill_ram_text = ram_text
 
-            cpu_text = f"CPU: {cpu_pct:.1f}%"
+            cpu_text = f"CPU {cpu_pct:.0f}%"
             if getattr(self, '_last_pill_cpu_text', None) != cpu_text and hasattr(self, 'pill_cpu'):
                 self.pill_cpu.configure(text=cpu_text)
                 self._last_pill_cpu_text = cpu_text
 
-            # Update topbar ping pill
+            # Update topbar ping pill (compact to prevent clipping on smaller window widths)
             p_color = COLOR_EMERALD if ping_ms < 30 else (COLOR_AMBER if ping_ms < 80 else COLOR_CRIMSON)
-            ping_text = f"PING: {ping_ms:.0f}ms | JITTER: +/-{jitter_ms:.1f}ms | LOSS: {loss_pct:.0f}%"
+            ping_text = f"PING {ping_ms:.0f}ms ±{jitter_ms:.1f}ms"
             if getattr(self, '_last_pill_ping_text', None) != ping_text and hasattr(self, 'pill_ping'):
                 self.pill_ping.configure(text=ping_text, text_color=p_color)
                 self._last_pill_ping_text = ping_text
@@ -2525,14 +2525,14 @@ class AntimagistV3App(ctk.CTk):
             if hasattr(self, 'gamer_lbl_ping') and self.gamer_lbl_ping.winfo_exists():
                 self.gamer_lbl_ping.configure(text=f"GAMING PING\n{ping_ms:.0f} ms", text_color=p_color)
 
-            # Update dashboard texts if active
+            # Update dashboard texts if active (compact format to avoid collisions)
             if hasattr(self, 'lbl_gauge_ram_text') and self.lbl_gauge_ram_text.winfo_exists():
-                dash_ram = f"RAM: {ram_used:.1f} / {ram_total:.1f} GB ({ram_pct:.1f}%)"
+                dash_ram = f"RAM: {ram_used:.1f}/{ram_total:.1f} GB ({ram_pct:.0f}%)"
                 if getattr(self, '_last_dash_ram_txt', None) != dash_ram:
                     self.lbl_gauge_ram_text.configure(text=dash_ram)
                     self._last_dash_ram_txt = dash_ram
 
-                dash_cpu = f"CPU: {cpu_pct:.1f}% (Active: {active_procs})"
+                dash_cpu = f"CPU: {cpu_pct:.1f}% ({active_procs} procs)"
                 if getattr(self, '_last_dash_cpu_txt', None) != dash_cpu:
                     self.lbl_gauge_cpu_text.configure(text=dash_cpu)
                     self._last_dash_cpu_txt = dash_cpu
