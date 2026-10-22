@@ -89,10 +89,11 @@ class AntimagistCoreDirector:
         is_unparked = True
         raw_output = ""
 
+        no_win = getattr(subprocess, 'CREATE_NO_WINDOW', 0x08000000) if os.name == 'nt' else 0
         if os.name == 'nt':
             try:
                 cmd = f"powercfg /query SCHEME_CURRENT {subgroup_guid} {min_cores_guid}"
-                res = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=3)
+                res = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=2.0, creationflags=no_win)
                 raw_output = res.stdout or ""
                 # Search for Current AC Power Setting Index
                 import re
@@ -126,38 +127,39 @@ class AntimagistCoreDirector:
         max_cores = "ea062031-0e34-4ff1-9b6d-eb10593ac08f"
 
         target_val = 100 if unpark else 10
+        no_win = getattr(subprocess, 'CREATE_NO_WINDOW', 0x08000000) if os.name == 'nt' else 0
 
         try:
             # 1. Unhide core parking attributes if hidden
             subprocess.run(
                 f"powercfg -attributes {subgroup} {min_cores} -ATTRIB_HIDE",
-                shell=True, capture_output=True, timeout=2
+                shell=True, capture_output=True, timeout=2.0, creationflags=no_win
             )
             subprocess.run(
                 f"powercfg -attributes {subgroup} {max_cores} -ATTRIB_HIDE",
-                shell=True, capture_output=True, timeout=2
+                shell=True, capture_output=True, timeout=2.0, creationflags=no_win
             )
 
             # 2. Set AC and DC min/max values
             subprocess.run(
                 f"powercfg /SETACVALUEINDEX SCHEME_CURRENT {subgroup} {min_cores} {target_val}",
-                shell=True, capture_output=True, timeout=2
+                shell=True, capture_output=True, timeout=2.0, creationflags=no_win
             )
             subprocess.run(
                 f"powercfg /SETDCVALUEINDEX SCHEME_CURRENT {subgroup} {min_cores} {target_val}",
-                shell=True, capture_output=True, timeout=2
+                shell=True, capture_output=True, timeout=2.0, creationflags=no_win
             )
             subprocess.run(
                 f"powercfg /SETACVALUEINDEX SCHEME_CURRENT {subgroup} {max_cores} 100",
-                shell=True, capture_output=True, timeout=2
+                shell=True, capture_output=True, timeout=2.0, creationflags=no_win
             )
             subprocess.run(
                 f"powercfg /SETDCVALUEINDEX SCHEME_CURRENT {subgroup} {max_cores} 100",
-                shell=True, capture_output=True, timeout=2
+                shell=True, capture_output=True, timeout=2.0, creationflags=no_win
             )
 
             # 3. Apply active scheme
-            subprocess.run("powercfg /SETACTIVE SCHEME_CURRENT", shell=True, capture_output=True, timeout=2)
+            subprocess.run("powercfg /SETACTIVE SCHEME_CURRENT", shell=True, capture_output=True, timeout=2.0, creationflags=no_win)
 
             msg = "⚡ 100% CPU Core Unparking active: Zero parking micro-sleep latency." if unpark else "Restored balanced core parking profile."
             return True, msg

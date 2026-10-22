@@ -628,20 +628,30 @@ class AntimagistV3App(ctk.CTk):
     # ========================================================================
     def _load_config(self) -> dict:
         cfg = {"vt_api_key": "", "gemini_api_key": "", "quarantine_path": DEFAULT_QUARANTINE_DIR}
-        if os.path.exists(CONFIG_FILE):
-            try:
-                with open(CONFIG_FILE, "r", encoding="utf-8") as f:
-                    cfg.update(json.load(f))
-            except Exception:
-                pass
+        try:
+            from self_healing_supervisor import SelfHealingSupervisor
+            loaded = SelfHealingSupervisor.safe_read_json(CONFIG_FILE, default_fallback=cfg, validator=lambda d: isinstance(d, dict))
+            if isinstance(loaded, dict):
+                cfg.update(loaded)
+        except Exception:
+            if os.path.exists(CONFIG_FILE):
+                try:
+                    with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+                        cfg.update(json.load(f))
+                except Exception:
+                    pass
         return cfg
 
     def _save_config(self):
         try:
-            with open(CONFIG_FILE, "w", encoding="utf-8") as f:
-                json.dump(self.config, f, indent=2)
+            from self_healing_supervisor import SelfHealingSupervisor
+            SelfHealingSupervisor.atomic_write_json(CONFIG_FILE, self.config)
         except Exception as e:
-            print(f"[-] Config save error: {e}")
+            try:
+                with open(CONFIG_FILE, "w", encoding="utf-8") as f:
+                    json.dump(self.config, f, indent=2)
+            except Exception as ex:
+                print(f"[-] Config save error: {ex}")
 
     # ========================================================================
     # MASTER TOPBAR & LIVE HEALTH STATUS

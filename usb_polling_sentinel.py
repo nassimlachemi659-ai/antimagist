@@ -132,11 +132,12 @@ class AntimagistUSBPollingSentinel:
         if self.cached_power_posture and (now - self.last_power_audit_time < 30.0):
             return self.cached_power_posture
 
+        no_win = getattr(subprocess, 'CREATE_NO_WINDOW', 0x08000000) if os.name == 'nt' else 0
         try:
             # Query powercfg for USB settings
             res = subprocess.run(
                 ["powercfg", "/QUERY", "SCHEME_CURRENT", "2a737441-1930-4402-8d77-b2bebba4d5a0", "48e6b7a6-50f5-4760-a54b-ebc0ee864837"],
-                capture_output=True, text=True, timeout=1.2
+                capture_output=True, text=True, timeout=1.2, creationflags=no_win
             )
             out = res.stdout
             # 0x00000000 = Disabled (Optimal for gaming), 0x00000001 = Enabled
@@ -156,17 +157,18 @@ class AntimagistUSBPollingSentinel:
     def optimize_usb_latency(self) -> Tuple[bool, str]:
         """Disables Windows USB Selective Suspend to keep controller awake."""
         self.cached_power_posture = None
+        no_win = getattr(subprocess, 'CREATE_NO_WINDOW', 0x08000000) if os.name == 'nt' else 0
         try:
             # Disable USB Selective Suspend on AC Power
             cmd1 = ["powercfg", "/SETACVALUEINDEX", "SCHEME_CURRENT", "2a737441-1930-4402-8d77-b2bebba4d5a0", "48e6b7a6-50f5-4760-a54b-ebc0ee864837", "0"]
-            subprocess.run(cmd1, capture_output=True, timeout=2.0)
+            subprocess.run(cmd1, capture_output=True, timeout=2.0, creationflags=no_win)
 
             # Disable on DC (battery) as well
             cmd2 = ["powercfg", "/SETDCVALUEINDEX", "SCHEME_CURRENT", "2a737441-1930-4402-8d77-b2bebba4d5a0", "48e6b7a6-50f5-4760-a54b-ebc0ee864837", "0"]
-            subprocess.run(cmd2, capture_output=True, timeout=2.0)
+            subprocess.run(cmd2, capture_output=True, timeout=2.0, creationflags=no_win)
 
             # Re-activate scheme
-            subprocess.run(["powercfg", "/SETACTIVE", "SCHEME_CURRENT"], capture_output=True, timeout=2.0)
+            subprocess.run(["powercfg", "/SETACTIVE", "SCHEME_CURRENT"], capture_output=True, timeout=2.0, creationflags=no_win)
 
             return True, "USB Selective Suspend disabled: xHCI controller locked in high-performance state."
         except Exception as ex:
@@ -175,10 +177,11 @@ class AntimagistUSBPollingSentinel:
     def restore_usb_defaults(self) -> Tuple[bool, str]:
         """Restores Windows USB Selective Suspend default power saving."""
         self.cached_power_posture = None
+        no_win = getattr(subprocess, 'CREATE_NO_WINDOW', 0x08000000) if os.name == 'nt' else 0
         try:
             cmd1 = ["powercfg", "/SETACVALUEINDEX", "SCHEME_CURRENT", "2a737441-1930-4402-8d77-b2bebba4d5a0", "48e6b7a6-50f5-4760-a54b-ebc0ee864837", "1"]
-            subprocess.run(cmd1, capture_output=True, timeout=2.0)
-            subprocess.run(["powercfg", "/SETACTIVE", "SCHEME_CURRENT"], capture_output=True, timeout=2.0)
+            subprocess.run(cmd1, capture_output=True, timeout=2.0, creationflags=no_win)
+            subprocess.run(["powercfg", "/SETACTIVE", "SCHEME_CURRENT"], capture_output=True, timeout=2.0, creationflags=no_win)
             return True, "USB power scheme restored to Windows balanced defaults."
         except Exception as ex:
             return False, f"Failed to restore USB power scheme: {ex}"

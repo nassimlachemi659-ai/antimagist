@@ -215,6 +215,12 @@
       "tool": "throttle_process",
       "success": true,
       "detail": "Successfully throttled 'python.exe' (PID: 19536) -> CPU: normal, I/O: normal, Affinity: None."
+    },
+    {
+      "timestamp": "2026-10-16T01:30:52",
+      "tool": "throttle_process",
+      "success": true,
+      "detail": "Successfully throttled 'python.exe' (PID: 18724) -> CPU: normal, I/O: normal, Affinity: None."
     }
   ],
   "circuit_breaker_events": [

@@ -235,7 +235,7 @@ class AntimagistMSITuner:
         try:
             out_usb = subprocess.check_output(
                 ["powercfg", "/QUERY", "SCHEME_CURRENT", "2a737441-1930-4402-8d77-b2bebba308a3", "48e6b7a6-50f5-4782-a5d4-53bb8f07e226"],
-                creationflags=no_window, universal_newlines=True, errors="replace"
+                creationflags=no_window, universal_newlines=True, errors="replace", timeout=2.0
             )
             for line in out_usb.splitlines():
                 if "Current AC Power Setting Index:" in line:
@@ -251,7 +251,7 @@ class AntimagistMSITuner:
         try:
             out_pcie = subprocess.check_output(
                 ["powercfg", "/QUERY", "SCHEME_CURRENT", "501a4d13-42af-4429-9fd1-a8218c268e20", "ee12f906-d277-404b-b6da-e5fa1a576df5"],
-                creationflags=no_window, universal_newlines=True, errors="replace"
+                creationflags=no_window, universal_newlines=True, errors="replace", timeout=2.0
             )
             for line in out_pcie.splitlines():
                 if "Current AC Power Setting Index:" in line:
@@ -294,7 +294,7 @@ class AntimagistMSITuner:
         success_count = 0
         for cmd in commands:
             try:
-                res = subprocess.run(cmd, creationflags=no_window, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                res = subprocess.run(cmd, creationflags=no_window, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=2.0)
                 if res.returncode == 0:
                     success_count += 1
             except Exception:

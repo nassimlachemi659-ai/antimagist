@@ -194,7 +194,7 @@ class AntimagistGPUSentinel:
 
         cmd = "nvidia-smi -pm 1"
         try:
-            res = subprocess.run(cmd, shell=True, capture_output=True, text=True, creationflags=subprocess.CREATE_NO_WINDOW)
+            res = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=2.0, creationflags=subprocess.CREATE_NO_WINDOW)
             if res.returncode == 0:
                 msg = "GPU Persistence Mode active (Unthrottled High Performance)." if mode == "max" else "GPU Power Conservation profile active."
                 return True, msg
