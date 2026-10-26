@@ -38,6 +38,9 @@ HARDWARE_PROFILES = {
         "description": "0.5ms Timer Locked, Ultimate Power Plan, GPU Maximized, Bloat Suspended",
         "color": "#10B981", # Electric Emerald
         "timer_ms": 0.5,
+        "timer_resolution_ms": 0.5,
+        "hotkey": "Ctrl+Alt+1",
+        "memory_compression": False,
         "cpu_max_pct": 100,
         "power_guid": "e9a42b02-d5df-448d-aa00-03f14749eb61", # Ultimate Performance
         "fallback_guid": "8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c", # High Performance
@@ -51,6 +54,9 @@ HARDWARE_PROFILES = {
         "description": "Standard OS Balanced Power, 80% RAM Guard, Quiet Fan/Thermal Profile",
         "color": "#06B6D4", # Cyber Cyan
         "timer_ms": 1.0,
+        "timer_resolution_ms": 1.0,
+        "hotkey": "Ctrl+Alt+2",
+        "memory_compression": True,
         "cpu_max_pct": 100,
         "power_guid": "381b4222-f694-41f0-9685-ff5bb260df2e", # Balanced
         "fallback_guid": "381b4222-f694-41f0-9685-ff5bb260df2e",
@@ -64,12 +70,21 @@ HARDWARE_PROFILES = {
         "description": "CPU Capped to 65%, GPU Wattage Throttled, Heavy Background Tasks Suspended",
         "color": "#F59E0B", # Amber
         "timer_ms": 15.6,
+        "timer_resolution_ms": 15.6,
+        "hotkey": "Ctrl+Alt+3",
+        "memory_compression": True,
         "cpu_max_pct": 65,
         "power_guid": "a1841308-3541-4fab-bc81-f71556f20b4a", # Power Saver
         "fallback_guid": "381b4222-f694-41f0-9685-ff5bb260df2e",
         "bloat_pacer": "suspend",
         "gpu_mode": "eco"
     }
+}
+
+PROFILE_ALIASES = {
+    "tournament": "esports_ultra",
+    "streamer": "daily_balanced",
+    "balanced": "daily_balanced"
 }
 
 PROFILE_ORDER = ["esports_ultra", "daily_balanced", "eco_ups_guard"]
@@ -110,7 +125,10 @@ class AntimagistProfileSwitcher:
         """Returns details of the currently engaged hardware profile."""
         with self._lock:
             prof = dict(HARDWARE_PROFILES.get(self.active_profile_key, HARDWARE_PROFILES["esports_ultra"]))
-            prof["key"] = self.active_profile_key
+            prof["key"] = "tournament" if self.active_profile_key == "esports_ultra" else self.active_profile_key
+            prof["hotkey"] = prof.get("hotkey", "Ctrl+Alt+1")
+            prof["timer_resolution_ms"] = prof.get("timer_resolution_ms", prof.get("timer_ms", 0.5))
+            prof["memory_compression"] = prof.get("memory_compression", False)
             return prof
 
     def cycle_profile(self) -> Tuple[bool, str, Dict[str, Any]]:
@@ -129,10 +147,11 @@ class AntimagistProfileSwitcher:
         - GPU mode adjustment
         - Background bloat pacing
         """
-        if profile_key not in HARDWARE_PROFILES:
+        resolved_key = PROFILE_ALIASES.get(profile_key, profile_key)
+        if resolved_key not in HARDWARE_PROFILES:
             return False, f"Unknown profile: {profile_key}", {}
 
-        target = HARDWARE_PROFILES[profile_key]
+        target = HARDWARE_PROFILES[resolved_key]
         actions_taken = []
 
         if os.name == 'nt':
@@ -227,10 +246,13 @@ class AntimagistProfileSwitcher:
                 pass
 
         with self._lock:
-            self.active_profile_key = profile_key
-            self._persist_profile(profile_key)
+            self.active_profile_key = resolved_key
+            self._persist_profile(resolved_key)
             prof = dict(target)
             prof["key"] = profile_key
+            prof["hotkey"] = prof.get("hotkey", "Ctrl+Alt+1")
+            prof["timer_resolution_ms"] = prof.get("timer_resolution_ms", prof.get("timer_ms", 0.5))
+            prof["memory_compression"] = prof.get("memory_compression", False)
 
         summary_msg = f"Profile switched to {prof['name']}: {', '.join(actions_taken)}"
 

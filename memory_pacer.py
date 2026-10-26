@@ -288,6 +288,12 @@ class AntimagistMemoryPacer:
     def suspend_bloat_process(self, name_or_pid: Any) -> Tuple[bool, str, float]:
         """Safely suspends targeted bloat process threads without terminating to conserve RAM."""
         import psutil
+        try:
+            from process_classifier import ProcessIntelligenceClassifier
+            if isinstance(name_or_pid, str) and not ProcessIntelligenceClassifier.is_suspend_allowed(name_or_pid):
+                return False, f"Protected: {name_or_pid} is whitelisted in Tier 0/1.", 0.0
+        except Exception:
+            pass
         target_pids = []
 
         try:
