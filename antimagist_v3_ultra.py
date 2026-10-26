@@ -678,10 +678,10 @@ class AntimagistV3App(ctk.CTk):
 
         # Right Action Button: Single prominent Primary Action Button: ⚡ Turbo Boost in Electric Emerald (#10B981)
         self.btn_turbo = ctk.CTkButton(
-            self.topbar_actions_frame, text="⚡ Turbo Boost", 
-            font=(FONT_FAMILY_UI, 11, "bold"), text_color="#FFFFFF",
+            self.topbar_actions_frame, text="⚡ Turbo", 
+            font=(FONT_FAMILY_UI, 10, "bold"), text_color="#FFFFFF",
             fg_color=COLOR_EMERALD, hover_color="#059669",
-            height=32, corner_radius=8,
+            height=30, width=78, corner_radius=8,
             command=self._execute_turbo_clean
         )
         self.btn_turbo.pack(side="right", padx=(4, 0))
@@ -732,7 +732,7 @@ class AntimagistV3App(ctk.CTk):
         self.body_frame.pack(fill="both", expand=True)
 
         # Sidebar
-        self.sidebar = ctk.CTkFrame(self.body_frame, width=220, fg_color=COLOR_SIDEBAR, corner_radius=0)
+        self.sidebar = ctk.CTkFrame(self.body_frame, width=210, fg_color=COLOR_SIDEBAR, corner_radius=0)
         self.sidebar.pack(side="left", fill="y")
         self.sidebar.pack_propagate(False)
 
@@ -2282,6 +2282,11 @@ class AntimagistV3App(ctk.CTk):
             c.create_text(sx3 - 2, sy3 + 4, text="100%", fill=COLOR_TEXT_MUTED, font=(FONT_FAMILY_MONO, 7), anchor="e", tag="spark_cpu_max")
             c.create_text(sx3 - 2, sy4 - 4, text="0%", fill=COLOR_TEXT_MUTED, font=(FONT_FAMILY_MONO, 7), anchor="e", tag="spark_cpu_min")
 
+            c.create_line(0, 0, 0, 0, fill=default_ram_col, width=2, smooth=True, tag="spark_line_ram")
+            c.create_oval(0, 0, 0, 0, fill=default_ram_col, outline="#FFFFFF", width=1, tag="spark_dot_ram")
+            c.create_line(0, 0, 0, 0, fill=default_cpu_col, width=2, smooth=True, tag="spark_line_cpu")
+            c.create_oval(0, 0, 0, 0, fill=default_cpu_col, outline="#FFFFFF", width=1, tag="spark_dot_cpu")
+
         # Fluid 60 FPS exponential decay interpolation with instant snapping
         diff_ram = self.target_ram_pct - self.animated_ram_pct
         if abs(diff_ram) < 0.2:
@@ -2317,11 +2322,6 @@ class AntimagistV3App(ctk.CTk):
         # Render Micro-Sparklines
         if getattr(self, '_sparklines_dirty', True) or rebuild:
             self._sparklines_dirty = False
-            c.delete("spark_line_ram")
-            c.delete("spark_dot_ram")
-            c.delete("spark_line_cpu")
-            c.delete("spark_dot_cpu")
-
             hw = w / 2.0
             r1 = min(42, hw * 0.20)
             cx1 = hw * 0.26
@@ -2337,7 +2337,7 @@ class AntimagistV3App(ctk.CTk):
             sy3 = 44
             sy4 = 138
 
-            # RAM rolling sparkline
+            # RAM rolling sparkline (In-place coords, zero delete churn)
             ram_pts = list(self.ram_history)
             if len(ram_pts) >= 2:
                 poly_ram = []
@@ -2347,16 +2347,21 @@ class AntimagistV3App(ctk.CTk):
                     py = sy2 - 3 - (clamped_v / 100.0) * (sy2 - sy1 - 6)
                     poly_ram.extend([px, py])
 
-                c.create_line(*poly_ram, fill=ram_color, width=2, smooth=True, tag="spark_line_ram")
+                c.coords("spark_line_ram", *poly_ram)
                 last_rx, last_ry = poly_ram[-2], poly_ram[-1]
-                c.create_oval(last_rx - 3, last_ry - 3, last_rx + 3, last_ry + 3, fill=ram_color, outline="#FFFFFF", width=1, tag="spark_dot_ram")
+                c.coords("spark_dot_ram", last_rx - 3, last_ry - 3, last_rx + 3, last_ry + 3)
+                c.itemconfigure("spark_line_ram", fill=ram_color, state="normal")
+                c.itemconfigure("spark_dot_ram", fill=ram_color, state="normal")
                 try:
                     ram_dev = statistics.stdev(ram_pts) if len(ram_pts) > 1 else 0.0
                 except Exception:
                     ram_dev = 0.0
                 c.itemconfigure("spark_ram_readout", text=f"±{ram_dev:.1f}%", fill=ram_color)
+            else:
+                c.itemconfigure("spark_line_ram", state="hidden")
+                c.itemconfigure("spark_dot_ram", state="hidden")
 
-            # CPU rolling sparkline
+            # CPU rolling sparkline (In-place coords, zero delete churn)
             cpu_pts = list(self.cpu_history)
             if len(cpu_pts) >= 2:
                 poly_cpu = []
@@ -2366,14 +2371,19 @@ class AntimagistV3App(ctk.CTk):
                     py = sy4 - 3 - (clamped_v / 100.0) * (sy4 - sy3 - 6)
                     poly_cpu.extend([px, py])
 
-                c.create_line(*poly_cpu, fill=cpu_color, width=2, smooth=True, tag="spark_line_cpu")
+                c.coords("spark_line_cpu", *poly_cpu)
                 last_cx, last_cy = poly_cpu[-2], poly_cpu[-1]
-                c.create_oval(last_cx - 3, last_cy - 3, last_cx + 3, last_cy + 3, fill=cpu_color, outline="#FFFFFF", width=1, tag="spark_dot_cpu")
+                c.coords("spark_dot_cpu", last_cx - 3, last_cy - 3, last_cx + 3, last_cy + 3)
+                c.itemconfigure("spark_line_cpu", fill=cpu_color, state="normal")
+                c.itemconfigure("spark_dot_cpu", fill=cpu_color, state="normal")
                 try:
                     cpu_dev = statistics.stdev(cpu_pts) if len(cpu_pts) > 1 else 0.0
                 except Exception:
                     cpu_dev = 0.0
                 c.itemconfigure("spark_cpu_readout", text=f"±{cpu_dev:.1f}%", fill=cpu_color)
+            else:
+                c.itemconfigure("spark_line_cpu", state="hidden")
+                c.itemconfigure("spark_dot_cpu", state="hidden")
 
     def _render_radar_scanner(self):
         if not hasattr(self, 'radar_canvas') or not self.radar_canvas.winfo_exists():
@@ -2552,7 +2562,7 @@ class AntimagistV3App(ctk.CTk):
             # Non-blocking Auto-Pilot Guardian check
             if getattr(self, 'auto_pilot_enabled', True):
                 now = time.time()
-                if ram_pct >= 80.0 and (now - getattr(self, '_last_autopilot_flush_time', 0.0) > 45.0):
+                if ram_pct >= 80.0 and (now - getattr(self, '_last_autopilot_flush_time', 0.0) > 60.0):
                     self._last_autopilot_flush_time = now
                     threading.Thread(target=self._run_bg_autopilot_trim, daemon=True).start()
         except Exception:
@@ -2564,7 +2574,7 @@ class AntimagistV3App(ctk.CTk):
             is_visible = self.winfo_viewable() and self.state() != "iconic"
         except Exception:
             pass
-        delay = 1000 if is_visible else 3000
+        delay = 1500 if is_visible else 3000
         self.after(delay, self._poll_telemetry_loop)
 
     def _run_bg_autopilot_trim(self):

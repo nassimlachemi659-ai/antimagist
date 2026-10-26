@@ -616,7 +616,7 @@ class AntimagistV4ApexApp(AntimagistV3App):
         super()._build_body_layout()
 
         # Enforce fixed 240px sidebar width per 2026 Obsidian Carbon specifications
-        self.sidebar.configure(width=240, fg_color=COLOR_SIDEBAR)
+        self.sidebar.configure(width=210, fg_color=COLOR_SIDEBAR)
 
         # Clear standard sidebar items and reconstruct with nested categories
         for btn in self.nav_buttons.values():
@@ -1765,7 +1765,7 @@ class AntimagistV4ApexApp(AntimagistV3App):
         self.clear_container()
 
         pane = ctk.CTkFrame(self.container, fg_color="transparent")
-        pane.grid(row=0, column=0, sticky="nsew", padx=20, pady=14)
+        pane.grid(row=0, column=0, sticky="nsew", padx=12, pady=10)
         pane.grid_columnconfigure((0, 1, 2), weight=1)
         pane.grid_rowconfigure(0, weight=0)  # Top status strip
         pane.grid_rowconfigure(1, weight=1)  # 3-Column Bento Grid
@@ -1791,10 +1791,10 @@ class AntimagistV4ApexApp(AntimagistV3App):
         hero_actions.grid(row=0, column=2, sticky="e", padx=14, pady=8)
 
         ctk.CTkButton(
-            hero_actions, text="⚡ 1-Click System Boost", font=(FONT_FAMILY_UI, 11, "bold"),
+            hero_actions, text="⚡ 1-Click System Boost", font=(FONT_FAMILY_UI, 10, "bold"),
             fg_color=COLOR_EMERALD, hover_color="#059669", text_color="#FFFFFF",
-            height=32, corner_radius=8, command=self._flush_ram_with_sfx
-        ).pack(side="right", padx=(8, 0))
+            height=28, corner_radius=8, command=self._flush_ram_with_sfx
+        ).pack(side="right", padx=(6, 0))
 
         ctk.CTkButton(
             hero_actions, text="🔍 Threat Scan", font=(FONT_FAMILY_UI, 11, "bold"),
@@ -1807,7 +1807,7 @@ class AntimagistV4ApexApp(AntimagistV3App):
 
         # ═══ COLUMN 1 (LEFT): PROCESS & PROTECTION BENTO ═══
         card_sec = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=12, border_color=COLOR_BORDER, border_width=1)
-        card_sec.grid(row=1, column=0, sticky="nsew", padx=(0, 6), pady=(0, 10))
+        card_sec.grid(row=1, column=0, sticky="nsew", padx=(0, 5), pady=(0, 10))
 
         sec_hdr = ctk.CTkFrame(card_sec, fg_color="transparent")
         sec_hdr.pack(fill="x", padx=10, pady=(10, 4))
@@ -1873,7 +1873,7 @@ class AntimagistV4ApexApp(AntimagistV3App):
 
         # ═══ COLUMN 2 (CENTER): HARDWARE TELEMETRY BENTO ═══
         card_hw = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=12, border_color=COLOR_BORDER, border_width=1)
-        card_hw.grid(row=1, column=1, sticky="nsew", padx=3, pady=(0, 10))
+        card_hw.grid(row=1, column=1, sticky="nsew", padx=5, pady=(0, 10))
 
         hw_hdr = ctk.CTkFrame(card_hw, fg_color="transparent")
         hw_hdr.pack(fill="x", padx=14, pady=(12, 2))
@@ -1885,7 +1885,7 @@ class AntimagistV4ApexApp(AntimagistV3App):
         self.lbl_dash_health_badge.pack(side="right")
 
         # Donut gauges canvas
-        self.gauge_canvas = tk.Canvas(card_hw, height=150, bg=COLOR_CARD, highlightthickness=0)
+        self.gauge_canvas = tk.Canvas(card_hw, height=130, bg=COLOR_CARD, highlightthickness=0)
         self.gauge_canvas.pack(fill="x", padx=6, pady=1)
 
         stats_box = ctk.CTkFrame(card_hw, fg_color="transparent")
@@ -1959,7 +1959,7 @@ class AntimagistV4ApexApp(AntimagistV3App):
 
         # Real-time Hardware Telemetry & Architecture Section
         self.hw_details_card = ctk.CTkFrame(card_hw, fg_color=COLOR_BG_DARK, corner_radius=8, border_color=COLOR_BORDER, border_width=1)
-        self.hw_details_card.pack(fill="x", expand=False, padx=12, pady=(2, 4))
+        self.hw_details_card.pack(fill="x", expand=False, padx=12, pady=(1, 3))
 
         ctk.CTkLabel(self.hw_details_card, text="Subsystem Architecture & Telemetry", font=(FONT_FAMILY_UI, 9, "bold"), text_color=COLOR_TEXT_MUTED).pack(anchor="w", padx=8, pady=(3, 1))
 
@@ -2035,38 +2035,38 @@ class AntimagistV4ApexApp(AntimagistV3App):
         gm = self.gpu_sentinel.get_live_gpu_metrics()
         gpu_stat_str = f"GPU: {gm.get('core_clock_mhz', 0)}MHz Core | {gm.get('power_draw_w', 0.0)}W | Headroom: {gm.get('thermal_headroom_c', 83)}°C"
         p_gpu_diag = ctk.CTkFrame(hw_foot, fg_color=COLOR_CARD_HOVER, corner_radius=6, border_color=COLOR_BORDER, border_width=1)
-        p_gpu_diag.pack(fill="x", pady=(0, 3))
+        p_gpu_diag.pack(fill="x", pady=(0, 2))
         self.lbl_hw_gpu_stat = ctk.CTkLabel(p_gpu_diag, text=gpu_stat_str, font=(FONT_FAMILY_MONO, 8, "bold"), text_color=COLOR_CYAN)
         self.lbl_hw_gpu_stat.pack(padx=6, pady=2)
 
         ctk.CTkButton(
-            hw_foot, text="⚡ Flush Standby & Working Set RAM", font=(FONT_FAMILY_UI, 9, "bold"),
+            hw_foot, text="⚡ Flush Standby & Working Set RAM", font=(FONT_FAMILY_UI, 8, "bold"),
             fg_color=COLOR_EMERALD, hover_color="#059669", text_color="#FFFFFF",
-            height=24, corner_radius=6, command=self._flush_ram_with_sfx
+            height=22, corner_radius=6, command=self._flush_ram_with_sfx
         ).pack(fill="x", pady=(0, 2))
 
         ctk.CTkButton(
-            hw_foot, text="🎯 Toggle Competitive Vibrance & HDR", font=(FONT_FAMILY_UI, 9, "bold"),
+            hw_foot, text="🎯 Toggle Competitive Vibrance & HDR", font=(FONT_FAMILY_UI, 8, "bold"),
             fg_color="#0284C7", hover_color="#0369A1", text_color="#FFFFFF",
-            height=24, corner_radius=6, command=self._toggle_vibrance_ui
+            height=22, corner_radius=6, command=self._toggle_vibrance_ui
         ).pack(fill="x", pady=(0, 2))
 
         ctk.CTkButton(
-            hw_foot, text="🔄 Reset GPU Driver Stack (Win+Ctrl+Shift+B)", font=(FONT_FAMILY_UI, 9, "bold"),
+            hw_foot, text="🔄 Reset GPU Driver Stack (Win+Ctrl+Shift+B)", font=(FONT_FAMILY_UI, 8, "bold"),
             fg_color="#4F46E5", hover_color="#4338CA", text_color="#FFFFFF",
-            height=24, corner_radius=6, command=self._reset_gpu_driver_ui
+            height=22, corner_radius=6, command=self._reset_gpu_driver_ui
         ).pack(fill="x", pady=(0, 2))
 
         ctk.CTkButton(
-            hw_foot, text="⚡ Open Performance Suite →", font=(FONT_FAMILY_UI, 9, "bold"),
+            hw_foot, text="⚡ Open Performance Suite →", font=(FONT_FAMILY_UI, 8, "bold"),
             fg_color=COLOR_CARD_HOVER, hover_color=COLOR_BORDER_GLOW, text_color=COLOR_TEXT_PRIMARY,
             border_color=COLOR_BORDER, border_width=1,
-            height=24, corner_radius=6, command=self.show_performance_suite_pane
+            height=22, corner_radius=6, command=self.show_performance_suite_pane
         ).pack(fill="x")
 
         # ═══ COLUMN 3 (RIGHT): NEURAL AI COPILOT (CURSOR/LINEAR STYLE) ═══
         card_ai = ctk.CTkFrame(pane, fg_color=COLOR_CARD, corner_radius=12, border_color=COLOR_BORDER, border_width=1)
-        card_ai.grid(row=1, column=2, sticky="nsew", padx=(6, 0), pady=(0, 10))
+        card_ai.grid(row=1, column=2, sticky="nsew", padx=(5, 0), pady=(0, 10))
 
         ai_hdr = ctk.CTkFrame(card_ai, fg_color="transparent")
         ai_hdr.pack(fill="x", padx=14, pady=(12, 2))
@@ -2095,20 +2095,19 @@ class AntimagistV4ApexApp(AntimagistV3App):
         chips_bar.pack(fill="x", padx=10, pady=(0, 4))
         chips_bar.grid_columnconfigure((0, 1, 2, 3), weight=1)
         chips = [
-            ("🧹 Flush RAM", "Flush standby RAM pages"),
-            ("🎯 CS2 Turbo", "Optimize PC for Counter-Strike 2 tournament"),
-            ("📉 DPC Audit", "Audit DPC latency and check device interrupt drivers"),
-            ("🛡 Pre-Flight", "Verify 5-point sandbox preflight checklist"),
+            ("Flush RAM", "Flush standby RAM pages"),
+            ("CS2 Turbo", "Optimize PC for Counter-Strike 2 tournament"),
+            ("DPC Audit", "Audit DPC latency and check device interrupt drivers"),
+            ("Pre-Flight", "Verify 5-point sandbox preflight checklist"),
         ]
         for idx, (lbl, prompt) in enumerate(chips):
-            clean_lbl = lbl.replace("\ufe0f", "")
             btn = ctk.CTkButton(
-                chips_bar, text=clean_lbl, font=(FONT_FAMILY_UI, 7, "bold"),
+                chips_bar, text=lbl, font=(FONT_FAMILY_UI, 8, "bold"),
                 fg_color=COLOR_CARD_HOVER, hover_color=COLOR_BORDER_GLOW, text_color=COLOR_TEXT_SUBTLE,
-                border_color=COLOR_BORDER, border_width=1, height=22, corner_radius=11,
+                border_color=COLOR_BORDER, border_width=1, height=22, corner_radius=6,
                 width=0, command=lambda p=prompt: self._execute_dash_ai_prompt(p)
             )
-            btn.grid(row=0, column=idx, sticky="ew", padx=1)
+            btn.grid(row=0, column=idx, sticky="ew", padx=2)
 
         # Direct AI Input Bar (Modern rounded)
         input_bar = ctk.CTkFrame(card_ai, fg_color="transparent")
@@ -2322,17 +2321,11 @@ class AntimagistV4ApexApp(AntimagistV3App):
         self.optimizer.run_cache_sweep(self.show_toast_msg)
 
     def _ensure_proc_row_pool(self, max_rows: int = 8):
-        """Pre-allocates and pools interactive process row widgets to eliminate GC churn."""
+        """Pre-allocates exactly 8 static interactive process row slots once. Never destroyed or pack_forgotten."""
         if not hasattr(self, '_proc_row_pool'):
             self._proc_row_pool = []
         if not hasattr(self, 'proc_scroll_frame') or not self.proc_scroll_frame or not hasattr(self.proc_scroll_frame, 'winfo_exists') or not self.proc_scroll_frame.winfo_exists():
             return
-
-        if not hasattr(self, '_proc_empty_label') or not self._proc_empty_label or not self._proc_empty_label.winfo_exists():
-            self._proc_empty_label = ctk.CTkLabel(
-                self.proc_scroll_frame, text="No active user processes detected.",
-                font=("Segoe UI", 9), text_color=COLOR_TEXT_MUTED
-            )
 
         while len(self._proc_row_pool) < max_rows:
             idx = len(self._proc_row_pool)
@@ -2375,6 +2368,9 @@ class AntimagistV4ApexApp(AntimagistV3App):
             )
             btn_kill.grid(row=0, column=4, sticky="e", padx=(2, 4), pady=2)
 
+            # Pack static row once at startup; never call pack_forget or pack again
+            row.pack(fill="x", pady=1, padx=2)
+
             self._proc_row_pool.append({
                 "frame": row,
                 "lbl_badge": lbl_badge,
@@ -2389,72 +2385,70 @@ class AntimagistV4ApexApp(AntimagistV3App):
             })
 
     def _render_interactive_processes(self, procs: List[Dict[str, Any]]):
-        """In-place updates the process rows with zero widget destruction."""
+        """In-place updates exactly 8 pre-allocated process rows with ZERO widget creation or pack thrashing."""
         if not hasattr(self, 'proc_scroll_frame') or not self.proc_scroll_frame or not hasattr(self.proc_scroll_frame, 'winfo_exists') or not self.proc_scroll_frame.winfo_exists():
             return
 
-        needed = max(8, len(procs))
-        self._ensure_proc_row_pool(needed)
+        self._ensure_proc_row_pool(8)
 
-        if not procs:
-            for item in self._proc_row_pool:
-                item["frame"].pack_forget()
-            if hasattr(self, '_proc_empty_label') and self._proc_empty_label.winfo_exists():
-                self._proc_empty_label.pack(pady=10)
-            return
-
-        if hasattr(self, '_proc_empty_label') and self._proc_empty_label.winfo_exists():
-            self._proc_empty_label.pack_forget()
-
-        for idx, p in enumerate(procs):
-            if idx >= len(self._proc_row_pool):
-                break
+        # Update active slots
+        num_procs = len(procs)
+        for idx in range(len(self._proc_row_pool)):
             item = self._proc_row_pool[idx]
-            pid = p.get('pid', 0)
-            name = p.get('name', 'Unknown')
-            mem_mb = p.get('memory_mb', 0.0)
+            if idx < num_procs:
+                p = procs[idx]
+                pid = p.get('pid', 0)
+                name = p.get('name', 'Unknown')
+                mem_mb = p.get('memory_mb', 0.0)
 
-            cls_info = ProcessIntelligenceClassifier.classify(name, pid)
-            badge_txt = f"[{cls_info['badge']}]"
-            badge_bg = cls_info["badge_bg"]
-            badge_fg = cls_info["badge_fg"]
+                cls_info = ProcessIntelligenceClassifier.classify(name, pid)
+                badge_txt = f"[{cls_info['badge']}]"
+                badge_bg = cls_info["badge_bg"]
+                badge_fg = cls_info["badge_fg"]
 
-            if item.get("last_badge") != badge_txt:
-                item["lbl_badge"].configure(text=badge_txt, fg_color=badge_bg, text_color=badge_fg)
-                item["last_badge"] = badge_txt
+                if item.get("last_badge") != badge_txt:
+                    item["lbl_badge"].configure(text=badge_txt, fg_color=badge_bg, text_color=badge_fg)
+                    item["last_badge"] = badge_txt
 
-            disp_name = (name[:10] + "..") if len(name) > 12 else name
-            proc_text = f"{disp_name}"
-            mem_text = f"{mem_mb:.0f} MB"
+                disp_name = (name[:11] + "..") if len(name) > 13 else name
+                proc_text = f"{disp_name}"
+                mem_text = f"{mem_mb:.0f} MB"
 
-            if item["last_text"] != proc_text:
-                item["lbl_proc"].configure(text=proc_text)
-                item["last_text"] = proc_text
+                if item["last_text"] != proc_text:
+                    item["lbl_proc"].configure(text=proc_text)
+                    item["last_text"] = proc_text
 
-            if item["last_mem"] != mem_text:
-                item["lbl_mem"].configure(text=mem_text)
-                item["last_mem"] = mem_text
+                if item["last_mem"] != mem_text:
+                    item["lbl_mem"].configure(text=mem_text)
+                    item["last_mem"] = mem_text
 
-            if item.get("current_pid") != pid:
-                item["btn_kill"].configure(command=lambda p_id=pid, p_name=name: self._kill_process_action(p_id, p_name))
-                item["btn_trim"].configure(command=lambda p_id=pid, p_name=name: self._trim_process_action(p_id, p_name))
-                item["current_pid"] = pid
+                if item.get("current_pid") != pid:
+                    item["btn_kill"].configure(command=lambda p_id=pid, p_name=name: self._kill_process_action(p_id, p_name))
+                    item["btn_trim"].configure(command=lambda p_id=pid, p_name=name: self._trim_process_action(p_id, p_name))
+                    item["current_pid"] = pid
 
-            # Hide Kill button on Tier 0 and Tier 1
-            if not cls_info["can_kill"]:
-                item["btn_kill"].grid_remove()
+                # Toggle visibility of action buttons cleanly via grid/grid_remove without row frame re-pack
+                if not cls_info["can_kill"]:
+                    item["btn_kill"].grid_remove()
+                else:
+                    item["btn_kill"].grid(row=0, column=4, sticky="e", padx=(2, 4), pady=2)
+
+                if not cls_info["can_trim"]:
+                    item["btn_trim"].grid_remove()
+                else:
+                    item["btn_trim"].grid(row=0, column=3, sticky="e", padx=2, pady=2)
             else:
-                item["btn_kill"].grid(row=0, column=4, sticky="e", padx=(2, 4), pady=2)
-
-            if not cls_info["can_trim"]:
-                item["btn_trim"].grid_remove()
-            else:
-                item["btn_trim"].grid(row=0, column=3, sticky="e", padx=2, pady=2)
-
-            item["frame"].pack(fill="x", pady=1, padx=2)
-
-        for idx in range(len(procs), len(self._proc_row_pool)):
-            self._proc_row_pool[idx]["frame"].pack_forget()
+                # Blank unused slots cleanly without pack_forget
+                if item["last_text"] != "":
+                    item["lbl_badge"].configure(text="", fg_color="transparent")
+                    item["lbl_proc"].configure(text="")
+                    item["lbl_mem"].configure(text="")
+                    item["btn_kill"].grid_remove()
+                    item["btn_trim"].grid_remove()
+                    item["last_text"] = ""
+                    item["last_mem"] = ""
+                    item["last_badge"] = ""
+                    item["current_pid"] = None
 
     def _refresh_interactive_processes_ui(self):
         """Fetches top processes non-blockingly from telemetry cache or background scan and updates rows in-place."""
@@ -6109,8 +6103,10 @@ composite hardware score and throughput ratings.
             if (ram_pct > 80.0 or mem_leaked) and (now_ts - getattr(self, "_last_mem_heal_ts", 0.0) >= 60.0):
                 self._last_mem_heal_ts = now_ts
                 def _auto_trim():
+                    time.sleep(0.05)
                     initial_used = psutil.virtual_memory().used
                     self.optimizer.run_memory_boost(callback=lambda msg: None)
+                    time.sleep(0.05)
                     freed_mb = max(0.0, (initial_used - psutil.virtual_memory().used) / (1024**2))
                     self.log_to_ai_feed(f"🛡 [Autonomous Guardian] Memory pressure threshold exceeded ({ram_pct:.0f}%). Auto-trimmed working sets (Freed ~{freed_mb:.1f} MB).")
                 threading.Thread(target=_auto_trim, daemon=True).start()
@@ -6122,14 +6118,16 @@ composite hardware score and throughput ratings.
                 def _auto_net():
                     try:
                         import subprocess
+                        time.sleep(0.05)
                         subprocess.run(["ipconfig", "/flushdns"], creationflags=0x08000000, timeout=2.0)
+                        time.sleep(0.05)
                     except Exception:
                         pass
                     self.log_to_ai_feed(f"⚡ [Autonomous Guardian] Jitter spike detected (±{jitter_ms:.1f} ms). Flushed DNS cache & prioritized gaming QoS queues.")
                 threading.Thread(target=_auto_net, daemon=True).start()
 
             # 3. CPU Background Spike (Non-game process pegging CPU > 35% for 15+ seconds)
-            if top_p and (now_ts - getattr(self, "_last_cpu_throttle_ts", 0.0) >= 45.0):
+            if top_p and (now_ts - getattr(self, "_last_cpu_throttle_ts", 0.0) >= 60.0):
                 for p in top_p[:3]:
                     p_name = p.get("name", "")
                     p_pid = p.get("pid", 0)

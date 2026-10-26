@@ -185,7 +185,7 @@ class TelemetryBus:
                 self.last_fast_tick = now
                 updated = True
 
-            if now - self.last_medium_tick >= 5.0:
+            if now - self.last_medium_tick >= 6.0:
                 self._poll_medium_tier()
                 self.last_medium_tick = now
                 updated = True
@@ -288,10 +288,12 @@ class TelemetryBus:
         except Exception:
             pass
 
-        # Background process memory scan (Zero UI thread stutter)
+        # Background process memory scan (Zero UI thread stutter with GIL yields)
         try:
             procs = []
-            for p in psutil.process_iter(['pid', 'name', 'memory_info']):
+            for idx, p in enumerate(psutil.process_iter(['pid', 'name', 'memory_info'])):
+                if idx % 25 == 0:
+                    time.sleep(0.001)  # Yield Python GIL to Tkinter GUI thread
                 try:
                     pinfo = p.info
                     name = pinfo.get('name')

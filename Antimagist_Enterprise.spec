@@ -21,7 +21,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='Antimagist_Enterprise_Live',
+    name='Antimagist_Enterprise_Release',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -42,5 +42,5 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name='Antimagist_Enterprise_Live',
+    name='Antimagist_Enterprise_Release',
 )
