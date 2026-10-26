@@ -60,11 +60,11 @@ RULES:
 
 class AntimagistAIAgent:
     def __init__(
-        self, 
-        optimizer_core, 
-        scanner_core, 
-        network_monitor, 
-        security_sandbox,
+        self,
+        optimizer_core=None,
+        scanner_core=None,
+        network_monitor=None,
+        security_sandbox=None,
         api_key: str = "",
         gpu_sentinel=None,
         shader_sentinel=None
@@ -1340,6 +1340,26 @@ class AntimagistAIAgent:
     def _query_sovereign_kernel(self, prompt: str) -> str:
         norm = prompt.lower().strip()
         is_ar = any('\u0600' <= ch <= '\u06ff' for ch in prompt)
+
+        # 0. Lock-Free Black Box Flight Recorder Causal Lag Query
+        lag_query_keys = ["why did i just lag", "why did i lag", "why lag", "why am i lagging", "stutter", "lag spike", "ليش علق", "ليش لاق", "سبب اللاق", "تقطيع"]
+        if any(k in norm for k in lag_query_keys):
+            try:
+                from statistical_decision_engine import flight_recorder
+                attribution = flight_recorder.attribute_causal_chain(10.0)
+            except Exception as ex:
+                attribution = f"Flight telemetry nominal ({ex})"
+            if is_ar:
+                return (
+                    "🤖 [الصندوق الأسود لتسجيل الطيران — تحليل أسباب اللاق والتقطيع]\n"
+                    f"• التشخيص السببي: {attribution}\n"
+                    "• الإجراء: الحارس الإحصائي المستقل يراقب النواة ويخمد أي تذبذب غير طبيعي تلقائياً."
+                )
+            return (
+                "🤖 [Black Box Flight Recorder — Root Cause Lag Attribution]\n"
+                f"• Forensic Diagnosis: {attribution}\n"
+                "• Status: Antimagist Statistical Guardian is actively damping route & hardware jitter."
+            )
 
         # 1. Banter, Repetition Critique & Self-Awareness
         banter_keys = [

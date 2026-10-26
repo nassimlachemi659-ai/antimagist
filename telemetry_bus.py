@@ -313,6 +313,15 @@ class TelemetryBus:
             top_8 = procs[:8]
             top_5_tuples = [(x["name"], x["memory_mb"]) for x in procs[:5]]
 
+            # Feed behavioral memory velocity tracker for memory leak detection
+            try:
+                from statistical_decision_engine import process_velocity_tracker
+                for item in procs[:15]:
+                    process_velocity_tracker.record_process_sample(item["pid"], item["memory_mb"])
+                process_velocity_tracker.cleanup_dead_pids([x["pid"] for x in procs])
+            except Exception:
+                pass
+
             with self._lock:
                 self.state["top_processes"] = top_8
                 self.state["top_5_memory_processes"] = top_5_tuples

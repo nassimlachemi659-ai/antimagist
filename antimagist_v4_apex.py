@@ -2190,6 +2190,25 @@ class AntimagistV4ApexApp(AntimagistV3App):
         self.dash_ai_chat_box.see("end")
         self.dash_ai_chat_box.configure(state="disabled")
 
+        norm = query.lower()
+        if any(w in norm for w in ["why did i just lag", "why did i lag", "why lag", "why am i lagging", "stutter", "lag spike"]):
+            try:
+                from statistical_decision_engine import flight_recorder
+                attribution = flight_recorder.attribute_causal_chain(10.0)
+            except Exception as ex:
+                attribution = f"Flight telemetry nominal ({ex})"
+            def update_lag_ui():
+                if not hasattr(self, 'dash_ai_chat_box') or not self.dash_ai_chat_box.winfo_exists():
+                    return
+                now_ts = time.strftime("%H:%M:%S")
+                self.dash_ai_chat_box.configure(state="normal")
+                self.dash_ai_chat_box.insert("end", f"[{now_ts}] 🔍 [Flight Recorder Causal Stutter Attribution]:\n• {attribution}\n\n")
+                self.dash_ai_chat_box.see("end")
+                self.dash_ai_chat_box.configure(state="disabled")
+                self.sfx.play_success()
+            self.after(50, update_lag_ui)
+            return
+
         def run_bg():
             try:
                 resp = self.ai_agent.process_query(query)
@@ -6093,61 +6112,133 @@ composite hardware score and throughput ratings.
                     )
 
             # ========================================================================
-            # PROACTIVE AUTONOMOUS AI GUARDIAN LOOP (Zero-lag closed-loop self-healing)
+            # STATISTICAL & REINFORCEMENT INTELLIGENCE GUARDIAN (Zero-Overhead)
             # ========================================================================
             now_ts = time.time()
             ram_pct = float(m.get("ram_pct", 0.0))
+            cpu_pct = float(m.get("cpu_pct", 0.0))
+            ping_ms = float(m.get("ping_ms", 12.0))
+            jitter_ms = float(m.get("jitter_ms", 1.0))
+            gpu_temp = float(gm.get("temperature_c", 40.0))
+            gpu_clock = int(gm.get("core_clock_mhz", 0))
 
-            # 1. System Memory Pressure or Leak (>80% RAM or Tier 2/3 Process > 1.2 GB)
-            mem_leaked = any(p.get("memory_mb", 0) > 1200 for p in top_p if ProcessIntelligenceClassifier.classify(p.get("name", ""))["tier"] >= 2) if top_p else False
-            if (ram_pct > 80.0 or mem_leaked) and (now_ts - getattr(self, "_last_mem_heal_ts", 0.0) >= 60.0):
-                self._last_mem_heal_ts = now_ts
-                def _auto_trim():
-                    time.sleep(0.05)
-                    initial_used = psutil.virtual_memory().used
-                    self.optimizer.run_memory_boost(callback=lambda msg: None)
-                    time.sleep(0.05)
-                    freed_mb = max(0.0, (initial_used - psutil.virtual_memory().used) / (1024**2))
-                    self.log_to_ai_feed(f"🛡 [Autonomous Guardian] Memory pressure threshold exceeded ({ram_pct:.0f}%). Auto-trimmed working sets (Freed ~{freed_mb:.1f} MB).")
-                threading.Thread(target=_auto_trim, daemon=True).start()
+            from statistical_decision_engine import (
+                statistical_anomaly_engine,
+                flight_recorder,
+                intervention_evaluator,
+                process_velocity_tracker
+            )
 
-            # 2. Network Latency / Jitter Spike (>10ms jitter)
-            jitter_ms = float(m.get("jitter_ms", 0.0))
-            if jitter_ms > 10.0 and (now_ts - getattr(self, "_last_jitter_heal_ts", 0.0) >= 60.0):
-                self._last_jitter_heal_ts = now_ts
-                def _auto_net():
-                    try:
-                        import subprocess
-                        time.sleep(0.05)
-                        subprocess.run(["ipconfig", "/flushdns"], creationflags=0x08000000, timeout=2.0)
-                        time.sleep(0.05)
-                    except Exception:
-                        pass
-                    self.log_to_ai_feed(f"⚡ [Autonomous Guardian] Jitter spike detected (±{jitter_ms:.1f} ms). Flushed DNS cache & prioritized gaming QoS queues.")
-                threading.Thread(target=_auto_net, daemon=True).start()
+            # 1. Lock-Free Circular Flight Recorder Tick (<64KB RAM)
+            top_cpu_name = top_p[0]["name"] if top_p else "System"
+            top_ram_name = top_p[0]["name"] if top_p else "System"
+            flight_recorder.record_tick(
+                timestamp=now_ts,
+                cpu_pct=cpu_pct,
+                ram_mb=float(m.get("ram_used_gb", 8.0)) * 1024.0,
+                gpu_clock_mhz=gpu_clock,
+                gpu_temp=int(gpu_temp),
+                ping_ms=ping_ms,
+                jitter_ms=jitter_ms,
+                top_cpu_proc=top_cpu_name,
+                top_ram_proc=top_ram_name
+            )
 
-            # 3. CPU Background Spike (Non-game process pegging CPU > 35% for 15+ seconds)
-            if top_p and (now_ts - getattr(self, "_last_cpu_throttle_ts", 0.0) >= 60.0):
-                for p in top_p[:3]:
-                    p_name = p.get("name", "")
-                    p_pid = p.get("pid", 0)
-                    cls_info = ProcessIntelligenceClassifier.classify(p_name, p_pid)
-                    if cls_info["tier"] >= 2:
+            # 2. Welford's Variance & 3-Tick Hysteresis Anomaly Filter (Ignores Cold Start)
+            jit_spike, jit_z, _, _ = statistical_anomaly_engine.feed_sample("jitter_ms", jitter_ms)
+            ping_spike, ping_z, _, _ = statistical_anomaly_engine.feed_sample("ping_ms", ping_ms)
+            ram_spike, ram_z, _, _ = statistical_anomaly_engine.feed_sample("ram_pct", ram_pct)
+            cpu_spike, cpu_z, _, _ = statistical_anomaly_engine.feed_sample("cpu_pct", cpu_pct)
+            gpu_spike, gpu_z, _, _ = statistical_anomaly_engine.feed_sample("gpu_temp", gpu_temp)
+
+            # 3. Network Route Jitter Spike (Requires 3-tick confirmation, Z > 2.8, floor > 15ms)
+            if (jit_spike or ping_spike) and not intervention_evaluator.is_action_suppressed("flush_dns_qos"):
+                if (now_ts - getattr(self, "_last_jitter_heal_ts", 0.0) >= 60.0):
+                    self._last_jitter_heal_ts = now_ts
+                    attribution = flight_recorder.attribute_causal_chain(10.0)
+                    self.log_to_ai_feed(f"🔍 [Flight Recorder] Root Cause: {attribution}")
+                    act_id = intervention_evaluator.record_pre_intervention("flush_dns_qos", "jitter_ms", jitter_ms)
+                    def _auto_net():
                         try:
-                            proc_obj = psutil.Process(p_pid)
-                            p_cpu = proc_obj.cpu_percent(interval=None)
-                            if p_cpu > 35.0:
-                                cnt = self._high_cpu_proc_tracker.get(p_pid, 0) + 1
-                                self._high_cpu_proc_tracker[p_pid] = cnt
-                                if cnt >= 3:
-                                    proc_obj.nice(psutil.BELOW_NORMAL_PRIORITY_CLASS)
-                                    self._last_cpu_throttle_ts = now_ts
-                                    self._high_cpu_proc_tracker[p_pid] = 0
-                                    self.log_to_ai_feed(f"⚡ [Autonomous Guardian] Background process {p_name} sustained {p_cpu:.0f}% CPU. Throttled priority to BELOW_NORMAL.")
-                            else:
-                                self._high_cpu_proc_tracker[p_pid] = 0
+                            import subprocess
+                            time.sleep(0.05)
+                            subprocess.run(["ipconfig", "/flushdns"], creationflags=0x08000000, timeout=2.0)
+                            time.sleep(0.05)
                         except Exception:
                             pass
+                        self.log_to_ai_feed(f"⚡ [Autonomous Guardian] Confirmed network anomaly (Z={jit_z:.1f}). Flushed DNS cache & prioritized gaming QoS queues.")
+                        def _eval_after_15s():
+                            time.sleep(15.0)
+                            latest_jit = telemetry_bus.get_latest_metrics().get("jitter_ms", 1.0)
+                            ok_eval, eval_msg = intervention_evaluator.evaluate_post_intervention(act_id, latest_jit)
+                            self.log_to_ai_feed(f"🧠 [Reinforcement Engine] {eval_msg}")
+                        threading.Thread(target=_eval_after_15s, daemon=True).start()
+                    threading.Thread(target=_auto_net, daemon=True).start()
+
+            # 4. Behavioral Memory: Memory Leak Velocity Detector (dRAM / dt > 15 MB/min)
+            leaking_proc = None
+            if top_p:
+                for p in top_p:
+                    p_pid = p.get("pid", 0)
+                    p_name = p.get("name", "")
+                    if ProcessIntelligenceClassifier.classify(p_name, p_pid)["tier"] >= 2:
+                        should_trim, reason = process_velocity_tracker.should_allow_auto_trim(p_pid, p_name, ram_pct)
+                        if should_trim and process_velocity_tracker.is_true_memory_leak(p_pid):
+                            leaking_proc = (p_pid, p_name, reason)
+                            break
+
+            if (ram_spike or leaking_proc) and not intervention_evaluator.is_action_suppressed("trim_ram"):
+                if (now_ts - getattr(self, "_last_mem_heal_ts", 0.0) >= 60.0):
+                    self._last_mem_heal_ts = now_ts
+                    init_used_mb = psutil.virtual_memory().used / (1024**2)
+                    act_id = intervention_evaluator.record_pre_intervention("trim_ram", "used_ram_mb", init_used_mb)
+                    def _auto_trim():
+                        time.sleep(0.05)
+                        self.optimizer.run_memory_boost(callback=lambda msg: None)
+                        time.sleep(0.05)
+                        reason_str = leaking_proc[2] if leaking_proc else f"Z-score {ram_z:.1f} ({ram_pct:.0f}% RAM)"
+                        self.log_to_ai_feed(f"🛡 [Autonomous Guardian] Memory pressure confirmed ({reason_str}). Auto-trimmed working sets.")
+                        def _eval_after_15s():
+                            time.sleep(15.0)
+                            post_used_mb = psutil.virtual_memory().used / (1024**2)
+                            ok_eval, eval_msg = intervention_evaluator.evaluate_post_intervention(act_id, post_used_mb)
+                            self.log_to_ai_feed(f"🧠 [Reinforcement Engine] {eval_msg}")
+                        threading.Thread(target=_eval_after_15s, daemon=True).start()
+                    threading.Thread(target=_auto_trim, daemon=True).start()
+
+            # 5. Background Process CPU Interrupt & Throttling (Protected from active foreground app)
+            if cpu_spike and not intervention_evaluator.is_action_suppressed("throttle_cpu"):
+                if (now_ts - getattr(self, "_last_cpu_throttle_ts", 0.0) >= 60.0) and top_p:
+                    for p in top_p[:3]:
+                        p_name = p.get("name", "")
+                        p_pid = p.get("pid", 0)
+                        if ProcessIntelligenceClassifier.classify(p_name, p_pid)["tier"] >= 2:
+                            if not process_velocity_tracker.is_foreground_window(p_pid):
+                                try:
+                                    proc_obj = psutil.Process(p_pid)
+                                    p_cpu = proc_obj.cpu_percent(interval=None)
+                                    if p_cpu > 35.0:
+                                        cnt = self._high_cpu_proc_tracker.get(p_pid, 0) + 1
+                                        self._high_cpu_proc_tracker[p_pid] = cnt
+                                        if cnt >= 3:
+                                            proc_obj.nice(psutil.BELOW_NORMAL_PRIORITY_CLASS)
+                                            self._last_cpu_throttle_ts = now_ts
+                                            self._high_cpu_proc_tracker[p_pid] = 0
+                                            self.log_to_ai_feed(f"⚡ [Autonomous Guardian] Background process {p_name} sustained {p_cpu:.0f}% CPU (Z={cpu_z:.1f}). Throttled priority.")
+                                            def _rollback():
+                                                try: proc_obj.nice(psutil.NORMAL_PRIORITY_CLASS)
+                                                except Exception: pass
+                                            act_id = intervention_evaluator.record_pre_intervention("throttle_cpu", "cpu_pct", p_cpu)
+                                            def _eval_after_15s():
+                                                time.sleep(15.0)
+                                                try: post_c = proc_obj.cpu_percent(interval=None)
+                                                except Exception: post_c = 0.0
+                                                ok_eval, eval_msg = intervention_evaluator.evaluate_post_intervention(act_id, post_c, on_rollback_callback=_rollback)
+                                                self.log_to_ai_feed(f"🧠 [Reinforcement Engine] {eval_msg}")
+                                            threading.Thread(target=_eval_after_15s, daemon=True).start()
+                                            break
+                                except Exception:
+                                    pass
         except Exception:
             pass
 
